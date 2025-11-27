@@ -1,0 +1,124 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PDTPickingSystem.Views.MainMenuPage"
+             Title="LCC Picking System"
+             BackgroundColor="yellow">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <!-- App Logo -->
+            <Image Source="pickinglogo.png"
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Start"
+                   HeightRequest="100"
+                   WidthRequest="320"
+                   Aspect="AspectFit"
+                   Margin="0,0,0,0" />
+
+            <!-- First row -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Start Picking"
+                        Clicked="BtnOpt1_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+
+                <Button Text="Start Checking"
+                        Clicked="BtnOpt2_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+            </HorizontalStackLayout>
+
+            <!-- Second row -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Set User ID"
+                        Clicked="BtnOpt3_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+
+                <Button Text="Confirm Check"
+                        Clicked="BtnOpt4_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+            </HorizontalStackLayout>
+
+            <!-- Third row -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Server Settings"
+                        Clicked="BtnOpt5_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="275"
+                        HeightRequest="50"
+                        FontSize="20"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+            </HorizontalStackLayout>
+
+            <!-- Fourth row -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Set Pick Ref"
+                        Clicked="BtnOpt6_Clicked"
+                        BackgroundColor="#0078D7"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+
+                <Button Text="Exit"
+                        Clicked="BtnOpt7_Clicked"
+                        BackgroundColor="#D83B01"
+                        TextColor="White"
+                        WidthRequest="130"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Padding="5"
+                        CornerRadius="10"
+                        FontAttributes="Bold"/>
+            </HorizontalStackLayout>
+
+            <!-- User Info -->
+            <Label x:Name="lblUser"
+                   Text="User: (None)"
+                   FontAttributes="Bold"
+                   FontSize="14"
+                   TextColor="Black"
+                   HorizontalOptions="Center"/>
+
+            <!-- Status -->
+            <Label x:Name="lblStatus"
+                   Text=""
+                   FontSize="14"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

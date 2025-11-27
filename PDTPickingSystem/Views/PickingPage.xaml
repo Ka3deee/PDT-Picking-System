@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PDTPickingSystem.Views.PickingPage"
+             Title="Picking Page"
+             BackgroundColor="White">
+
+    <Grid Padding="10" RowSpacing="10">
+
+        <!-- Header User -->
+        <Label x:Name="lblUser" Grid.Row="0" Text="User" FontSize="Medium" />
+
+        <!-- Department/Store -->
+        <Label x:Name="lblDeptStore" Grid.Row="1" Text="Store/Dept:" FontSize="Small"/>
+        <Entry x:Name="txtDeptStore" Grid.Row="1" Grid.Column="1" IsReadOnly="True"/>
+
+        <!-- Barcode and SKU Inputs -->
+        <Entry x:Name="txtBarcode" Grid.Row="2" Placeholder="Scan Barcode" Keyboard="Numeric"/>
+        <Entry x:Name="txtSKU" Grid.Row="3" Placeholder="SKU" IsReadOnly="True"/>
+        <Entry x:Name="txtCase" Grid.Row="4" Placeholder="Case Qty" Keyboard="Numeric"/>
+        <Entry x:Name="txtEach" Grid.Row="5" Placeholder="Each Qty" Keyboard="Numeric"/>
+
+        <!-- Stocker Input -->
+        <Entry x:Name="txtStocker" Grid.Row="6" Placeholder="Stocker ID" Keyboard="Numeric"/>
+        <Button x:Name="btnConfirm" Grid.Row="6" Grid.Column="1" Text="Confirm Stocker"/>
+        <Button x:Name="btnCancel" Grid.Row="6" Grid.Column="2" Text="Cancel"/>
+
+        <!-- Navigation Panel -->
+        <StackLayout Grid.Row="7" Orientation="Horizontal" Spacing="5">
+            <Button x:Name="btnFirst" Text="First"/>
+            <Button x:Name="btnPrev" Text="Prev"/>
+            <Button x:Name="btnNext" Text="Next"/>
+            <Button x:Name="btnLast" Text="Last"/>
+            <Button x:Name="btnGoto" Text="Goto"/>
+            <Button x:Name="btnUnpick" Text="Unpick"/>
+        </StackLayout>
+
+        <!-- Goto Line -->
+        <StackLayout Grid.Row="8" Orientation="Horizontal" Spacing="5">
+            <Entry x:Name="txtLine" Placeholder="Line No." Keyboard="Numeric"/>
+            <Button x:Name="btnCloseGoto" Text="Close"/>
+        </StackLayout>
+
+        <!-- Picked Items List -->
+        <ListView x:Name="lvSKU" Grid.Row="9" HeightRequest="200">
+            <ListView.Header>
+                <Grid ColumnDefinitions="*,*,*,*,*,*,*">
+                    <Label Text="ID"/>
+                    <Label Text="Slot"/>
+                    <Label Text="SKU"/>
+                    <Label Text="Descr"/>
+                    <Label Text="Qty"/>
+                    <Label Text="Picked"/>
+                    <Label Text="UPC"/>
+                </Grid>
+            </ListView.Header>
+        </ListView>
+
+        <!-- Barcode Details Panel -->
+        <StackLayout x:Name="pnlBarcodes" Grid.Row="10" IsVisible="False">
+            <Label Text="Barcodes"/>
+            <ListView x:Name="lvBarcodes" HeightRequest="150"/>
+            <Button x:Name="btnClose" Text="Close"/>
+        </StackLayout>
+
+        <!-- Slots Panel -->
+        <StackLayout x:Name="pnlSlots" Grid.Row="11" IsVisible="False">
+            <Label Text="Slots"/>
+            <ListView x:Name="lvSlots" HeightRequest="150"/>
+            <Button x:Name="btnCloseSlot" Text="Close"/>
+        </StackLayout>
+
+        <!-- Progress / Pick Count -->
+        <Label x:Name="txtDone" Grid.Row="12" Text="0/0" FontSize="Medium"/>
+        <ActivityIndicator x:Name="pbReq" Grid.Row="12" IsRunning="False"/>
+
+        <!-- Accept / Finish Buttons -->
+        <Button x:Name="btnAccept" Grid.Row="13" Text="Accept"/>
+        <Button x:Name="btnFinished" Grid.Row="13" Text="Finish Picking" IsVisible="False"/>
+
+        <!-- Hidden / Helper Entries -->
+        <Entry x:Name="txtpSKU" IsVisible="False"/>
+        <Entry x:Name="txtpDescr" IsVisible="False"/>
+        <Entry x:Name="txtpSlot" IsVisible="False"/>
+        <Entry x:Name="txtpEach" IsVisible="False"/>
+        <Entry x:Name="txtpCase" IsVisible="False"/>
+
+    </Grid>
+</ContentPage>
