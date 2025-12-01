@@ -2,7 +2,94 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PDTPickingSystem.Views.PickingPage"
-             Title="Picking Page">
-    <!-- Your UI goes here -->
-</ContentPage>
+             Title="Picking Page"
+             BackgroundColor="White">
 
+	<ScrollView>
+		<VerticalStackLayout Padding="10" Spacing="10">
+
+			<!-- Barcode Scan -->
+			<Label Text="Scan Barcode:" FontAttributes="Bold"/>
+			<Entry x:Name="txtBarcode"
+                   Placeholder="Scan or enter barcode"
+                   Completed="TxtBarcode_Completed"/>
+
+			<!-- Current SKU Info -->
+			<Label Text="Current Item:" FontAttributes="Bold"/>
+			<Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+				<Label Text="SKU:" Grid.Row="0" Grid.Column="0"/>
+				<Entry x:Name="txtpSKU" Grid.Row="0" Grid.Column="1" IsReadOnly="True"/>
+
+				<Label Text="Description:" Grid.Row="1" Grid.Column="0"/>
+				<Entry x:Name="txtpDescr" Grid.Row="1" Grid.Column="1" IsReadOnly="True"/>
+			</Grid>
+
+			<Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+				<Label Text="Case Qty:" Grid.Row="0" Grid.Column="0"/>
+				<Entry x:Name="txtCase" Grid.Row="0" Grid.Column="1"/>
+
+				<Label Text="Each Qty:" Grid.Row="1" Grid.Column="0"/>
+				<Entry x:Name="txtpEach" Grid.Row="1" Grid.Column="1"/>
+			</Grid>
+
+			<!-- Hidden internal references -->
+			<Entry x:Name="txtSKU" IsReadOnly="True" IsVisible="False"/>
+			<Entry x:Name="txtpCase" IsReadOnly="True" IsVisible="False"/>
+
+			<!-- Stocker Confirmation Panel -->
+			<Frame x:Name="pnlConfirm" IsVisible="False" BorderColor="Gray" Padding="10">
+				<VerticalStackLayout>
+					<Label Text="Enter Stocker ID:"/>
+					<Entry x:Name="txtStocker" Completed="TxtStockerConfirm_Completed"/>
+					<Button Text="Confirm" Clicked="BtnConfirm_Clicked"/>
+				</VerticalStackLayout>
+			</Frame>
+
+			<!-- Pick List CollectionView -->
+			<Label Text="Pick List:" FontAttributes="Bold"/>
+			<CollectionView x:Name="cvPickList"
+                            ItemsSource="{Binding pickList}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding CurrentPick, Mode=TwoWay}">
+				<CollectionView.ItemTemplate>
+					<DataTemplate>
+						<Frame Padding="5" Margin="2" BorderColor="Gray"
+                               BackgroundColor="{Binding PickedQty, Converter={StaticResource PickedToColorConverter}}">
+							<Grid ColumnDefinitions="*,*,*,*">
+								<Label Text="{Binding SKU}" Grid.Column="0"/>
+								<Label Text="{Binding Descr}" Grid.Column="1"/>
+								<Label Text="{Binding Qty}" Grid.Column="2"/>
+								<Label Text="{Binding DisplayQty}" Grid.Column="3"/>
+							</Grid>
+						</Frame>
+					</DataTemplate>
+				</CollectionView.ItemTemplate>
+			</CollectionView>
+
+			<!-- Navigation -->
+			<HorizontalStackLayout Spacing="5" Margin="0,10,0,0">
+				<Button x:Name="btnFirst" Text="|&lt;" Clicked="BtnNavigate_Clicked"/>
+				<Button x:Name="btnPrev" Text="&lt;" Clicked="BtnNavigate_Clicked"/>
+				<Button x:Name="btnNext" Text="&gt;" Clicked="BtnNavigate_Clicked"/>
+				<Button x:Name="btnLast" Text="&gt;|" Clicked="BtnNavigate_Clicked"/>
+			</HorizontalStackLayout>
+
+			<!-- Goto Panel -->
+			<Frame x:Name="pnlGoto" IsVisible="False" BorderColor="Gray" Padding="10">
+				<VerticalStackLayout>
+					<Label Text="Go to Line:"/>
+					<Entry x:Name="txtLine" Completed="TxtLine_Completed"/>
+					<Button Text="Close" Clicked="BtnCloseGoto_Clicked"/>
+				</VerticalStackLayout>
+			</Frame>
+
+			<!-- Pick Progress -->
+			<Label Text="Picked:" FontAttributes="Bold"/>
+			<Label x:Name="txtDone" Text="0/0" FontSize="Medium" TextColor="Green"/>
+
+			<!-- Finish Button -->
+			<Button x:Name="btnFinished" Text="Finish Picking" IsVisible="False"/>
+
+		</VerticalStackLayout>
+	</ScrollView>
+</ContentPage>
