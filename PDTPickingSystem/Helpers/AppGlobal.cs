@@ -26,6 +26,11 @@ namespace PDTPickingSystem.Helpers
         public static bool IsChecker { get; set; } = false;
 
         // ------------------------------
+        // NEW: Store / Department info
+        // ------------------------------
+        public static string DeptStore { get; set; } = "";   // <--- ADDED
+
+        // ------------------------------
         // Server config
         // ------------------------------
         public static string Server { get; set; } = "10.6.0.18";
@@ -113,17 +118,11 @@ namespace PDTPickingSystem.Helpers
         //  STORAGE PATH (ANDROID + FALLBACK)
         // ======================================================================
 
-        /// <summary>
-        /// Returns the external folder path:
-        /// /storage/emulated/0/Android/data/com.companyname.pdtpickingsystem/Backup/PDTPicking
-        /// </summary>
         public static string GetExternalBackupFolder()
         {
 #if ANDROID
             try
             {
-                // Main external storage root: /storage/emulated/0
-                // string root = AEnvironment.ExternalStorageDirectory.AbsolutePath;
                 string root = "/storage/emulated/0/";
 
                 string full = Path.Combine(
@@ -141,10 +140,8 @@ namespace PDTPickingSystem.Helpers
             catch
             {
                 // Fall through to internal storage
-
             }
 #endif
-            // Internal fallback (non-Android or failure)
             string internalPath = Path.Combine(FileSystem.AppDataDirectory, "Backup", "PDTPicking");
             if (!Directory.Exists(internalPath))
                 Directory.CreateDirectory(internalPath);
@@ -152,7 +149,6 @@ namespace PDTPickingSystem.Helpers
             return internalPath;
         }
 
-        // Location of wifi.txt
         private static string ConfigFile => Path.Combine(GetExternalBackupFolder(), "wifi.txt");
 
         // ======================================================================
