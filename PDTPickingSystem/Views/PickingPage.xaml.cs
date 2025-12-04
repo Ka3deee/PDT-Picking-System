@@ -3,6 +3,7 @@ using Microsoft.Maui.Dispatching;
 using PDTPickingSystem.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PDTPickingSystem.Views
@@ -10,8 +11,7 @@ namespace PDTPickingSystem.Views
     public partial class PickingPage : ContentPage
     {
         private Entry txtboxFocus;
-        private int sSKUIndex = 0;
-        private string sSKU = "";
+        private string sSKU = "0"; // changed to string to match previous behavior
         private int ID_Stocker = 0;
         private bool isBarcode = true;
 
@@ -22,7 +22,7 @@ namespace PDTPickingSystem.Views
 
         // Fields replacing Entry.Tag
         private string txtpSKU_UPC = "";
-        private string txtpSlot_Value = "";
+        private string txtpSlot_Value = ""; // stores multiple slots
 
         public PickingPage()
         {
@@ -47,6 +47,12 @@ namespace PDTPickingSystem.Views
             txtDeptStore.TextChanged += TxtDeptStore_TextChanged;
             txtpSKU.TextChanged += TxtpSKU_TextChanged;
             lblSkuToPick.ParentChanged += LblSkuToPick_ParentChanged;
+
+            lblCase.ParentChanged += LblCase_ParentChanged;
+            txtpCase.TextChanged += TxtpCase_TextChanged;
+
+            lblEach.ParentChanged += LblEach_ParentChanged;
+            txtpEach.TextChanged += TxtpEach_TextChanged;
 
             // Tap gesture for llblDescr
             var tapGestureDescr = new TapGestureRecognizer();
@@ -105,16 +111,31 @@ namespace PDTPickingSystem.Views
             {
                 var item = pickList.Find(p => p.SKU == currentSKU);
                 llblDescr.Text = item != null ? item.Descr : "";
+
+                if (item != null && item.Slot.Contains(","))
+                {
+                    txtpSlot.Text = "<< Multiple Slots >>";
+                    txtpSlot_Value = item.Slot;
+                }
+                else
+                {
+                    txtpSlot.Text = item?.Slot ?? "";
+                    txtpSlot_Value = "";
+                }
+
+                llblSlot.Text = txtpSlot.Text;
             }
             else
             {
                 llblDescr.Text = "";
+                txtpSlot.Text = "";
+                txtpSlot_Value = "";
+                llblSlot.Text = "";
             }
         }
 
         private async void BtnConfirm_Clicked(object sender, EventArgs e) { }
         private void TxtStockerConfirm_Completed(object sender, EventArgs e) { }
-        private void BtnNavigate_Clicked(object sender, EventArgs e) { }
         private void BtnCloseGoto_Clicked(object sender, EventArgs e) => pnlGoto.IsVisible = false;
         private void TxtLine_Completed(object sender, EventArgs e) { }
 
@@ -135,20 +156,23 @@ namespace PDTPickingSystem.Views
         }
 
         private void LblSkuToPick_ParentChanged(object sender, EventArgs e) { }
-
         private void TxtpSKU_TextChanged(object sender, TextChangedEventArgs e)
         {
             var currentSKU = txtpSKU.Text?.Trim();
-            if (!string.IsNullOrEmpty(currentSKU))
-            {
-                var item = pickList.Find(p => p.SKU == currentSKU);
-                llblDescr.Text = item != null ? item.Descr : "";
-            }
-            else
-            {
-                llblDescr.Text = "";
-            }
+            llblDescr.Text = pickList.Find(p => p.SKU == currentSKU)?.Descr ?? "";
         }
+
+        // -----------------------------
+        // lblCase and txtpCase
+        // -----------------------------
+        private void LblCase_ParentChanged(object sender, EventArgs e) { }
+        private void TxtpCase_TextChanged(object sender, TextChangedEventArgs e) { }
+
+        // -----------------------------
+        // lblEach and txtpEach
+        // -----------------------------
+        private void LblEach_ParentChanged(object sender, EventArgs e) { }
+        private void TxtpEach_TextChanged(object sender, TextChangedEventArgs e) { }
 
         // -----------------------------
         // llblDescr tapped
@@ -172,9 +196,6 @@ namespace PDTPickingSystem.Views
             pnlBarcodes.IsVisible = true;
         }
 
-        // -----------------------------
-        // llblSlot tapped
-        // -----------------------------
         private void LlblSlot_Tapped(object sender, EventArgs e)
         {
             if (txtpSlot.Text == "<< Multiple Slots >>")
@@ -182,7 +203,7 @@ namespace PDTPickingSystem.Views
                 lvSlots.ItemsSource = null;
                 var slotList = new List<SlotItem>();
 
-                foreach (var sSlot in txtpSlot_Value.Split(','))
+                foreach (var sSlot in txtpSlot_Value.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var cleanSlot = sSlot.Trim();
                     if (!string.IsNullOrEmpty(cleanSlot))
@@ -192,6 +213,50 @@ namespace PDTPickingSystem.Views
                 lvSlots.ItemsSource = slotList;
                 pnlSlots.IsVisible = true;
             }
+        }
+
+        // -----------------------------
+        // Navigation using CommandParameter
+        // -----------------------------
+        private void BtnNavigate_Clicked(object sender, EventArgs e)
+        {
+            var btn = sender as Button;
+            var action = btn.CommandParameter?.ToString();
+
+            switch (action)
+            {
+                case "Goto":
+                    txtLine.Text = "";
+                    pnlGoto.IsVisible = true;
+                    btnFirst.Focus();
+                    return;
+                case "First":
+                    sSKU = "0";
+                    pnlGoto.IsVisible = false;
+                    break;
+                case "Prev":
+                    sSKU = (int.Parse(sSKU) - 1).ToString();
+                    break;
+                case "Next":
+                    sSKU = (int.Parse(sSKU) + 1).ToString();
+                    break;
+                case "Last":
+                    sSKU = (cvPickList.ItemsSource.Cast<object>().Count() - 1).ToString();
+                    pnlGoto.IsVisible = false;
+                    break;
+                case "Unpick":
+                    sSKU = "0";
+                    pnlGoto.IsVisible = false;
+                    break;
+            }
+
+            _GetSKUtoPick();
+        }
+
+        private void _GetSKUtoPick()
+        {
+            // Implement your SKU selection logic here
+            // Update txtpSKU, txtpDescr, txtpSlot etc.
         }
 
         // -----------------------------
@@ -214,6 +279,7 @@ namespace PDTPickingSystem.Views
             public int ID { get; set; }
             public string SKU { get; set; } = "";
             public string Descr { get; set; } = "";
+            public string Slot { get; set; } = "";
             public double Qty { get; set; }
             public double PickedQty { get; set; }
             public string DisplayQty => PickedQty.ToString("N2");
