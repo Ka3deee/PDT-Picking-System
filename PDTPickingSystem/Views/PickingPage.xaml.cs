@@ -1,8 +1,15 @@
-﻿using Microsoft.Maui.Controls;
+﻿using Android.OS;
+using Microsoft.Data.SqlTypes;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Dispatching;
 using PDTPickingSystem.Helpers;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,80 +17,175 @@ namespace PDTPickingSystem.Views
 {
     public partial class PickingPage : ContentPage
     {
-        private Entry txtboxFocus;
-        private string sSKU = "0"; // changed to string to match previous behavior
-        private int ID_Stocker = 0;
-        private bool isBarcode = true;
+        // Tracks which Entry currently has focus (TextBox → Entry in MAUI)
+        private Entry txtboxFocus; // Converted from TextBox
+        // SKU and stocker tracking
+        private string sSKU = "0"; // Converted from String
+        private int ID_Stocker = 0; // Converted from Integer
+        // Track whether picking has started (converted from WinForms isStarted)
+        private bool isStarted = false;
+        // Replaces isStarted logic to track barcode focus
+        private bool isBarcode = true; // Replaces isStarted logic
+        // Track summary mode (converted from WinForms isSummary)
+        private int isSummary = 0;
+
+        // Pick number
+        private string pPickNo = ""; // <-- this replaces your WinForms pPickNo
+
+        private long ID_SumHdr = 0; // Converted from Long
 
         private IDispatcherTimer tmrRequest;
         private int tmrRetryCounter = 0;
 
         private List<PickQtyItem> pickList = new List<PickQtyItem>();
 
-        // Fields replacing Entry.Tag
         private string txtpSKU_UPC = "";
-        private string txtpSlot_Value = ""; // stores multiple slots
+        private string txtpSlot_Value = "";
 
+        // Replaces txtStocker.Tag
+        private object txtStockerTag = null;
+
+        private ObservableCollection<BarcodeItem> barcodeList = new ObservableCollection<BarcodeItem>();
         public PickingPage()
         {
-            InitializeComponent();
+            InitializeComponent(); // MAUI equivalent of VB InitializeComponent()
 
-            txtboxFocus = txtBarcode;
+            // ===== Initialize the focus tracker =====
+            txtboxFocus = txtBarcode; // Initially focus on barcode Entry
 
+            // ===== Timer for requests (replaces VB Timer) =====
             tmrRequest = Dispatcher.CreateTimer();
             tmrRequest.Interval = TimeSpan.FromSeconds(1);
             tmrRequest.Tick += TmrRequest_Tick;
 
+            // ===== Page events =====
             Appearing += PickingPage_Appearing;
             Disappearing += PickingPage_Disappearing;
 
+            // ===== Entry focus events (replaces VB GotFocus/LostFocus) =====
             txtBarcode.Focused += Entry_GotFocus;
             txtBarcode.Unfocused += Entry_LostFocus;
-            txtStocker.Focused += Entry_GotFocus;
-            txtStocker.Unfocused += Entry_LostFocus;
-            txtCase.Focused += Entry_GotFocus;
-            txtpEach.Focused += Entry_GotFocus;
 
+            txtSKU.Focused += Entry_GotFocus;
+            txtSKU.Unfocused += Entry_LostFocus;
+
+            txtCase.Focused += Entry_GotFocus;
+            txtCase.Unfocused += Entry_LostFocus;
+
+            txtEach.Focused += Entry_GotFocus;
+            txtEach.Unfocused += Entry_LostFocus;
+
+            txtpCase.Focused += Entry_GotFocus;
+            txtpCase.Unfocused += Entry_LostFocus;
+
+            txtpEach.Focused += Entry_GotFocus;
+            txtpEach.Unfocused += Entry_LostFocus;
+
+            txtDone.Focused += Entry_GotFocus;
+            txtDone.Unfocused += Entry_LostFocus;
+
+            // ===== TextChanged events (replaces VB TextChanged handlers) =====
+            txtBarcode.TextChanged += TxtBarcode_TextChanged;
             txtDeptStore.TextChanged += TxtDeptStore_TextChanged;
             txtpSKU.TextChanged += TxtpSKU_TextChanged;
-            lblSkuToPick.ParentChanged += LblSkuToPick_ParentChanged;
-
-            lblCase.ParentChanged += LblCase_ParentChanged;
             txtpCase.TextChanged += TxtpCase_TextChanged;
-
-            lblEach.ParentChanged += LblEach_ParentChanged;
             txtpEach.TextChanged += TxtpEach_TextChanged;
+            txtEach.TextChanged += TxtEach_TextChanged;
+            txtSKU.TextChanged += TxtSKU_TextChanged;
+            txtCase.TextChanged += TxtCase_TextChanged;
+            txtpSlot.TextChanged += TxtpSlot_TextChanged;
+            txtDone.TextChanged += TxtDone_TextChanged;
 
-            // Tap gesture for llblDescr
-            var tapGestureDescr = new TapGestureRecognizer();
-            tapGestureDescr.Tapped += LlblDescr_Tapped;
-            llblDescr.GestureRecognizers.Add(tapGestureDescr);
+            // ===== Loaded events (replaces VB ParentChanged or Form Load) =====
+            lblCase.Loaded += LblCase_Loaded;
+            lblEach.Loaded += LblEach_Loaded;
+            lblEach2.Loaded += LblEach2_Loaded;
+            lblCase2.Loaded += LblCase2_Loaded;
+            lblBarcode.Loaded += LblBarcode_Loaded;
+            Gotolbl.Loaded += Gotolbl_Loaded;
+            lblLineNo.Loaded += LblLineNo_Loaded;
+            lblSKU.Loaded += LblSKU_Loaded;
+            lblDone.Loaded += LblDone_Loaded;
+            lblInput.Loaded += LblInput_Loaded;     // NEW: pnlConfirm inner label
 
-            // Tap gesture for llblSlot
-            var tapGestureSlot = new TapGestureRecognizer();
-            tapGestureSlot.Tapped += LlblSlot_Tapped;
-            llblSlot.GestureRecognizers.Add(tapGestureSlot);
+            // Tapped events
+            llblDescr.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(LlblDescr_Tapped) });
+            pnlSlots.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(PnlSlots_Tapped) });
+
+            // ===== Button click events (replaces VB Click handlers) =====
+            btnCloseGoto.Clicked += BtnCloseGoto_Clicked;
+            pbScanned.Clicked += PbScanned_Clicked;
+            btnAccept.Clicked += BtnAccept_Clicked;
+            btnCloseSlot.Clicked += BtnCloseSlot_Clicked;
+            btnConfirm.Clicked += BtnConfirm_Clicked;
+            btnCancel.Clicked += BtnCancel_Clicked;
+
+            // ===== Navigation Buttons =====
+            btnGoto.Clicked += BtnGoto_Clicked;
+            btnPrev.Clicked += BtnPrev_Clicked;
+            btnNext.Clicked += BtnNext_Clicked;
+
+            txtBarcode.Completed += Entry_BarcodeAndQty_Completed;
+            txtCase.Completed += Entry_BarcodeAndQty_Completed;
+            txtEach.Completed += Entry_BarcodeAndQty_Completed;
+
+
+            // ===== Focus panel events =====
+            pnlBarcodes.Focused += PnlBarcodes_Focused;
         }
 
-        private void PickingPage_Appearing(object sender, EventArgs e)
+        // ================== Form Properties ==================
+        // Equivalent of frmPicking_Closing in MAUI
+        private async void PickingPage_Appearing(object sender, EventArgs e)
         {
+            // ------------------------------
+            // Set user label using MAUI-compatible method
+            // ------------------------------
+            AppGlobal.SetUser(lblUser);
+
+            // ------------------------------
+            // Track barcode mode
+            // ------------------------------
             isBarcode = true;
+
+            // ------------------------------
+            // Hide panels at start (equivalent to setting Location + Dock in WinForms)
+            // In MAUI, XAML layout handles positioning. Just ensure visibility is correct
+            // ------------------------------
             pnlConfirm.IsVisible = false;
+            pnlBarcodes.IsVisible = false;
+            pnlSlots.IsVisible = false;
+            pnlGoto.IsVisible = false;
+
+            // ------------------------------
+            // Hide Finish button (WinForms: btnFinished.Hide())
+            // ------------------------------
+            btnFinished.IsVisible = false;
+
+            // ------------------------------
+            // Load current Pick Number
+            // Equivalent of _GetSetPickNo() in VB.NET
+            // Make it async if it involves database calls
+            // ------------------------------
+            await _GetSetPickNoAsync(); // Make sure _GetSetPickNoAsync is defined as Task-returning
         }
 
+        // Equivalent of frmPicking_Closing in MAUI
         private void PickingPage_Disappearing(object sender, EventArgs e)
         {
-            if (tmrRequest?.IsRunning == true)
-                tmrRequest.Stop();
+            // Stop the timer if it exists
+            tmrRequest?.Stop();
         }
 
-        private void Entry_GotFocus(object sender, EventArgs e)
+        private void Entry_GotFocus(object sender, FocusEventArgs e)
         {
             txtboxFocus = sender as Entry;
+            if (txtboxFocus == null) return;
+
             if (txtboxFocus == txtBarcode || txtboxFocus == txtStocker)
             {
                 isBarcode = txtboxFocus == txtBarcode;
-                txtboxFocus.BackgroundColor = Colors.LightGreen;
+                txtboxFocus.BackgroundColor = Colors.PaleGreen;
             }
             else
             {
@@ -92,16 +194,69 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        private void Entry_LostFocus(object sender, EventArgs e)
+        private void Entry_LostFocus(object sender, FocusEventArgs e)
         {
             var entry = sender as Entry;
-            entry.BackgroundColor = Colors.WhiteSmoke;
-            entry.SelectionLength = 0;
+            if (entry == null) return;
+
+            entry.SelectionLength = 0; // clear text selection
         }
 
-        private async void TxtBarcode_Completed(object sender, EventArgs e)
+        private async void Entry_BarcodeAndQty_Completed(object sender, EventArgs e)
         {
-            await GetSKUDescrAsync();
+            if (sender is not Entry entry) return;
+
+            // Validate numeric input
+            if (!_isAllowedNum(entry.Text))
+            {
+                entry.Text = "";
+                return;
+            }
+
+            // Handle Enter key
+            if (entry == txtBarcode)
+            {
+                await GetSKUDescrAsync();
+            }
+            else if (entry == txtCase)
+            {
+                txtEach.Focus();
+                txtEach.CursorPosition = 0;
+                txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
+            }
+            else if (entry == txtEach)
+            {
+                BtnAccept_Clicked(null, null);
+            }
+        }
+
+        // Optional: handle Escape key if you have hardware keyboard
+        private void HandleEscapeKey()
+        {
+            if (Navigation.NavigationStack.Count > 1)
+                Navigation.PopAsync(); // Close current page
+            else
+                DisplayAlert("Exit", "Cannot close page in navigation stack.", "OK");
+        }
+
+        // Focus logic for pnlBarcodes (converted GotFocus)
+        private void PnlBarcodes_Focused(object sender, FocusEventArgs e)
+        {
+            // Focus the first Entry inside the panel, if any
+            if (pnlBarcodes.Content is Microsoft.Maui.Controls.Layout layout && layout.Children.FirstOrDefault() is Entry firstEntry)
+            {
+                firstEntry.Focus();
+            }
+        }
+
+        private void TxtBarcode_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void LblBarcode_ParentChanged(object sender, EventArgs e) { }
+        private void LblDone_ParentChanged(object sender, EventArgs e) { }
+        private void TxtpSlot_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void TxtDone_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void TxtStocker_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Your logic here
         }
 
         private async Task GetSKUDescrAsync()
@@ -110,7 +265,7 @@ namespace PDTPickingSystem.Views
             if (!string.IsNullOrEmpty(currentSKU))
             {
                 var item = pickList.Find(p => p.SKU == currentSKU);
-                llblDescr.Text = item != null ? item.Descr : "";
+                llblDescr.Text = item?.Descr ?? "";
 
                 if (item != null && item.Slot.Contains(","))
                 {
@@ -133,19 +288,111 @@ namespace PDTPickingSystem.Views
                 llblSlot.Text = "";
             }
         }
+        private async Task _GetSetPickNoAsync()
+        {
+            // Example: Load current pick number from AppGlobal or database
+            if (!await AppGlobal.ConnectSqlAsync()) return;
 
-        private async void BtnConfirm_Clicked(object sender, EventArgs e) { }
+            // Example logic (replace with your actual query)
+            var pickNo = AppGlobal.PickNo;
+            if (!string.IsNullOrEmpty(pickNo))
+            {
+                txtpSKU.Text = pickNo; // or whatever control you want to update
+            }
+        }
+
+        private async void BtnAccept_Clicked(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtEach.Text) &&
+                !string.IsNullOrWhiteSpace(txtCase.Text) &&
+                double.TryParse(txtEach.Text, out double eachValue) &&
+                double.TryParse(txtCase.Text, out double caseValue) &&
+                eachValue >= 0 && caseValue >= 0)
+            {
+                // BOTH QUANTITIES ARE ZERO
+                if (eachValue == 0 && caseValue == 0)
+                {
+                    bool acceptZero = await DisplayAlert(
+                        "Accept?",
+                        "You have entered 0 in quantity.\nMeaning, the item is not available.\n\nAccept 0 quantity?",
+                        "Yes",
+                        "No");
+
+                    if (acceptZero)
+                    {
+                        // Hide main panels
+                        pnlInput.IsVisible = false;
+                        pnlNavigate.IsVisible = false;
+
+                        // Reset stocker
+                        txtStocker.Text = "";
+                        txtStockerTag = null;
+                        txtStocker.IsReadOnly = !_CheckOption_Stocker();
+
+                        // Show confirm panel and focus
+                        pnlConfirm.IsVisible = true;
+
+                        // Delay slightly to ensure panel is visible before focus
+                        await Task.Delay(100);
+                        txtStocker.Focus();
+                    }
+                }
+                // NORMAL ACCEPT
+                else if (!string.IsNullOrWhiteSpace(txtSKU.Text) &&
+                         txtSKU.Text.Trim() == txtpSKU.Text.Trim())
+                {
+                    bool acceptQty = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
+                    if (acceptQty)
+                        _AcceptItem();
+                }
+            }
+        }
+
+        // Confirm button
+        private async void BtnConfirm_Clicked(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtStocker.Text))
+            {
+                txtStockerTag = txtStocker.Text; // set tag here
+                ID_Stocker = Convert.ToInt32(txtStockerTag);
+
+                await DisplayAlert("OK", "Item Confirmed!", "OK");
+
+                _AcceptItem();
+
+                // Hide confirm panel
+                pnlConfirm.IsVisible = false;
+
+                // Restore input panels
+                pnlNavigate.IsVisible = true;
+                pnlInput.IsVisible = true;
+
+                txtBarcode.Focus();
+            }
+        }
+
+        // Cancel button
+        private void BtnCancel_Clicked(object sender, EventArgs e)
+        {
+            pnlConfirm.IsVisible = false; // only hide confirm
+            pnlNavigate.IsVisible = true;
+            pnlInput.IsVisible = true;
+
+            txtBarcode.Focus();
+        }
+
         private void TxtStockerConfirm_Completed(object sender, EventArgs e) { }
         private void BtnCloseGoto_Clicked(object sender, EventArgs e) => pnlGoto.IsVisible = false;
         private void TxtLine_Completed(object sender, EventArgs e) { }
+        private void TxtLine_TextChanged(object sender, TextChangedEventArgs e) { }
 
-        private async void TmrRequest_Tick(object sender, EventArgs e)
+        private void TmrRequest_Tick(object sender, EventArgs e)
         {
             tmrRetryCounter++;
             if (tmrRetryCounter > 5)
             {
                 tmrRetryCounter = 0;
-                await DisplayAlert("Error", "Unable to request pick list!", "OK");
+                DisplayAlert("Error", "Unable to request pick list!", "OK");
                 tmrRequest.Stop();
             }
         }
@@ -155,125 +402,143 @@ namespace PDTPickingSystem.Views
             AppGlobal.DeptStore = txtDeptStore.Text;
         }
 
-        private void LblSkuToPick_ParentChanged(object sender, EventArgs e) { }
         private void TxtpSKU_TextChanged(object sender, TextChangedEventArgs e)
         {
             var currentSKU = txtpSKU.Text?.Trim();
             llblDescr.Text = pickList.Find(p => p.SKU == currentSKU)?.Descr ?? "";
         }
 
-        // -----------------------------
-        // lblCase and txtpCase
-        // -----------------------------
-        private void LblCase_ParentChanged(object sender, EventArgs e) { }
         private void TxtpCase_TextChanged(object sender, TextChangedEventArgs e) { }
-
-        // -----------------------------
-        // lblEach and txtpEach
-        // -----------------------------
-        private void LblEach_ParentChanged(object sender, EventArgs e) { }
         private void TxtpEach_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void TxtEach_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void TxtSKU_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void TxtCase_TextChanged(object sender, TextChangedEventArgs e) { }
 
-        // -----------------------------
-        // llblDescr tapped
-        // -----------------------------
-        private void LlblDescr_Tapped(object sender, EventArgs e)
+        private void PbScanned_Clicked(object sender, EventArgs e)
         {
-            lvBarcodes.ItemsSource = null;
-            var upcList = new List<BarcodeItem>();
+            DisplayAlert("Scanned", "pbScanned clicked!", "OK");
+        }
 
-            if (!string.IsNullOrEmpty(txtpSKU_UPC))
+        private void LblCase_Loaded(object sender, EventArgs e) { }
+        private void LblEach_Loaded(object sender, EventArgs e) { }
+        private void LblEach2_Loaded(object sender, EventArgs e) { }
+        private void LblCase2_Loaded(object sender, EventArgs e) { }
+        private void LblBarcode_Loaded(object sender, EventArgs e) { }
+        private void LblSKU_Loaded(object sender, EventArgs e) { }
+        private void LblDone_Loaded(object sender, EventArgs e) { }
+        private void Gotolbl_Loaded(object sender, EventArgs e) { }
+        private void LblLineNo_Loaded(object sender, EventArgs e) { }
+        private void LblBarcodeTitle_Loaded(object sender, EventArgs e)
+        {
+            // Code that should run when the label is added to the visual tree
+        }
+
+        private void LlblDescr_Tapped()
+        {
+            barcodeList.Clear();
+
+            if (!string.IsNullOrEmpty(txtpSKU?.Text))
             {
-                foreach (var sUPC in txtpSKU_UPC.Split(','))
+                // Use txtpSKU_UPC instead of Tag
+                var upcs = txtpSKU_UPC?.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                if (upcs != null)
                 {
-                    var cleanUPC = sUPC.Replace("-", "").Trim();
-                    if (!string.IsNullOrEmpty(cleanUPC))
-                        upcList.Add(new BarcodeItem { Text = "", UPC = cleanUPC });
+                    foreach (var sUPC in upcs)
+                    {
+                        var cleaned = sUPC.Replace("-", "").Trim();
+                        if (!string.IsNullOrEmpty(cleaned))
+                            barcodeList.Add(new BarcodeItem { Text = "", UPC = cleaned });
+                    }
                 }
             }
 
-            lvBarcodes.ItemsSource = upcList;
             pnlBarcodes.IsVisible = true;
+
+            // Focus first entry inside panel
+            if (pnlBarcodes.Content is Microsoft.Maui.Controls.Layout layout && layout.Children.FirstOrDefault() is Entry firstEntry)
+            {
+                firstEntry.Focus();
+            }
+        }
+        private void SetUPC_FromPickItem(PickQtyItem item)
+        {
+            if (item == null)
+            {
+                txtpSKU_UPC = "";
+                return;
+            }
+
+            // If your database stores UPCs separated by commas
+            txtpSKU_UPC = item.Descr.Contains(",") ? item.Descr : item.Slot;
         }
 
-        private void LlblSlot_Tapped(object sender, EventArgs e)
+        private void LlblSlot_Tapped(object sender, TappedEventArgs e)
         {
-            if (txtpSlot.Text == "<< Multiple Slots >>")
+            // Use txtpSlot_Value instead of undefined txtpSlotTag
+            if (txtpSlot.Text == "<< Multiple Slots >>" && !string.IsNullOrEmpty(txtpSlot_Value))
             {
-                lvSlots.ItemsSource = null;
-                var slotList = new List<SlotItem>();
+                // Split slots from stored comma-separated string
+                var sSlots = txtpSlot_Value.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (var sSlot in txtpSlot_Value.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var cleanSlot = sSlot.Trim();
-                    if (!string.IsNullOrEmpty(cleanSlot))
-                        slotList.Add(new SlotItem { Text = "", Slot = cleanSlot });
-                }
+                // Convert to SlotItem objects for CollectionView
+                lvSlots.ItemsSource = sSlots.Select(s => new SlotItem { Slot = s.Trim() }).ToList();
 
-                lvSlots.ItemsSource = slotList;
+                // Show the panel
                 pnlSlots.IsVisible = true;
             }
         }
 
-        // -----------------------------
-        // Navigation using CommandParameter
-        // -----------------------------
-        private void BtnNavigate_Clicked(object sender, EventArgs e)
+        // When a slot is selected from CollectionView
+        private void LvSlots_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var btn = sender as Button;
-            var action = btn.CommandParameter?.ToString();
-
-            switch (action)
+            var selectedSlot = e.CurrentSelection.FirstOrDefault() as SlotItem;
+            if (selectedSlot != null)
             {
-                case "Goto":
-                    txtLine.Text = "";
-                    pnlGoto.IsVisible = true;
-                    btnFirst.Focus();
-                    return;
-                case "First":
-                    sSKU = "0";
-                    pnlGoto.IsVisible = false;
-                    break;
-                case "Prev":
-                    sSKU = (int.Parse(sSKU) - 1).ToString();
-                    break;
-                case "Next":
-                    sSKU = (int.Parse(sSKU) + 1).ToString();
-                    break;
-                case "Last":
-                    sSKU = (cvPickList.ItemsSource.Cast<object>().Count() - 1).ToString();
-                    pnlGoto.IsVisible = false;
-                    break;
-                case "Unpick":
-                    sSKU = "0";
-                    pnlGoto.IsVisible = false;
-                    break;
+                txtpSlot.Text = selectedSlot.Slot;
+                pnlSlots.IsVisible = false;
+
+                // Clear selection for next use
+                lvSlots.SelectedItem = null;
             }
-
-            _GetSKUtoPick();
         }
 
-        private void _GetSKUtoPick()
+        private void LvSKU_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Implement your SKU selection logic here
-            // Update txtpSKU, txtpDescr, txtpSlot etc.
+            if (e.CurrentSelection == null || e.CurrentSelection.Count == 0)
+                return;
+
+            var selectedItem = e.CurrentSelection[0];
+
+            // Example: If your SKU model has a property called SKU
+            // txtpSKU.Text = ((YourSkuModel)selectedItem).SKU;
+
+            // TODO: Add your logic here
         }
 
-        // -----------------------------
-        // Helper classes
-        // -----------------------------
-        public class BarcodeItem
+        private void LblMultipleSlots_Loaded(object sender, EventArgs e) { }
+        private void PnlSlots_Tapped() { }
+        private void BtnCloseSlot_Clicked(object sender, EventArgs e) => pnlSlots.IsVisible = false;
+        private void BtnNavigate_Clicked(object sender, EventArgs e) { }
+        private void BtnGoto_Clicked(object sender, EventArgs e) => pnlGoto.IsVisible = true;
+        private void BtnPrev_Clicked(object sender, EventArgs e) { }
+        private void BtnNext_Clicked(object sender, EventArgs e) { }
+        private void PnlGoto_Focused(object sender, FocusEventArgs e) { }
+
+        private void BtnClose_Clicked(object sender, EventArgs e)
         {
-            public string Text { get; set; } = "";
-            public string UPC { get; set; } = "";
+            pnlBarcodes.IsVisible = false;
+            txtboxFocus.Focus();
         }
-
-        public class SlotItem
+        private void LblUser_Loaded(object sender, EventArgs e)
         {
-            public string Text { get; set; } = "";
-            public string Slot { get; set; } = "";
+            // This is similar to ParentChanged in WinForms
+            // Add any initialization or logic that needs the label to be in the visual tree
         }
 
+        // ================= CLASSES ======================
+        public class BarcodeItem { public string Text { get; set; } = ""; public string UPC { get; set; } = ""; }
+        public class SlotItem { public string Text { get; set; } = ""; public string Slot { get; set; } = ""; }
         public class PickQtyItem
         {
             public int ID { get; set; }
@@ -283,6 +548,184 @@ namespace PDTPickingSystem.Views
             public double Qty { get; set; }
             public double PickedQty { get; set; }
             public string DisplayQty => PickedQty.ToString("N2");
+        }
+
+        // ================= HELPER METHODS =================
+        private string _GetDateTime()
+        {
+            // Return current date/time in format compatible with your SQL server
+            // For example: "yyyy-MM-dd HH:mm:ss"
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        // Dummy methods
+        private bool _isAllowedNum(string input)
+        {
+            // Allow digits, dot, or empty
+            return string.IsNullOrEmpty(input) || double.TryParse(input, out _);
+        }
+
+        private bool _CheckOption_Stocker() => true;
+
+        private async Task _AcceptItem()
+        {
+            // -----------------------------
+            // 1️⃣ Connect to SQL
+            // -----------------------------
+            if (!await AppGlobal.ConnectSqlAsync()) return;
+
+            using var sqlCmd = AppGlobal.SqlCon.CreateCommand();
+
+            // -----------------------------
+            // 2️⃣ Calculate Picked Qty
+            // -----------------------------
+            double caseTag = Convert.ToDouble(txtpCase.BindingContext ?? 0); // Tag replacement
+            double caseQty = Convert.ToDouble(txtCase.Text);
+            double eachQty = Convert.ToDouble(txtEach.Text);
+
+            double dQty = (caseTag * caseQty) + eachQty;
+
+            // -----------------------------
+            // 3️⃣ Get the selected SKU from CollectionView
+            // -----------------------------
+            if (sSKU == "" || lvSKU.SelectedItem == null) return;
+
+            var lvItem = lvSKU.SelectedItem as PickQtyItem;
+            if (lvItem == null) return;
+
+            // -----------------------------
+            // 4️⃣ Update PickedQty in the list
+            // -----------------------------
+            lvItem.PickedQty = dQty;
+
+            // -----------------------------
+            // 5️⃣ Update Pick Header
+            // -----------------------------
+            if (!isStarted)
+            {
+                isStarted = true;
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET isUpdate=1, TimeStart='{_GetDateTime()}' WHERE ID={ID_SumHdr}";
+            }
+            else
+            {
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET isUpdate=1 WHERE ID={ID_SumHdr}";
+            }
+            await sqlCmd.ExecuteNonQueryAsync();
+
+            // -----------------------------
+            // 6️⃣ Prepare UPC update
+            // -----------------------------
+            string sUPC = "";
+            if (!pbScanned.IsVisible && !string.IsNullOrEmpty(txtBarcode.Text))
+                sUPC = $"UPC={txtBarcode.Text},";
+
+            if (eachQty == 0 && caseQty == 0)
+                sUPC = "";
+
+            // -----------------------------
+            // 7️⃣ Update Pick Details
+            // -----------------------------
+            if (isSummary == 1)
+            {
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
+                                     $"WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}";
+                await sqlCmd.ExecuteNonQueryAsync();
+            }
+            else
+            {
+                // Fetch data from PickDtl using async replacement
+                var dsData = await _WorkQueryAsync($"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}");
+
+                // Update all PickDtl rows
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{_GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
+                                     $"WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}";
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                int lCount = dsData.Tables[0].Rows.Count - 1;
+                double dNeedQty;
+
+                for (int iCount = 0; iCount <= lCount; iCount++)
+                {
+                    var dRow = dsData.Tables[0].Rows[iCount];
+                    if (iCount == lCount)
+                    {
+                        // Last item: assign remaining quantity
+                        sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
+                        await sqlCmd.ExecuteNonQueryAsync();
+                    }
+                    else
+                    {
+                        dNeedQty = Convert.ToDouble(dRow["Qty"]);
+                        if (dQty >= dNeedQty)
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty=Qty, isUpdate=1 WHERE ID={dRow["ID"]}";
+                            await sqlCmd.ExecuteNonQueryAsync();
+                            dQty -= dNeedQty;
+                        }
+                        else
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
+                            await sqlCmd.ExecuteNonQueryAsync();
+                            dQty = 0;
+                        }
+                    }
+                }
+            }
+
+            // -----------------------------
+            // 8️⃣ Update PickQty Table
+            // -----------------------------
+            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickQty SET isPicked=1, PickQty={lvItem.PickedQty} WHERE ID={lvItem.ID}";
+            await sqlCmd.ExecuteNonQueryAsync();
+
+            // -----------------------------
+            // 9️⃣ Move to next SKU
+            // -----------------------------
+            ID_Stocker = 0;
+            if (btnNext.IsEnabled)
+            {
+                BtnNavigate_Clicked(btnNext, null);
+            }
+            else
+            {
+                sSKU = "";
+                await _GetSKUtoPick();
+            }
+        }
+
+        private async Task _GetSKUtoPick()
+        {
+            // TODO: Implement logic to load the next SKU to pick
+            // Example placeholder:
+            if (pickList.Count > 0)
+            {
+                sSKU = "0"; // reset index or use appropriate logic
+                txtpSKU.Text = pickList[0].SKU; // load first SKU as example
+                llblDescr.Text = pickList[0].Descr;
+            }
+            await Task.CompletedTask; // ensure it returns Task
+        }
+
+        private async Task<DataSet> _WorkQueryAsync(string sql)
+        {
+            var ds = new DataSet();
+
+            if (!await AppGlobal.ConnectSqlAsync())
+                return ds; // return empty DataSet if connection fails
+
+            using var cmd = new SqlCommand(sql, AppGlobal.SqlCon);
+            using var adapter = new SqlDataAdapter(cmd);
+            adapter.Fill(ds);
+
+            return ds;
+        }
+
+        // pnlConfirm label handlers
+        private void LblConfirmTitle_Loaded(object sender, EventArgs e) { }
+        private void LblConfirm_Loaded(object sender, EventArgs e) { }
+        private void LblInput_Loaded(object sender, EventArgs e)
+        {
+            // Code for lblInput inside pnlConfirm when loaded
         }
     }
 }
