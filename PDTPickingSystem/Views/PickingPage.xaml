@@ -30,6 +30,7 @@
             <Entry x:Name="llblDescr" IsReadOnly="True"
                    BackgroundColor="WhiteSmoke" HeightRequest="40"
                    FontSize="Medium" Margin="0,0,0,10"/>
+            <Entry x:Name="txtpDescr" Placeholder="Description" TextChanged="TxtpDescr_TextChanged"/>
 
             <!-- ➤ SKU List -->
             <CollectionView x:Name="lvSKU"
