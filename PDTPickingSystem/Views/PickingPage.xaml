@@ -183,8 +183,8 @@
 
             <!-- Buttons Container -->
             <HorizontalStackLayout x:Name="pnlNavigate" Spacing="5" Margin="0,0,0,10">
-                <Button x:Name="btnGoto" Text="Go To" Clicked="BtnGoto_Clicked"/>
-                <Button x:Name="btnPrev" Text="&lt; Prev" Clicked="BtnPrev_Clicked"/>
+                <Button x:Name="btnGoto" StyleId="btnGoto" Text="Go To" Clicked="BtnNavigate_Clicked"/>
+                <Button x:Name="btnPrev" StyleId="btnPrev" Text="&lt; Prev" Clicked="BtnNavigate_Clicked"/>
                 <Button x:Name="btnNext" Text="Next &gt;" Clicked="BtnNext_Clicked"/>
             </HorizontalStackLayout>
 
@@ -193,9 +193,9 @@
                 <VerticalStackLayout Spacing="15">
                     <Label x:Name="Gotolbl" Text="GO TO" FontSize="20" HorizontalOptions="Center" FontAttributes="Bold"/>
                     <VerticalStackLayout Spacing="20">
-                        <Button x:Name="btnFirst" Text="First" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
-                        <Button x:Name="btnLast" Text="Last" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
-                        <Button x:Name="btnUnpick" Text="Unpicked" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
+                        <Button x:Name="btnFirst" StyleId="btnFirst" Text="First" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
+                        <Button x:Name="btnLast" StyleId="btnLast" Text="Last" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
+                        <Button x:Name="btnUnpick" StyleId="btnUnpick" Text="Unpicked" WidthRequest="150" Clicked="BtnNavigate_Clicked"/>
                     </VerticalStackLayout>
                     <Label x:Name="lblLineNo" Text="Line Number:" HorizontalOptions="Center" FontSize="14"/>
                     <Entry x:Name="txtLine" HorizontalOptions="Center" WidthRequest="150" FontSize="14"

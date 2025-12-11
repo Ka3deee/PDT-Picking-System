@@ -33,7 +33,7 @@ namespace PDTPickingSystem.Helpers
         // ------------------------------
         // Server config
         // ------------------------------
-        public static string Server { get; set; } = "10.6.0.18";
+        public static string Server { get; set; } = "";
         public static string SqlUser { get; private set; } = "sa";
         public static string SqlPass { get; private set; } = "sa";
 

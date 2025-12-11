@@ -20,7 +20,7 @@ namespace PDTPickingSystem.Views
         // Tracks which Entry currently has focus (TextBox → Entry in MAUI)
         private Entry txtboxFocus; // Converted from TextBox
         // SKU and stocker tracking
-        private string sSKU = "0"; // Converted from String
+        private int sSKU = 0; // Converted from Integer
         private int ID_Stocker = 0; // Converted from Integer
         // Track whether picking has started (converted from WinForms isStarted)
         private bool isStarted = false;
@@ -576,7 +576,48 @@ namespace PDTPickingSystem.Views
         private void LblMultipleSlots_Loaded(object sender, EventArgs e) { }
         private void PnlSlots_Tapped() { }
         private void BtnCloseSlot_Clicked(object sender, EventArgs e) => pnlSlots.IsVisible = false;
-        private void BtnNavigate_Clicked(object sender, EventArgs e) { }
+
+        private void BtnNavigate_Clicked(object sender, EventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn == null) return;
+
+            switch (btn.StyleId)   // Use StyleId as the "Name"
+            {
+                case "btnGoto":
+                    txtLine.Text = string.Empty;
+                    pnlGoto.IsVisible = true;
+                    btnFirst.Focus();
+                    return;
+
+                case "btnFirst":
+                    sSKU = 0;
+                    pnlGoto.IsVisible = false;
+                    break;
+
+                case "btnPrev":
+                    sSKU = sSKU - 1;
+                    break;
+
+                case "btnNext":
+                    sSKU = sSKU + 1;
+                    break;
+
+                case "btnLast":
+                    sSKU = pickList.Count - 1;   // MAUI CollectionView items
+                    pnlGoto.IsVisible = false;
+                    break;
+
+                case "btnUnpick":
+                    sSKU = 0;                   // empty string equivalent
+                    pnlGoto.IsVisible = false;
+                    break;
+            }
+
+            _GetSKUtoPick();
+        }
+
+
         private void BtnGoto_Clicked(object sender, EventArgs e) => pnlGoto.IsVisible = true;
         private void BtnPrev_Clicked(object sender, EventArgs e) { }
         private void BtnNext_Clicked(object sender, EventArgs e) { }
@@ -645,7 +686,7 @@ namespace PDTPickingSystem.Views
             // -----------------------------
             // 3️⃣ Get the selected SKU from CollectionView
             // -----------------------------
-            if (sSKU == "" || lvSKU.SelectedItem == null) return;
+            if (sSKU == -1 || lvSKU.SelectedItem == null) return;
 
             var lvItem = lvSKU.SelectedItem as PickQtyItem;
             if (lvItem == null) return;
@@ -745,7 +786,7 @@ namespace PDTPickingSystem.Views
             }
             else
             {
-                sSKU = "";
+                sSKU = 0;
                 await _GetSKUtoPick();
             }
         }
@@ -756,7 +797,7 @@ namespace PDTPickingSystem.Views
             // Example placeholder:
             if (pickList.Count > 0)
             {
-                sSKU = "0"; // reset index or use appropriate logic
+                sSKU = 0; // reset index or use appropriate logic
                 txtpSKU.Text = pickList[0].SKU; // load first SKU as example
                 llblDescr.Text = pickList[0].Descr;
             }
