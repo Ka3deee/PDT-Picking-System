@@ -8,6 +8,15 @@
     <ScrollView>
         <VerticalStackLayout Padding="10" Spacing="10">
 
+            <!-- Activity Indicator for server request -->
+            <ActivityIndicator x:Name="pbReq"
+                       IsRunning="True"
+                       IsVisible="False"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       WidthRequest="50"
+                       HeightRequest="50"/>
+
             <!-- ➤ Store No -->
             <Grid ColumnDefinitions="120,*" Margin="0,0,0,10" VerticalOptions="Center">
                 <Label x:Name="lblDeptStore" Text="Store No:" FontAttributes="Bold" FontSize="Medium"
@@ -316,6 +325,8 @@
                 TextColor="Gray"/>
                     <Entry x:Name="txtStocker"
                 Placeholder="Stocker"
+                Keyboard="Numeric"
+                Completed="TxtStocker_Completed"
                 TextChanged="TxtStocker_TextChanged"
                 Focused="Entry_GotFocus"
                 Unfocused="Entry_LostFocus"/> <!-- Added --> 
