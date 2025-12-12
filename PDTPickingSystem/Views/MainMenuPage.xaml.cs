@@ -1,11 +1,11 @@
-﻿using Microsoft.Maui.Controls;
+﻿using Android;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 using PDTPickingSystem.Helpers;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Maui.ApplicationModel;
-using Android;
-using AEnvironment = Android.OS.Environment;   // <--- FIX: Avoids ambiguity
+using AEnvironment = Android.OS.Environment;   // <--- Avoid ambiguity
 
 namespace PDTPickingSystem.Views
 {
@@ -17,9 +17,7 @@ namespace PDTPickingSystem.Views
             Appearing += MainMenuPage_Appearing;
         }
 
-        // ------------------------------------
         // PAGE APPEARING
-        // ------------------------------------
         private async void MainMenuPage_Appearing(object sender, EventArgs e)
         {
             // Android storage runtime permission
@@ -40,11 +38,12 @@ namespace PDTPickingSystem.Views
             lblUser.Text = string.IsNullOrEmpty(AppGlobal.UserName)
                 ? "User: (none)"
                 : $"User: {AppGlobal.UserName}";
+
+            // Set Global Image
+            AppGlobal.MenuSignalImage = pbSignal.Source;
         }
 
-        // ------------------------------------
         // PERMISSIONS (Android)
-        // ------------------------------------
         private async Task RequestStoragePermissionAsync()
         {
 #if ANDROID
@@ -57,46 +56,35 @@ namespace PDTPickingSystem.Views
 #endif
         }
 
-        // ------------------------------------
         // ENSURE BACKUP FOLDER EXISTS
-        // ------------------------------------
         private void EnsureBackupFolderExists()
         {
             try
             {
 #if ANDROID
-                // Main external storage root
                 string root = AEnvironment.ExternalStorageDirectory.AbsolutePath;
-
-                // Example full path:
-                // /storage/emulated/0/Android/data/com.companyname.pdtpickingsystem/Backup/PDTPicking
                 string fullPath = Path.Combine(
                     root,
                     "Android", "data",
-                    "com.companyname.pdtpickingsystem",
+                    "com.lcc.pdtpickingsystem",
                     "Backup", "PDTPicking"
                 );
 
                 if (!Directory.Exists(fullPath))
                     Directory.CreateDirectory(fullPath);
 #else
-                // Other platforms fallback
                 string fallback = Path.Combine(FileSystem.AppDataDirectory, "Backup", "PDTPicking");
                 if (!Directory.Exists(fallback))
                     Directory.CreateDirectory(fallback);
 #endif
             }
-            catch(Exception E)
+            catch (Exception E)
             {
-                // Safe fail
                 Console.WriteLine("Error creating backup folder: " + E.Message);
-
             }
         }
 
-        // ------------------------------------
         // CHECK SQL CONNECTION
-        // ------------------------------------
         private async Task CheckDatabaseConnectionAsync()
         {
             if (AppGlobal.IsLoaded) return;
@@ -113,9 +101,7 @@ namespace PDTPickingSystem.Views
             AppGlobal.IsLoaded = true;
         }
 
-        // ------------------------------------
         // OPTION 1 – START PICKING
-        // ------------------------------------
         private async void BtnOpt1_Clicked(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(AppGlobal.UserID))
@@ -141,17 +127,13 @@ namespace PDTPickingSystem.Views
             await Navigation.PushModalAsync(navPage);
         }
 
-        // ------------------------------------
         // OPTION 2 – START CHECKING
-        // ------------------------------------
         private async void BtnOpt2_Clicked(object sender, EventArgs e)
         {
             await DisplayAlert("Checking", "Start Checking option selected.", "OK");
         }
 
-        // ------------------------------------
         // OPTION 3 – SET USER
-        // ------------------------------------
         private async void BtnOpt3_Clicked(object sender, EventArgs e)
         {
             var setUserPage = new SetUserPage();
@@ -173,9 +155,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ------------------------------------
         // OPTION 4 – CONFIRM CHECK
-        // ------------------------------------
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
             await DisplayAlert("Confirm Check", "Confirm Check option selected.", "OK");
@@ -223,8 +203,27 @@ namespace PDTPickingSystem.Views
         // ------------------------------------
         private async void BtnOpt7_Clicked(object sender, EventArgs e)
         {
-            if (await DisplayAlert("Exit", "Exit PDT Picking Application?", "Yes", "No"))
+            await ConfirmExitAsync();
+        }
+
+        // ------------------------------------
+        // EXIT CONFIRMATION LOGIC
+        // ------------------------------------
+        private async Task ConfirmExitAsync()
+        {
+            bool exit = await DisplayAlert("Exit", "Exit PDT Picking Application?", "Yes", "No");
+            if (exit)
                 Application.Current.Quit();
+        }
+
+        // ------------------------------------
+        // HANDLE HARDWARE BACK BUTTON (Android)
+        // ------------------------------------
+        protected override bool OnBackButtonPressed()
+        {
+            // Trigger exit confirmation instead of default back
+            _ = ConfirmExitAsync();
+            return true; // cancel default back navigation
         }
     }
 }

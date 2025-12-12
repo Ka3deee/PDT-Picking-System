@@ -23,23 +23,40 @@ namespace PDTPickingSystem
         {
             if (e.Action == KeyEventActions.Up) // Key released
             {
-                var page = Microsoft.Maui.Controls.Application.Current
-                            .MainPage
-                            .Navigation
-                            .NavigationStack
-                            .LastOrDefault() as PDTPickingSystem.Views.PickingPage;
+                var currentPage = Microsoft.Maui.Controls.Application.Current
+                                    .MainPage
+                                    .Navigation
+                                    .NavigationStack
+                                    .LastOrDefault();
 
-                if (page != null)
+                if (currentPage != null)
                 {
-                    switch (e.KeyCode)
+                    // --- Handle PickingPage keys ---
+                    if (currentPage is PDTPickingSystem.Views.PickingPage pickingPage)
                     {
-                        case Keycode.F1:
-                            MainThread.BeginInvokeOnMainThread(() => page.OnF1Pressed());
-                            return true;
+                        switch (e.KeyCode)
+                        {
+                            case Keycode.F1:
+                                MainThread.BeginInvokeOnMainThread(() => pickingPage.OnF1Pressed());
+                                return true;
 
-                        case Keycode.F2:
-                            MainThread.BeginInvokeOnMainThread(() => page.OnF2Pressed());
-                            return true;
+                            case Keycode.F2:
+                                MainThread.BeginInvokeOnMainThread(() => pickingPage.OnF2Pressed());
+                                return true;
+                        }
+                    }
+
+                    // --- Handle SetRefPage keys ---
+                    if (currentPage is PDTPickingSystem.Views.SetRefPage setRefPage)
+                    {
+                        switch (e.KeyCode)
+                        {
+                            case Keycode.F1: // Treat as Escape
+                                MainThread.BeginInvokeOnMainThread(() => setRefPage.btnBack_Clicked(null, null));
+                                return true;
+
+                                // You can add more keys if needed
+                        }
                     }
                 }
             }

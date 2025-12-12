@@ -15,6 +15,9 @@ namespace PDTPickingSystem.Helpers
         // ------------------------------
         public const string SysVersion = "2019.05.03";
 
+        //Set Ref Info
+        public static ImageSource MenuSignalImage { get; set; }
+
         // ------------------------------
         // User info
         // ------------------------------

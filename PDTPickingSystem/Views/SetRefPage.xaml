@@ -15,6 +15,10 @@
                    WidthRequest="320"
                    Aspect="AspectFit"
                    Margin="0,-5,0,0"/>
+            
+            <Image x:Name="pbfrmSignal" 
+                   WidthRequest="50" 
+                   HeightRequest="50"/>
 
             <!-- Page Title -->
             <Label Text="Set Picking Reference"
@@ -24,8 +28,16 @@
                    FontAttributes="Bold"
                    Margin="0,-5,0,0"/>
 
+            <!-- Input Reference Label for OnParentSet -->
+            <Label x:Name="lblInputPickRef"
+                   Text="Enter Reference Below"
+                   FontSize="16"
+                   TextColor="Black"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,0"/>
+
             <!-- Reference Number Entry -->
-            <Entry x:Name="txtRefNumber"
+            <Entry x:Name="txtRefNo"
                    Placeholder="Enter Reference Number"
                    FontSize="18"
                    BackgroundColor="White"
@@ -33,7 +45,8 @@
                    Keyboard="Numeric"
                    HorizontalOptions="Center"
                    WidthRequest="220"
-                   Completed="TxtRefNumber_Completed"
+                   TextChanged="TxtRefNo_TextChanged"
+                   Completed="TxtRefNo_Completed"
                    Margin="0,-5,0,0" />
 
             <!-- Loading Indicator -->
@@ -55,7 +68,7 @@
             <!-- Apply / Save Button -->
             <Button x:Name="btnApply"
                     Text="Set Reference"
-                    Clicked="OnSaveClicked"
+                    Clicked="btnApply_Clicked"
                     BackgroundColor="#0D6EFE"
                     TextColor="White"
                     WidthRequest="220"
@@ -66,9 +79,9 @@
                     HorizontalOptions="Center"/>
 
             <!-- Cancel / Back Button -->
-            <Button x:Name="btnCancel"
+            <Button x:Name="btnBack"
                     Text="Back to Menu"
-                    Clicked="OnCancelClicked"
+                    Clicked="btnBack_Clicked"
                     BackgroundColor="#D83B01"
                     TextColor="White"
                     WidthRequest="220"

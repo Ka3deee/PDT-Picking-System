@@ -35,7 +35,7 @@ namespace PDTPickingSystem.Views
 
         private async void OkButton_Clicked(object sender, EventArgs e)
         {
-            string enteredId = UserEntry.Text?.Trim();
+            string enteredId = txtEENo.Text?.Trim();
 
             if (string.IsNullOrWhiteSpace(enteredId))
             {
@@ -46,8 +46,8 @@ namespace PDTPickingSystem.Views
             try
             {
                 // Disable controls and show loader
-                OkButton.IsEnabled = false;
-                CancelButton.IsEnabled = false;
+                btnApply.IsEnabled = false;
+                btnBack.IsEnabled = false;
                 actLoading.IsRunning = true;
                 actLoading.IsVisible = true;
 
@@ -84,8 +84,8 @@ namespace PDTPickingSystem.Views
             finally
             {
                 // Reset controls
-                OkButton.IsEnabled = true;
-                CancelButton.IsEnabled = true;
+                btnApply.IsEnabled = true;
+                btnBack.IsEnabled = true;
                 actLoading.IsRunning = false;
                 actLoading.IsVisible = false;
             }
