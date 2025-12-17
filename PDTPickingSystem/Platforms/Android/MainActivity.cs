@@ -23,6 +23,7 @@ namespace PDTPickingSystem
         {
             if (e.Action == KeyEventActions.Up) // Key released
             {
+                // Fully qualify MAUI Application
                 var currentPage = Microsoft.Maui.Controls.Application.Current
                                     .MainPage
                                     .Navigation
@@ -55,7 +56,32 @@ namespace PDTPickingSystem
                                 MainThread.BeginInvokeOnMainThread(() => setRefPage.btnBack_Clicked(null, null));
                                 return true;
 
-                                // You can add more keys if needed
+                                // Add more keys if needed
+                        }
+                    }
+
+                    // --- Handle CheckingPage keys ---
+                    if (currentPage is PDTPickingSystem.Views.CheckingPage checkingPage)
+                    {
+                        switch (e.KeyCode)
+                        {
+                            case Keycode.Escape: // Escape key closes page
+                                MainThread.BeginInvokeOnMainThread(() => checkingPage.OnEscapePressed());
+                                return true;
+
+                            case Keycode.Tab: // Tab key focuses barcode
+                                MainThread.BeginInvokeOnMainThread(() => checkingPage.FocusBarcode());
+                                return true;
+
+                            case Keycode.F1: // Optional F1 key
+                                MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF1Pressed());
+                                return true;
+
+                            case Keycode.F2: // Optional F2 key
+                                MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
+                                return true;
+
+                                // Add more keys if needed
                         }
                     }
                 }

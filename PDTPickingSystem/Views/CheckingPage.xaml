@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="PDTPickingSystem.Views.CheckingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <ScrollView>
+        <VerticalStackLayout x:Name="pnlNavigate" Padding="16" Spacing="10">
+
+            <!-- SIGNAL ICON -->
+            <ImageButton
+                x:Name="pbSignal"
+                HeightRequest="24"
+                WidthRequest="24"
+                HorizontalOptions="Start"
+                Source="signal.png" />
+
+            <!-- Store / Department -->
+            <Grid ColumnDefinitions="120,*" Margin="0,0,0,10" VerticalOptions="Center">
+                <Label x:Name="lblDeptStore"
+                       Text="Store No:"
+                       FontAttributes="Bold"
+                       Grid.Column="0"
+                       VerticalOptions="Center"/>
+                <Entry x:Name="txtDeptStore"
+                       Grid.Column="1"
+                       HeightRequest="40"
+                       BackgroundColor="WhiteSmoke"
+                       TextChanged="txtDeptStore_TextChanged"/>
+            </Grid>
+
+            <Frame Padding="12"
+                    Margin="10"
+                    HasShadow="True"
+                    BorderColor="LightGray">
+                <VerticalStackLayout x:Name="pnlInput" Spacing="8">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="PnlInput_Tapped"/>
+                    </VerticalStackLayout.GestureRecognizers>
+
+                    <!-- Barcode -->
+                    <Label x:Name="lblBarcode" Text="Barcode:" Loaded="lblBarcode_Loaded"/>
+                    <Entry x:Name="txtBarcode"
+                           Placeholder="Barcode"
+                           Completed="Entry_Completed"
+                           TextChanged="txtBarcode_TextChanged"/>
+
+                    <!-- Description -->
+                    <Entry x:Name="txtDesc"
+                           Placeholder="Description"
+                           TextChanged="txtDesc_TextChanged"/>
+
+                    <!-- Scanner + SKU -->
+                    <Grid ColumnDefinitions="Auto,10,Auto,*" Margin="0,0,0,10">
+                        <ImageButton x:Name="pbScanned"
+                                     Grid.Column="0"
+                                     Source="scanned_icon2.png"
+                                     HeightRequest="40"
+                                     WidthRequest="40"
+                                     BackgroundColor="White"
+                                     Clicked="pbScanned_Clicked"/>
+                        <Label x:Name="lblSKU"
+                               Grid.Column="2"
+                               Text="SKU:"
+                               VerticalOptions="Center"
+                               Loaded="lblSKU_Loaded"/>
+                        <Entry x:Name="txtSKU"
+                               Grid.Column="3"
+                               Placeholder="SKU"
+                               TextChanged="txtSKU_TextChanged"/>
+                    </Grid>
+
+                    <!-- Case / Each -->
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,0,0,10">
+                        <Label x:Name="lblCase" Text="Case:" Grid.Column="0" VerticalOptions="Center"/>
+                        <Entry x:Name="txtCase" Grid.Column="1" HeightRequest="40" Completed="Entry_Completed" TextChanged="txtCase_TextChanged"/>
+                        <BoxView Grid.Column="2" WidthRequest="20"/>
+                        <Label x:Name="lblEach" Text="Each:" Grid.Column="3" VerticalOptions="Center"/>
+                        <Entry x:Name="txtEach" Grid.Column="4" HeightRequest="40" Completed="Entry_Completed" TextChanged="txtEach_TextChanged"/>
+                    </Grid>
+
+                    <!-- BUM / Done -->
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,0,0,10">
+                        <Label x:Name="lblBUM" Text="BUM:" Grid.Column="0" VerticalOptions="Center" Loaded="lblBUM_Loaded"/>
+                        <Entry x:Name="txtBum" Grid.Column="1" HeightRequest="40" TextChanged="txtBum_TextChanged"/>
+                        <BoxView Grid.Column="2" WidthRequest="20"/>
+                        <Label x:Name="lblDone" Text="Done:" Grid.Column="3" VerticalOptions="Center" Loaded="lblDone_Loaded"/>
+                        <Entry x:Name="txtDone" Grid.Column="4" HeightRequest="40" TextChanged="txtDone_TextChanged"/>
+                    </Grid>
+
+                    <!-- Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                        <Button x:Name="btnViewItems" Grid.Column="0" Text="View Items" Clicked="btnViewItems_Clicked"/>
+                        <Button x:Name="btnAccept" Grid.Column="1" Text="Accept" Clicked="btnAccept_Clicked"/>
+                    </Grid>
+                    <!-- Add this inside pnlInput StackLayout (e.g., after the Accept button Grid) -->
+                    <Button x:Name="btnFinished"
+                        Text="Finished"
+                        IsVisible="False"
+                        Clicked="btnFinished_Clicked"
+                        HeightRequest="40"/>
+
+                    <!-- Items panel -->
+                    <StackLayout x:Name="pnlItems" IsVisible="False" Margin="0,10,0,0">
+                        <Label x:Name="lblCnt" Text="Count: 0"/>
+
+                        <CollectionView x:Name="lvSKU" HeightRequest="200" SelectionMode="Single"
+                                        ItemsSource="{Binding SKUList}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame Padding="5" Margin="0,2" BorderColor="LightGray" HasShadow="False">
+                                        <Grid ColumnDefinitions="*,*,*,*,*,*,*,*">
+                                            <Label Text="{Binding ID}" Grid.Column="0" FontSize="12"/>
+                                            <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
+                                            <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12"/>
+                                            <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12"/>
+                                            <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12"/>
+                                            <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12"/>
+                                            <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12"/>
+                                            <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12"/>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+
+                    <StackLayout x:Name="pnlitems2"
+                            IsVisible="False"
+                            Margin="0,10,0,0">
+
+                        <!-- COUNT LABEL -->
+                        <Label x:Name="lblCnt2"
+                            Text="Count: 0"
+                            FontSize="14"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Center" />
+
+                        <!-- SECOND SKU LIST -->
+                        <CollectionView x:Name="lvSKU2"
+                            HeightRequest="200"
+                            SelectionMode="Single"
+                            ItemsSource="{Binding SKUList2}">
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame Padding="5"
+                                            Margin="0,2"
+                                            HasShadow="False"
+                                            BorderColor="LightGray">
+                                        <Grid ColumnDefinitions="*,*,*,*">
+                                            <Label Text="{Binding SKU}" FontSize="12"/>
+                                            <Label Text="{Binding Descr}" FontSize="12"/>
+                                            <Label Text="{Binding Qty}" FontSize="12"/>
+                                            <Label Text="{Binding ChkQty}" FontSize="12"/>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+
+
+                    <ImageButton x:Name="pbReq"
+                                 Source="your_image.png"
+                                 Clicked="pbReq_Clicked"
+                                 HeightRequest="50"
+                                 WidthRequest="50"
+                                 BackgroundColor="Black"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- Confirmation Panel -->
+            <StackLayout x:Name="pnlConfirm" IsVisible="False" Margin="0,10,0,0" Spacing="10">
+                <Label Text="Confirm Stocker?" FontAttributes="Bold" HorizontalOptions="Center"/>
+                <!-- Stocker Entry -->
+                <Entry x:Name="txtStocker"
+                    Placeholder="Enter Stocker ID"
+                    Keyboard="Numeric"/>
+                <Button x:Name="btnConfirm" Text="Confirm" Clicked="btnConfirm_Clicked"/>
+            </StackLayout>
+
+            <Label x:Name="lblTransfer" Text="Transfer:" Loaded="lblTransfer_Loaded"/>
+            <Label x:Name="lblLoc" Text="Location:" Loaded="lblLoc_Loaded"/>
+            <Label x:Name="lblPicker" Text="Picker:" Loaded="lblPicker_Loaded"/>
+            <Label x:Name="lblTrf" Text="Transfer #" Loaded="lblTrf_Loaded"/>
+
+            <Label x:Name="txtpCase"/>
+            <Label x:Name="txtpDescr"/>
+            <Label x:Name="txtpEach"/>
+            <Label x:Name="txtpSKU"/>
+            <Label x:Name="txtpSlot"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

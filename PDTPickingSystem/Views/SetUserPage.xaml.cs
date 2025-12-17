@@ -1,13 +1,25 @@
 ﻿using Microsoft.Maui.Controls;
+using PDTPickingSystem.Helpers;
 using System;
 using System.Threading.Tasks;
-using PDTPickingSystem.Helpers;
-using Microsoft.Data.SqlClient;
 
 namespace PDTPickingSystem.Views
 {
     public partial class SetUserPage : ContentPage
     {
+        // Class-level variables
+        private int iSKU;
+        private string sSKU = "";
+        private bool isKeyPress = false;
+
+        // Replacement for lblName.Tag and txtEENo.Tag
+        private string lblNameTag;
+        private string txtEENoTag;
+
+        // Store user roles
+        private bool isStocker;
+        private bool isChecker;
+
         public TaskCompletionSource<string> TaskCompletion { get; } = new TaskCompletionSource<string>();
 
         public SetUserPage()
@@ -18,83 +30,136 @@ namespace PDTPickingSystem.Views
             actLoading.IsRunning = false;
             actLoading.IsVisible = false;
 
+            // Update user label
             UpdateCurrentUserLabel();
+
+            // Subscribe to events
+            lblInputUserID.Loaded += LblInputUserID_Loaded;
+            lblName.Loaded += LblName_Loaded;
+            lblUser.Loaded += LblUser_Loaded;
+
+            txtEENo.TextChanged += TxtEENo_TextChanged;
+            txtEENo.Focused += TxtEENo_Focused;
+            txtEENo.Unfocused += TxtEENo_Unfocused;
+
+            btnApply.Clicked += BtnApply_Clicked;
+            btnBack.Clicked += BtnBack_Clicked;
+            btnApply.Focused += BtnButtons_Focused;
+            btnBack.Focused += BtnButtons_Focused;
+            btnApply.Unfocused += BtnButtons_Unfocused;
+            btnBack.Unfocused += BtnButtons_Unfocused;
         }
+
+        private void LblInputUserID_Loaded(object sender, EventArgs e) { }
+        private void LblName_Loaded(object sender, EventArgs e) { }
+        private void LblUser_Loaded(object sender, EventArgs e) { }
 
         private void UpdateCurrentUserLabel()
         {
-            if (!string.IsNullOrEmpty(AppGlobal.UserID))
-            {
-                lblCurrentUser.Text = $"User: {AppGlobal.UserName}";
-            }
-            else
-            {
-                lblCurrentUser.Text = "User: (none)";
-            }
+            lblUser.Text = string.IsNullOrEmpty(AppGlobal.sEENo)
+                ? "User: (none)"
+                : $"User: {AppGlobal.sUserName}";
         }
 
-        private async void OkButton_Clicked(object sender, EventArgs e)
+        private void TxtEENo_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string enteredId = txtEENo.Text?.Trim();
+            btnApply.IsEnabled = !string.IsNullOrWhiteSpace(e.NewTextValue);
+        }
 
-            if (string.IsNullOrWhiteSpace(enteredId))
+        private void TxtEENo_Focused(object sender, FocusEventArgs e)
+        {
+            txtEENo.BackgroundColor = Colors.PaleGreen;
+        }
+
+        private void TxtEENo_Unfocused(object sender, FocusEventArgs e)
+        {
+            txtEENo.BackgroundColor = Colors.WhiteSmoke;
+        }
+
+        private void BtnButtons_Focused(object sender, FocusEventArgs e)
+        {
+            if (sender is Button btn) btn.TextColor = Colors.OrangeRed;
+        }
+
+        private void BtnButtons_Unfocused(object sender, FocusEventArgs e)
+        {
+            if (sender is Button btn) btn.TextColor = Colors.Black;
+        }
+
+        private async void BtnApply_Clicked(object sender, EventArgs e)
+        {
+            await GetUserNameAsync();
+
+            if (!string.IsNullOrEmpty(lblNameTag))
             {
-                await DisplayAlert("Error!", "Please enter a User ID.", "OK");
-                return;
+                // Assign global variables
+                AppGlobal.ID_User = Convert.ToInt32(txtEENoTag);
+                AppGlobal.sEENo = lblNameTag;
+                AppGlobal.sUserName = lblName.Text.Replace("( ", "").Replace(" )", "").Trim();
+
+                // Mimic VB.NET _SetUser(lblUser)
+                AppGlobal._SetUser(lblUser);
+
+                await DisplayAlert("OK", "User accepted!", "OK");
+
+                await Navigation.PopModalAsync();
             }
+
+            isKeyPress = false;
+        }
+
+        private async void BtnBack_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PopModalAsync();
+        }
+
+        public async Task GetUserNameAsync()
+        {
+            if (string.IsNullOrWhiteSpace(txtEENo.Text))
+                return;
+
+            var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
+                return;
 
             try
             {
-                // Disable controls and show loader
-                btnApply.IsEnabled = false;
-                btnBack.IsEnabled = false;
-                actLoading.IsRunning = true;
-                actLoading.IsVisible = true;
+                using var sqlCmd = conn.CreateCommand();
+                sqlCmd.CommandText = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, ID_SumHdr, isStocker, isChecker " +
+                                     $"FROM tblUsers WHERE isActive=1 AND EENo={txtEENo.Text}";
 
-                // Connect SQL first
-                bool connected = await AppGlobal.ConnectSqlAsync();
-                if (!connected)
+                using var reader = await sqlCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
                 {
-                    await DisplayAlert("Connection Error!", "Unable to connect to SQL Server. Check network or server settings.", "OK");
-                    return;
-                }
+                    txtEENoTag = reader["ID"].ToString().Trim();
+                    lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
+                    lblNameTag = txtEENoTag; // Use the correct ID
 
-                // Load user info
-                bool validUser = await AppGlobal.LoadUserInfoAsync(enteredId);
-                if (!validUser)
+                    isStocker = Convert.ToBoolean(reader["isStocker"]);
+                    isChecker = Convert.ToBoolean(reader["isChecker"]);
+
+                    btnApply.Focus();
+                }
+                else
                 {
-                    await DisplayAlert("Invalid User!", "User not found or inactive.", "OK");
-                    return;
+                    await DisplayAlert("Not Found!", "User ID not found!", "OK");
+                    lblName.Text = "( Name )";
+                    lblNameTag = "";
+
+                    txtEENo.Focus();
+                    txtEENo.CursorPosition = 0;
+                    txtEENo.SelectionLength = txtEENo.Text.Length;
                 }
-
-                // Update UI
-                lblUser.Text = AppGlobal.UserName;
-                UpdateCurrentUserLabel();
-
-                // Return user ID to previous page
-                TaskCompletion.SetResult(AppGlobal.UserID);
-
-                await DisplayAlert("Welcome!", $"Hello, {AppGlobal.UserName}!", "OK");
-                await Navigation.PopModalAsync();
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error!", $"Login failed.\n{ex.Message}", "OK");
+                await DisplayAlert("Error", $"Failed to get user info.\n{ex.Message}", "OK");
             }
             finally
             {
-                // Reset controls
-                btnApply.IsEnabled = true;
-                btnBack.IsEnabled = true;
-                actLoading.IsRunning = false;
-                actLoading.IsVisible = false;
+                if (conn?.State == System.Data.ConnectionState.Open)
+                    await conn.CloseAsync();
             }
-        }
-
-        private async void CancelButton_Clicked(object sender, EventArgs e)
-        {
-            TaskCompletion.SetResult(string.Empty);
-            await Navigation.PopModalAsync();
         }
     }
 }

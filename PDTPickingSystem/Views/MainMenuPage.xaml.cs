@@ -11,6 +11,7 @@ namespace PDTPickingSystem.Views
 {
     public partial class MainMenuPage : ContentPage
     {
+        public ImageSource SignalSource => pbSignal.Source;
         public MainMenuPage()
         {
             InitializeComponent();
@@ -29,15 +30,15 @@ namespace PDTPickingSystem.Views
 
             // Load server from wifi.txt
             await AppGlobal.LoadServerConfigAsync();
-            lblStatus.Text = $"Server: {AppGlobal.Server}";
+            lblStatus.Text = $"Server: {AppGlobal.sServer}";
 
             // Check DB connection
             await CheckDatabaseConnectionAsync();
 
             // Display user name
-            lblUser.Text = string.IsNullOrEmpty(AppGlobal.UserName)
+            lblUser.Text = string.IsNullOrEmpty(AppGlobal.sUserName)
                 ? "User: (none)"
-                : $"User: {AppGlobal.UserName}";
+                : $"User: {AppGlobal.sUserName}";
 
             // Set Global Image
             AppGlobal.MenuSignalImage = pbSignal.Source;
@@ -87,30 +88,32 @@ namespace PDTPickingSystem.Views
         // CHECK SQL CONNECTION
         private async Task CheckDatabaseConnectionAsync()
         {
-            if (AppGlobal.IsLoaded) return;
+            if (AppGlobal.isLoaded)
+                return;
 
             lblStatus.Text = "Checking connection...";
             await Task.Delay(500);
 
-            bool connected = await AppGlobal.ConnectSqlAsync();
+            using var conn = await AppGlobal._SQL_Connect();
+            bool connected = conn != null;
 
             lblStatus.Text = connected
-                ? $"✅ Connected to {AppGlobal.Server}\\dbPicking3"
-                : $"❌ Cannot connect to {AppGlobal.Server}";
+                ? $"✅ Connected to {AppGlobal.sServer}\\dbPicking3"
+                : $"❌ Cannot connect to {AppGlobal.sServer}";
 
-            AppGlobal.IsLoaded = true;
+            AppGlobal.isLoaded = true;
         }
 
         // OPTION 1 – START PICKING
         private async void BtnOpt1_Clicked(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(AppGlobal.UserID))
+            if (string.IsNullOrEmpty(AppGlobal.sEENo))
             {
                 await DisplayAlert("No User ID!", "Please set a User ID first!", "OK");
                 return;
             }
 
-            if (string.IsNullOrEmpty(AppGlobal.PickNo))
+            if (string.IsNullOrEmpty(AppGlobal.pPickNo))
             {
                 await DisplayAlert("No Picking!", "No Picking Reference Set! Please set reference # first.", "OK");
                 return;
@@ -130,7 +133,31 @@ namespace PDTPickingSystem.Views
         // OPTION 2 – START CHECKING
         private async void BtnOpt2_Clicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Checking", "Start Checking option selected.", "OK");
+            // Check UserID
+            if (string.IsNullOrEmpty(AppGlobal.sEENo))
+            {
+                await DisplayAlert("No User ID!", "Please set a User ID first!", "OK");
+                return;
+            }
+
+            // Check PickNo
+            if (string.IsNullOrEmpty(AppGlobal.pPickNo))
+            {
+                await DisplayAlert("No Picking!", "No Picking Reference Set! Please set reference # first", "OK");
+                return;
+            }
+
+            // Check if user is Checker
+            if (AppGlobal.IsChecker)
+            {
+                await DisplayAlert("System Says", "You are a Checker, not a Picker!", "OK");
+                return;
+            }
+
+            // Navigate to CheckerPage (equivalent of frmChecker.ShowDialog())
+            var checkerPage = new CheckingPage(this);
+            var navChecker = new NavigationPage(checkerPage);
+            await Navigation.PushModalAsync(navChecker);
         }
 
         // OPTION 3 – SET USER
@@ -151,7 +178,7 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                lblUser.Text = $"User: {AppGlobal.UserName}";
+                lblUser.Text = $"User: {AppGlobal.sUserName}";
             }
         }
 
@@ -171,17 +198,17 @@ namespace PDTPickingSystem.Views
                 message: "Enter SQL Server IP:",
                 accept: "OK",
                 cancel: "Cancel",
-                initialValue: AppGlobal.Server
+                initialValue: AppGlobal.sServer
             );
 
             if (string.IsNullOrWhiteSpace(newServer)) return;
 
-            AppGlobal.Server = newServer.Trim();
+            AppGlobal.sServer = newServer.Trim();
 
             try
             {
                 await AppGlobal.SaveServerConfigAsync();
-                lblStatus.Text = $"Updated Server: {AppGlobal.Server}";
+                lblStatus.Text = $"Updated Server: {AppGlobal.sServer}";
                 await DisplayAlert("Saved!", "Server settings saved successfully!", "OK");
             }
             catch (Exception ex)

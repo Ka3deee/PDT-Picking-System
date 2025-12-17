@@ -30,7 +30,7 @@
 
             <!-- Input Reference Label for OnParentSet -->
             <Label x:Name="lblInputPickRef"
-                   Text="Enter Reference Below"
+                   Text="Input Picking Reference #"
                    FontSize="16"
                    TextColor="Black"
                    HorizontalOptions="Center"
@@ -51,11 +51,11 @@
 
             <!-- Loading Indicator -->
             <ActivityIndicator x:Name="actLoading"
-                               IsRunning="False"
-                               IsVisible="False"
-                               Color="#0D6EFE"
-                               HeightRequest="30"
-                               HorizontalOptions="Center"/>
+                   IsRunning="False"
+                   IsVisible="False"
+                   Color="#0D6EFE"
+                   HeightRequest="30"
+                   HorizontalOptions="Center"/>
 
             <!-- Display Reference -->
             <Label x:Name="lblRefDisplay"

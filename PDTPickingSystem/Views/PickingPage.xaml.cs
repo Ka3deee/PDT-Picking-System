@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace PDTPickingSystem.Views
         // Tracks which Entry currently has focus (TextBox → Entry in MAUI)
         private Entry txtboxFocus; // Converted from TextBox
         // SKU and stocker tracking
-        private int sSKU = 0; // Converted from Integer
+        private int sSKU = -1; // Converted from Integer
         private int ID_Stocker = 0; // Converted from Integer
         // Track whether picking has started (converted from WinForms isStarted)
         private bool isStarted = false;
@@ -158,7 +157,7 @@ namespace PDTPickingSystem.Views
             // ------------------------------
             // Set user label using MAUI-compatible method
             // ------------------------------
-            AppGlobal.SetUser(lblUser);
+            AppGlobal._SetUser(lblUser);
 
             // ------------------------------
             // Track barcode mode
@@ -322,67 +321,63 @@ namespace PDTPickingSystem.Views
         private async Task _GetSetPickNoAsync()
         {
             // ------------------- UI updates -------------------
-            btnFinished.IsVisible = false; // btnFinished.Hide()
-            pbReq.IsVisible = true;        // pbReq.Show()
+            btnFinished.IsVisible = false;
+            pbReq.IsVisible = true;
 
             int hasUnfinishedTrf = 0;
             string sUserPNo = "";
 
             // ------------------- SQL Connection -------------------
-            if (!await AppGlobal.ConnectSqlAsync()) // _SQL_Connect
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
             {
                 await DisplayAlert("No Connection!", "Cannot connect to server! Please retry or check settings...", "OK");
-                await Navigation.PopAsync(); // Me.Close()
+                await Navigation.PopAsync();
                 return;
             }
 
             try
             {
-                using var sqlCmd = AppGlobal.SqlCon.CreateCommand();
-                sqlCmd.CommandText = $"SELECT ID_SumHdr, PickRef FROM tblUsers WHERE ID={AppGlobal.ID_User}";
-
+                using var sqlCmd = new SqlCommand($"SELECT ID_SumHdr, PickRef FROM tblUsers WHERE ID={AppGlobal.ID_User}", conn);
                 using var reader = await sqlCmd.ExecuteReaderAsync();
+
                 if (await reader.ReadAsync())
                 {
-                    ID_SumHdr = reader["ID_SumHdr"] != DBNull.Value ? Convert.ToInt32(reader["ID_SumHdr"]) : 0;
+                    AppGlobal.ID_SumHdr = reader["ID_SumHdr"] != DBNull.Value ? Convert.ToInt32(reader["ID_SumHdr"]) : 0;
 
                     if (reader["PickRef"] != DBNull.Value && Convert.ToInt32(reader["PickRef"]) != 0)
                         sUserPNo = reader["PickRef"].ToString().Trim();
                 }
                 reader.Close();
 
-                // ------------------- Unfinished transfer logic (commented in VB) -------------------
-                // hasUnfinishedTrf = _CheckUnfinishedPicking(ID_User, sUserPNo);
-                // if (hasUnfinishedTrf != 0) ID_SumHdr = hasUnfinishedTrf;
-
                 // ------------------- Picking status check -------------------
-                if (ID_SumHdr != 0 && sUserPNo == pPickNo)
+                if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
-                    await _AddSKUtoListAsync(); // Load SKUs directly
+                    await _AddSKUtoListAsync(); // Load SKUs
                     return;
                 }
                 else
                 {
-                    // Ask user to request from server
                     bool requestFromServer = await DisplayAlert("Requesting...", "Request from server?", "Yes", "No");
                     if (requestFromServer)
                     {
-                        sqlCmd.CommandText = $"UPDATE tblUsers SET isRequest=1, isSummary={isSummary}, PickRef={pPickNo} WHERE ID={AppGlobal.ID_User}";
-                        await sqlCmd.ExecuteNonQueryAsync();
+                        using var updateCmd = new SqlCommand(
+                            $"UPDATE tblUsers SET isRequest=1, isSummary={AppGlobal.isSummary}, PickRef={AppGlobal.pPickNo} WHERE ID={AppGlobal.ID_User}",
+                            conn);
+                        await updateCmd.ExecuteNonQueryAsync();
 
-                        // Start timer for retry (tmrRequest in MAUI)
                         tmrRequest.Start();
                     }
                     else
                     {
-                        await Navigation.PopAsync(); // Me.Close()
+                        await Navigation.PopAsync();
                     }
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error", ex.Message, "OK");
-                await Navigation.PopAsync(); // Me.Close()
+                await Navigation.PopAsync();
             }
         }
 
@@ -407,61 +402,61 @@ namespace PDTPickingSystem.Views
             }
 
             // 3️⃣ Ensure SQL connection is ready
-            if (!await AppGlobal.ConnectSqlAsync())
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
+            {
+                await DisplayAlert("Error", "Cannot connect to server!", "OK");
                 return;
+            }
 
             // 4️⃣ Clear previous scan (like VB _ClearScan(False))
             _ClearScan(false);
 
             try
             {
-                using (var sqlCmd = AppGlobal.SqlCon.CreateCommand())
+                using var sqlCmd = conn.CreateCommand();
+                // 5️⃣ Parameterized query for bigint UPC
+                sqlCmd.CommandText = "SELECT CSKU FROM invMST WHERE UPC = @UPC";
+                sqlCmd.Parameters.AddWithValue("@UPC", barcodeValue);
+
+                using var reader = await sqlCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync()) // If barcode exists
                 {
-                    // 5️⃣ Parameterized query for bigint UPC
-                    sqlCmd.CommandText = "SELECT CSKU FROM invMST WHERE UPC = @UPC";
-                    sqlCmd.Parameters.AddWithValue("@UPC", barcodeValue);
+                    string sSKU = reader["CSKU"].ToString().Trim();
 
-                    using (var reader = await sqlCmd.ExecuteReaderAsync())
+                    if (sSKU == txtpSKU.Text.Trim()) // Match with expected SKU
                     {
-                        if (await reader.ReadAsync()) // If barcode exists
+                        // Populate fields
+                        txtSKU.Text = txtpSKU.Text;
+                        txtCase.Text = txtpCase.Text;
+                        txtEach.Text = txtpEach.Text;
+                        txtBarcode.SelectionLength = 0;
+
+                        // Decide which Entry to focus
+                        if (!double.TryParse(txtCase.Text, out double caseVal) || caseVal == 0)
                         {
-                            string sSKU = reader["CSKU"].ToString().Trim();
-
-                            if (sSKU == txtpSKU.Text.Trim()) // Match with expected SKU
-                            {
-                                // Populate fields
-                                txtSKU.Text = txtpSKU.Text;
-                                txtCase.Text = txtpCase.Text;
-                                txtEach.Text = txtpEach.Text;
-                                txtBarcode.SelectionLength = 0;
-
-                                // Decide which Entry to focus
-                                if (!double.TryParse(txtCase.Text, out double caseVal) || caseVal == 0)
-                                {
-                                    txtEach.Focus();
-                                    txtEach.CursorPosition = 0;
-                                    txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
-                                }
-                                else
-                                {
-                                    txtCase.Focus();
-                                    txtCase.CursorPosition = 0;
-                                    txtCase.SelectionLength = txtCase.Text?.Length ?? 0;
-                                }
-                            }
-                            else
-                            {
-                                await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
-                                _ClearScan(); // clears all fields
-                            }
+                            txtEach.Focus();
+                            txtEach.CursorPosition = 0;
+                            txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
                         }
-                        else // Item not found
+                        else
                         {
-                            await DisplayAlert("Error!", "Item not found!", "OK");
-                            txtBarcode.Focus();
-                            txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
+                            txtCase.Focus();
+                            txtCase.CursorPosition = 0;
+                            txtCase.SelectionLength = txtCase.Text?.Length ?? 0;
                         }
                     }
+                    else
+                    {
+                        await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
+                        _ClearScan(); // clears all fields
+                    }
+                }
+                else // Item not found
+                {
+                    await DisplayAlert("Error!", "Item not found!", "OK");
+                    txtBarcode.Focus();
+                    txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
                 }
             }
             catch (Exception ex)
@@ -626,20 +621,23 @@ namespace PDTPickingSystem.Views
                 ConfirmStockerAsync(); 
             }
         }
-
         private async void BtnFinished_Clicked(object sender, EventArgs e)
         {
             bool confirm = await DisplayAlert("Finish?", "Finish Picking?", "Yes", "No");
             if (!confirm) return;
 
-            if (!await AppGlobal.ConnectSqlAsync()) return;
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
+            {
+                await DisplayAlert("Error", "Cannot connect to server!", "OK");
+                return;
+            }
 
-            using var sqlCmd = AppGlobal.SqlCon.CreateCommand();
+            using var sqlCmd = conn.CreateCommand();
 
-            // Loop through your pick list (converted from ListViewItems)
+            // Loop through your pick list
             foreach (var lvItem in pickList)
             {
-                // Assuming lvItem.PickedQty corresponds to SubItems(5).Text in VB.NET
                 if (lvItem.PickedQty == 0)
                 {
                     sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET " +
@@ -657,8 +655,8 @@ namespace PDTPickingSystem.Views
             // Update PickHdr table
             sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET " +
                                  $"isUpdate=1, " +
-                                 $"TimeEnd='{_GetDateTime()}', " +
-                                 $"DateDone='{_GetDateTime(true)}' " +
+                                 $"TimeEnd='{await AppGlobal._GetDateTime()}', " +
+                                 $"DateDone='{await AppGlobal._GetDateTime(true)}' " +
                                  $"WHERE ID={ID_SumHdr}";
             await sqlCmd.ExecuteNonQueryAsync();
 
@@ -743,39 +741,43 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                using (var conn = new SqlConnection(AppGlobal.ConnectionString))
+                // Get a connection from AppGlobal
+                using var conn = await AppGlobal._SQL_Connect();
+                if (conn == null)
                 {
-                    await conn.OpenAsync();
+                    await DisplayAlert("Error!", "Cannot connect to server.", "OK");
+                    return;
+                }
 
-                    // Check if request has been sent
-                    var cmd = new SqlCommand($"SELECT * FROM tblUsers WHERE ID={AppGlobal.ID_User} AND ID_SumHdr<>0", conn);
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            // Request has been sent
-                            tmrRequest.Stop();
-                            AppGlobal.ID_SumHdr = Convert.ToInt32(reader["ID_SumHdr"]);
+                // Check if request has been sent
+                var cmd = new SqlCommand($"SELECT * FROM tblUsers WHERE ID=@ID AND ID_SumHdr<>0", conn);
+                cmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
 
-                            // Call your async method to load SKUs
-                            await _AddSKUtoListAsync();
-                            return;
-                        }
-                    }
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    // Request has been sent
+                    tmrRequest.Stop();
+                    AppGlobal.ID_SumHdr = Convert.ToInt32(reader["ID_SumHdr"]);
 
-                    // Retry logic after 5 attempts
-                    if (tmrRetryCounter >= 5)
-                    {
-                        tmrRetryCounter = 0;
+                    // Call your async method to load SKUs
+                    await _AddSKUtoListAsync();
+                    return;
+                }
 
-                        var resetCmd = new SqlCommand($"UPDATE tblUsers SET isRequest=0, isSummary=0 WHERE ID={AppGlobal.ID_User}", conn);
-                        await resetCmd.ExecuteNonQueryAsync();
+                // Retry logic after 5 attempts
+                if (tmrRetryCounter >= 5)
+                {
+                    tmrRetryCounter = 0;
 
-                        await DisplayAlert("Unable to request!", "No picking no. available!", "OK");
+                    var resetCmd = new SqlCommand($"UPDATE tblUsers SET isRequest=0, isSummary=0 WHERE ID=@ID", conn);
+                    resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
+                    await resetCmd.ExecuteNonQueryAsync();
 
-                        // Close page
-                        await Navigation.PopAsync();
-                    }
+                    await DisplayAlert("Unable to request!", "No picking no. available!", "OK");
+
+                    // Close page
+                    await Navigation.PopAsync();
                 }
             }
             catch (Exception ex)
@@ -787,17 +789,24 @@ namespace PDTPickingSystem.Views
         private async Task ConfirmStockerAsync()
         {
             // Check if barcode text is empty
-            if (string.IsNullOrWhiteSpace(txtStocker.Text)) return;
+            if (string.IsNullOrWhiteSpace(txtStocker.Text))
+                return;
 
             // Ensure SQL connection
-            if (!await AppGlobal.ConnectSqlAsync()) return;
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
+            {
+                await DisplayAlert("Error", "Cannot connect to server!", "OK");
+                return;
+            }
 
             try
             {
-                using var sqlCmd = AppGlobal.SqlCon.CreateCommand();
+                using var sqlCmd = conn.CreateCommand();
                 sqlCmd.CommandText = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName " +
                                      $"FROM tblUsers " +
-                                     $"WHERE EENo = {txtStocker.Text} AND isStocker = 1 AND isActive = 1";
+                                     $"WHERE EENo = @EENo AND isStocker = 1 AND isActive = 1";
+                sqlCmd.Parameters.AddWithValue("@EENo", txtStocker.Text.Trim());
 
                 using var reader = await sqlCmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -822,8 +831,6 @@ namespace PDTPickingSystem.Views
                     txtStocker.CursorPosition = 0;
                     txtStocker.SelectionLength = txtStocker.Text?.Length ?? 0;
                 }
-
-                reader.Close();
             }
             catch (Exception ex)
             {
@@ -1058,25 +1065,33 @@ namespace PDTPickingSystem.Views
         }
 
         // Returns department name from department ID
-        private string _GetDeptName(object deptId)
+        private async Task<string> _GetDeptNameAsync(object deptId)
         {
             if (deptId == null) return string.Empty;
 
-            string name = string.Empty;
             try
             {
-                using var cmd = AppGlobal.SqlCon.CreateCommand();
-                cmd.CommandText = $"SELECT DeptName FROM tblDept WHERE ID={deptId}";
-                using var reader = cmd.ExecuteReader();
-                if (reader.Read())
-                    name = reader["DeptName"].ToString().Trim();
-                reader.Close();
+                using var con = await AppGlobal._SQL_Connect();
+                if (con == null) return string.Empty;
+
+                using var cmd = new SqlCommand(
+                    "SELECT DeptName FROM tblDept WHERE ID = @ID",
+                    con);
+
+                cmd.Parameters.AddWithValue("@ID", deptId);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return reader["DeptName"]?.ToString()?.Trim() ?? "";
+                }
             }
             catch
             {
-                // Handle exceptions if needed
+                // optionally log
             }
-            return name;
+
+            return string.Empty;
         }
 
         // Returns store number (for per transfer picking)
@@ -1105,24 +1120,26 @@ namespace PDTPickingSystem.Views
 
         private async Task _AcceptItem()
         {
-            if (!await AppGlobal.ConnectSqlAsync()) return;
+            // 1️⃣ Connect to SQL
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null) return;
 
-            using var sqlCmd = AppGlobal.SqlCon.CreateCommand();
+            using var sqlCmd = conn.CreateCommand();
 
-            // Calculate Picked Qty
+            // 2️⃣ Calculate picked quantity
             double caseTag = Convert.ToDouble(txtpCase.BindingContext ?? 0);
             double caseQty = Convert.ToDouble(txtCase.Text);
             double eachQty = Convert.ToDouble(txtEach.Text);
             double dQty = (caseTag * caseQty) + eachQty;
 
-            // Get the selected SKU
+            // 3️⃣ Get selected SKU item
             if (sSKU == -1 || lvSKU.SelectedItem == null) return;
             var lvItem = lvSKU.SelectedItem as PickQtyItem;
             if (lvItem == null) return;
 
             lvItem.PickedQty = dQty;
 
-            // Update PickHdr
+            // 4️⃣ Update PickHdr
             if (!isStarted)
             {
                 isStarted = true;
@@ -1132,37 +1149,37 @@ namespace PDTPickingSystem.Views
             {
                 sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET isUpdate=1 WHERE ID={ID_SumHdr}";
             }
-            System.Diagnostics.Debug.WriteLine("SQL: " + sqlCmd.CommandText);
             await sqlCmd.ExecuteNonQueryAsync();
 
-            // Prepare UPC update
+            // 5️⃣ Prepare UPC update
             string sUPC = "";
             if (!pbScanned.IsVisible && !string.IsNullOrEmpty(txtBarcode.Text))
                 sUPC = $"UPC={txtBarcode.Text},";
             if (eachQty == 0 && caseQty == 0)
                 sUPC = "";
 
-            // Update Pick Details
+            // 6️⃣ Update PickDtl
             if (isSummary == 1)
             {
                 sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
-                                     $"WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}";
+                                     $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
             }
             else
             {
-                var dsData = await _WorkQueryAsync($"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}");
+                var dsData = await _WorkQueryAsync($"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}");
 
                 sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{_GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
-                                     $"WHERE SKU={lvItem.SKU} AND ID_SumHdr={ID_SumHdr}";
+                                     $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
 
                 int lCount = dsData.Tables[0].Rows.Count - 1;
-                double dNeedQty;
 
                 for (int iCount = 0; iCount <= lCount; iCount++)
                 {
                     var dRow = dsData.Tables[0].Rows[iCount];
+                    double dNeedQty = Convert.ToDouble(dRow["Qty"]);
+
                     if (iCount == lCount)
                     {
                         sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
@@ -1170,7 +1187,6 @@ namespace PDTPickingSystem.Views
                     }
                     else
                     {
-                        dNeedQty = Convert.ToDouble(dRow["Qty"]);
                         if (dQty >= dNeedQty)
                         {
                             sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty=Qty, isUpdate=1 WHERE ID={dRow["ID"]}";
@@ -1187,11 +1203,11 @@ namespace PDTPickingSystem.Views
                 }
             }
 
-            // Update PickQty
+            // 7️⃣ Update PickQty
             sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickQty SET isPicked=1, PickQty={lvItem.PickedQty} WHERE ID={lvItem.ID}";
             await sqlCmd.ExecuteNonQueryAsync();
 
-            // Move to next SKU
+            // 8️⃣ Move to next SKU
             ID_Stocker = 0;
             if (btnNext.IsEnabled)
             {
@@ -1199,8 +1215,8 @@ namespace PDTPickingSystem.Views
             }
             else
             {
-                sSKU = -1; // find next unpicked SKU exactly like VB.NET
-                _GetSKUtoPick();
+                sSKU = -1;
+                _GetSKUtoPick(); // find next unpicked SKU like in VB.NET
             }
         }
 
@@ -1330,11 +1346,15 @@ namespace PDTPickingSystem.Views
         {
             var ds = new DataSet();
 
-            if (!await AppGlobal.ConnectSqlAsync())
+            // 1️⃣ Connect to SQL
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null)
                 return ds; // return empty DataSet if connection fails
 
-            using var cmd = new SqlCommand(sql, AppGlobal.SqlCon);
+            // 2️⃣ Execute query
+            using var cmd = new SqlCommand(sql, conn);
             using var adapter = new SqlDataAdapter(cmd);
+
             System.Diagnostics.Debug.WriteLine("SQL2: " + sql);
             adapter.Fill(ds);
 
@@ -1343,21 +1363,23 @@ namespace PDTPickingSystem.Views
 
         private async Task _AddSKUtoListAsync()
         {
-            if (!await AppGlobal.ConnectSqlAsync()) return;
+            // 1️⃣ Connect to SQL
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null) return; // connection failed
 
             try
             {
-                // 1. Load PickHdr
-                using var cmdHdr = AppGlobal.SqlCon.CreateCommand();
-                cmdHdr.CommandText = $"SELECT * FROM tbl{pPickNo}PickHdr WHERE ID={ID_SumHdr} AND TimeEnd='0'";
+                // 2️⃣ Load PickHdr
+                using var cmdHdr = new SqlCommand($"SELECT * FROM tbl{pPickNo}PickHdr WHERE ID={ID_SumHdr} AND TimeEnd='0'", conn);
                 System.Diagnostics.Debug.WriteLine("SQL3_HDR: " + cmdHdr.CommandText);
+
                 using var readerHdr = await cmdHdr.ExecuteReaderAsync();
                 if (await readerHdr.ReadAsync())
                 {
                     if (isSummary == 1)
                     {
                         lblDeptStore.Text = "Department:";
-                        txtDeptStore.Text = _GetDeptName(readerHdr["iDept"]);
+                        txtDeptStore.Text = await AppGlobal._GetDeptName(Convert.ToInt32(readerHdr["iDept"]));
                     }
                     else
                     {
@@ -1369,10 +1391,8 @@ namespace PDTPickingSystem.Views
                 }
                 readerHdr.Close();
 
-                // 2. Load PickQty items
-                var dsData = await _WorkQueryAsync(
-                    $"SELECT * FROM tbl{pPickNo}PickQty WHERE ID_SumHdr={ID_SumHdr} ORDER BY Slot, SKU"
-                );
+                // 3️⃣ Load PickQty items
+                var dsData = await _WorkQueryAsync($"SELECT * FROM tbl{pPickNo}PickQty WHERE ID_SumHdr={ID_SumHdr} ORDER BY Slot, SKU");
 
                 pickList.Clear();
                 foreach (DataRow dRow in dsData.Tables[0].Rows)
@@ -1399,13 +1419,13 @@ namespace PDTPickingSystem.Views
                     pickList.Add(item);
                 }
 
-                // 3. Bind to UI
+                // 4️⃣ Bind to UI
                 lvSKU.ItemsSource = pickList;
 
-                // 4. Reset sSKU to -1 to find first unpicked item
+                // 5️⃣ Reset sSKU to -1 to find first unpicked item
                 sSKU = -1;
 
-                // 5. Load next SKU to pick
+                // 6️⃣ Load next SKU to pick
                 _GetSKUtoPick();
             }
             catch (Exception ex)

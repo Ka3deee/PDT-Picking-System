@@ -17,9 +17,9 @@ namespace PDTPickingSystem.Views
         {
             InitializeComponent();
 
-            lblRefDisplay.Text = string.IsNullOrEmpty(AppGlobal.PickNo)
+            lblRefDisplay.Text = string.IsNullOrEmpty(AppGlobal.pPickNo)
                 ? "(Reference #)"
-                : $"Reference #: {AppGlobal.PickNo}";
+                : $"Reference #: {AppGlobal.pPickNo}";
 
             // Set the signal image (equivalent to pbfrmSignal.Image = frmMenu.pbSignal.Image)
             if (AppGlobal.MenuSignalImage != null)
@@ -32,7 +32,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ------------------------------------
-        // SAVE BUTTON CLICK (equivalent to btnApply_Click)
+        // btnApply_Click_1
         // ------------------------------------
         private async void btnApply_Clicked(object sender, EventArgs e)
         {
@@ -52,10 +52,10 @@ namespace PDTPickingSystem.Views
 
             if (success)
             {
-                AppGlobal.PickNo = _currentRefNumber;
+                AppGlobal.pPickNo = _currentRefNumber;         // Equivalent to pPickNo = txtRefNo.Tag
                 lblRefDisplay.Text = $"Reference #: {_currentRefNumber}";
                 await DisplayAlert("OK", "Ref Reference # Set!", "OK");
-                await Shell.Current.GoToAsync(".."); // Close page
+                await Shell.Current.GoToAsync("..");          // Equivalent to Me.Close()
             }
             else
             {
@@ -71,39 +71,37 @@ namespace PDTPickingSystem.Views
         // ------------------------------------
         private async Task<bool> GetRefNumberAsync(string refNumber, long refLong)
         {
+            SqlConnection conn = await AppGlobal._SQL_Connect();
+            if (conn == null) return false;
+
             try
             {
-                bool connected = await AppGlobal.ConnectSqlAsync();
-                if (!connected) return false;
-
                 bool updateUser = false;
 
-                // --- Check if reference exists ---
                 const string checkQuery = "SELECT SetRef FROM tblOptions WHERE SetRef = @Ref";
-                using (var cmd = new SqlCommand(checkQuery, AppGlobal.SqlCon))
+                using (var cmd = new SqlCommand(checkQuery, conn))
                 {
                     cmd.Parameters.Add("@Ref", System.Data.SqlDbType.BigInt).Value = refLong;
                     var result = await cmd.ExecuteScalarAsync();
                     if (result != null && result != DBNull.Value)
                     {
                         updateUser = true;
-                        _currentRefNumber = result.ToString();
-                        _lblNameTag = refNumber;
+                        _currentRefNumber = result.ToString();   // txtRefNo.Tag equivalent
+                        _lblNameTag = refNumber;                 // lblName.Tag equivalent
                         btnApply.Focus();
                     }
                     else
                     {
                         updateUser = false;
-                        MoveCursorToEntry();
+                        MoveCursorToEntry();                     // sets focus + selects text
                         return false;
                     }
                 }
 
-                // --- Update tblUsers.PickRef ---
                 if (updateUser)
                 {
                     const string updateQuery = "UPDATE tblUsers SET PickRef = @Ref WHERE ID = @UserID";
-                    using (var cmd = new SqlCommand(updateQuery, AppGlobal.SqlCon))
+                    using (var cmd = new SqlCommand(updateQuery, conn))
                     {
                         cmd.Parameters.Add("@Ref", System.Data.SqlDbType.BigInt).Value = refLong;
                         cmd.Parameters.Add("@UserID", System.Data.SqlDbType.Int).Value = Convert.ToInt32(AppGlobal.ID_User);
@@ -119,8 +117,8 @@ namespace PDTPickingSystem.Views
             }
             finally
             {
-                if (AppGlobal.SqlCon?.State == System.Data.ConnectionState.Open)
-                    await AppGlobal.SqlCon.CloseAsync();
+                if (conn?.State == System.Data.ConnectionState.Open)
+                    await conn.CloseAsync();
             }
         }
 
@@ -164,16 +162,6 @@ namespace PDTPickingSystem.Views
                 // Add logic when lblInputPickRef is added to a parent
             }
         }
-
-        // ------------------------------------
-        // EXTERNAL CALL FROM MAINACTIVITY (F1 = Escape)
-        // ------------------------------------
-        public void OnF1Pressed()
-        {
-            // Treat F1 as Escape
-            btnBack_Clicked(null, null);
-        }
-
         // ------------------------------------
         // TEXTCHANGED HANDLER (optional numeric validation)
         // ------------------------------------

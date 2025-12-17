@@ -9,9 +9,9 @@
             <!--Signal Indicator-->
             <Image x:Name="pbSignal"
                WidthRequest="50"
-               HeightRequest="50"
+               HeightRequest="30"
                Source="signal_placeholder.png"/>
-
+            
             <!-- App Logo -->
             <Image Source="pickinglogo.png"
                    HorizontalOptions="Fill"

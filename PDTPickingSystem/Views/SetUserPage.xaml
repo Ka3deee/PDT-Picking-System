@@ -24,6 +24,13 @@
                    FontAttributes="Bold"
                    Margin="0,-5,0,0"/>
 
+            <Label x:Name="lblInputUserID"
+                   Text="Input User ID:"
+                   FontSize="16"
+                   TextColor="Black"
+                   HorizontalOptions="Center"
+                   Margin="0,-10,0,0"/>
+
             <!-- User ID Entry -->
             <Entry x:Name="txtEENo"
                    Placeholder="Enter User ID"
@@ -37,14 +44,14 @@
 
             <!-- Loading Indicator -->
             <ActivityIndicator x:Name="actLoading"
-                               IsRunning="False"
-                               IsVisible="False"
-                               Color="#0D6EFE"
-                               HeightRequest="30"
-                               HorizontalOptions="Center"/>
+                   IsRunning="False"
+                   IsVisible="False"
+                   Color="#0D6EFE"
+                   HeightRequest="30"
+                   HorizontalOptions="Center"/>
 
             <!-- Display User Name -->
-            <Label x:Name="lblUser"
+            <Label x:Name="lblName"
                    Text="(Name)"
                    FontSize="15"
                    TextColor="Black"
@@ -53,33 +60,31 @@
 
             <!-- Confirm / Apply Button -->
             <Button x:Name="btnApply"
-                    Text="Confirm and Apply"
-                    Clicked="OkButton_Clicked"
-                    BackgroundColor="#0D6EFE"
-                    TextColor="White"
-                    WidthRequest="220"
-                    HeightRequest="50"
-                    FontSize="18"
-                    CornerRadius="10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="Center"/>
+                   Text="Confirm and Apply"
+                   BackgroundColor="#0D6EFE"
+                   TextColor="White"
+                   WidthRequest="220"
+                   HeightRequest="50"
+                   FontSize="18"
+                   CornerRadius="10"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
 
             <!-- Back Button -->
             <Button x:Name="btnBack"
-                    Text="Back to Menu"
-                    Clicked="CancelButton_Clicked"
-                    BackgroundColor="#D83B01"
-                    TextColor="White"
-                    WidthRequest="220"
-                    HeightRequest="50"
-                    FontSize="18"
-                    CornerRadius="10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="Center"
-                    Margin="0,0,0,0"/>
+                   Text="Back to Menu"
+                   BackgroundColor="#D83B01"
+                   TextColor="White"
+                   WidthRequest="220"
+                   HeightRequest="50"
+                   FontSize="18"
+                   CornerRadius="10"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,0"/>
 
             <!-- User Info -->
-            <Label x:Name="lblCurrentUser"
+            <Label x:Name="lblUser"
                    Text="User: (None)"
                    FontAttributes="Bold"
                    FontSize="16"
