@@ -16,11 +16,9 @@ namespace PDTPickingSystem.Views
         private string lblNameTag;
         private string txtEENoTag;
 
-        // Store user roles
+        // User roles
         private bool isStocker;
         private bool isChecker;
-
-        public TaskCompletionSource<string> TaskCompletion { get; } = new TaskCompletionSource<string>();
 
         public SetUserPage()
         {
@@ -30,7 +28,7 @@ namespace PDTPickingSystem.Views
             actLoading.IsRunning = false;
             actLoading.IsVisible = false;
 
-            // Update user label
+            // Update current user label
             UpdateCurrentUserLabel();
 
             // Subscribe to events
@@ -88,29 +86,72 @@ namespace PDTPickingSystem.Views
 
         private async void BtnApply_Clicked(object sender, EventArgs e)
         {
-            await GetUserNameAsync();
-
-            if (!string.IsNullOrEmpty(lblNameTag))
+            try
             {
-                // Assign global variables
-                AppGlobal.ID_User = Convert.ToInt32(txtEENoTag);
-                AppGlobal.sEENo = lblNameTag;
-                AppGlobal.sUserName = lblName.Text.Replace("( ", "").Replace(" )", "").Trim();
+                if (string.IsNullOrWhiteSpace(txtEENo.Text))
+                    return;
 
-                // Mimic VB.NET _SetUser(lblUser)
-                AppGlobal._SetUser(lblUser);
+                var conn = await AppGlobal._SQL_Connect();
+                if (conn == null) return;
 
-                await DisplayAlert("OK", "User accepted!", "OK");
+                using var sqlCmd = conn.CreateCommand();
+                sqlCmd.CommandText = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, isStocker, isChecker " +
+                                     $"FROM tblUsers WHERE isActive=1 AND EENo={txtEENo.Text}";
 
-                await Navigation.PopModalAsync();
+                using var reader = await sqlCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    txtEENoTag = reader["ID"].ToString().Trim();
+                    lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
+                    lblNameTag = txtEENoTag;
+                    isStocker = Convert.ToBoolean(reader["isStocker"]);
+                    isChecker = Convert.ToBoolean(reader["isChecker"]);
+
+                    // Set global variables
+                    AppGlobal.ID_User = Convert.ToInt32(txtEENoTag);
+                    AppGlobal.sEENo = lblNameTag;
+                    AppGlobal.sUserName = reader["FullName"].ToString().Trim();
+
+                    UpdateCurrentUserLabel();
+
+                    // Show success
+                    await DisplayAlert("Welcome!", $"User accepted: {AppGlobal.sUserName}", "OK");
+
+                    // Go back via Shell (instead of modal/pop)
+                    await Shell.Current.GoToAsync("..");
+                }
+                else
+                {
+                    await DisplayAlert("Not Found!", "User ID not found!", "OK");
+                    lblName.Text = "( Name )";
+                    lblNameTag = "";
+
+                    txtEENo.Focus();
+                    txtEENo.CursorPosition = 0;
+                    txtEENo.SelectionLength = txtEENo.Text.Length;
+                }
             }
-
-            isKeyPress = false;
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to get user info.\n{ex.Message}", "OK");
+            }
+            finally
+            {
+                isKeyPress = false;
+            }
         }
 
         private async void BtnBack_Clicked(object sender, EventArgs e)
         {
-            await Navigation.PopModalAsync();
+            // Navigate back safely
+            try
+            {
+                await Shell.Current.GoToAsync("..");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to go back.\n{ex.Message}", "OK");
+            }
         }
 
         public async Task GetUserNameAsync()
@@ -133,8 +174,7 @@ namespace PDTPickingSystem.Views
                 {
                     txtEENoTag = reader["ID"].ToString().Trim();
                     lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
-                    lblNameTag = txtEENoTag; // Use the correct ID
-
+                    lblNameTag = txtEENoTag; // assign from reader
                     isStocker = Convert.ToBoolean(reader["isStocker"]);
                     isChecker = Convert.ToBoolean(reader["isChecker"]);
 

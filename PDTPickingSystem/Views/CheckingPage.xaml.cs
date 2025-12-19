@@ -287,7 +287,7 @@ namespace PDTPickingSystem.Views
                              $"ON a.id_sumhdr = b.id_sumhdr " +
                              $"WHERE a.ID_SumHdr=@SumHdr ORDER BY a.slot, a.sku";
 
-            await AppGlobal._WorkQuery(cmdData, dsData, "DATA");
+            await AppGlobal._WorkQueryAsync(cmdData, dsData, "DATA");
 
             SKUList.Clear();
             lvCnt = 0;
@@ -686,7 +686,7 @@ namespace PDTPickingSystem.Views
                 else
                 {
                     var dsData = new DataSet();
-                    await AppGlobal._WorkQuery($"SELECT ID, Qty FROM tbl{AppGlobal.pPickNo}PickDtl WHERE SKU='{lvI.SKU}' AND ID_SumHdr={AppGlobal.ID_SumHdr} ORDER BY slot,sku", dsData, "DATA");
+                    await AppGlobal._WorkQueryAsync($"SELECT ID, Qty FROM tbl{AppGlobal.pPickNo}PickDtl WHERE SKU='{lvI.SKU}' AND ID_SumHdr={AppGlobal.ID_SumHdr} ORDER BY slot,sku", dsData, "DATA");
 
                     int lCount = dsData.Tables[0].Rows.Count - 1;
                     double dQtyBak = dQty;
@@ -753,11 +753,11 @@ namespace PDTPickingSystem.Views
         }
         private async void btnConfirm_Clicked(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(_txtStockerValue))
+            if (!string.IsNullOrWhiteSpace(txtStockerTag))
             {
                 await DisplayAlert("OK", "Item Confirmed!", "OK");
 
-                ID_Stocker = int.Parse(_txtStockerValue);
+                ID_Stocker = int.Parse(txtStockerTag);
 
                 // Call cancel logic
                 btnCancel_Clicked(null, null);
@@ -826,7 +826,7 @@ namespace PDTPickingSystem.Views
             if (await reader.ReadAsync())
             {
                 // Save ID in the private variable instead of Tag
-                _txtStockerValue = reader["ID"].ToString().Trim();
+                txtStockerTag = reader["ID"].ToString().Trim();
 
                 await DisplayAlert("Stocker Name:", reader["FullName"].ToString(), "OK");
 
@@ -835,7 +835,7 @@ namespace PDTPickingSystem.Views
             }
             else
             {
-                _txtStockerValue = null;
+                txtStockerTag = null;
 
                 await DisplayAlert("Not Found!", "Stocker ID not found!", "OK");
 
@@ -1261,6 +1261,6 @@ namespace PDTPickingSystem.Views
         private bool isBarcode = true;
         private int isSummary = 0;      // Tracks whether the current operation is a summary (0 = not summary, 1 = summary)
         private System.Timers.Timer tmrRequest;  // <--- add this
-        private string _txtStockerValue; // To hold the stocker text value or txtStocker.Tag
+        private string txtStockerTag; // old txtStocker.Tag
     }
 }

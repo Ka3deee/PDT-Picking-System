@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="PDTPickingSystem.Views.ConfirmCheckPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Confirm Check">
+
+	<Grid x:Name="MainGrid" Padding="10">
+		<!-- pbSignal Image -->
+		<Image x:Name="pbSignal"
+               WidthRequest="50"
+               HeightRequest="50"
+               HorizontalOptions="Start"
+               VerticalOptions="Start"
+               Margin="5"/>
+	</Grid>
+	
+	<VerticalStackLayout x:Name="pnlMain"
+                         Focused="pnlMain_Focused"
+                         Padding="10"
+                         Spacing="10"
+						 IsVisible="True">
+		<!-- lblBarcode is the Label control itself -->
+		<Label x:Name="lblBarcode"
+                            Text="Barcode:"
+                            FontAttributes="Bold"
+                            FontSize="Medium"
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            HorizontalOptions="Start"/>
+		<Entry x:Name="txtBarcode"
+            TextChanged="txtBarcode_TextChanged"
+            Placeholder="" 
+			   Focused="TxtBarcode_GotFocus"
+			   Unfocused="TxtBarcode_Unfocused"/>
+		<Entry x:Name="txtDesc"
+       Placeholder="Enter description">
+			<Entry.GestureRecognizers>
+				<TapGestureRecognizer Tapped="TxtDesc_Tapped" NumberOfTapsRequired="1"/>
+			</Entry.GestureRecognizers>
+		</Entry>
+		<Image x:Name="pbScanned" Source="your_image.png">
+			<Image.GestureRecognizers>
+				<TapGestureRecognizer Tapped="PbScanned_Tapped"/>
+			</Image.GestureRecognizers>
+		</Image>
+		<Label x:Name="lblSKU" Text="SKU" Loaded="LblSKU_Loaded"/>
+		<Entry x:Name="txtSKU" TextChanged="TxtSKU_TextChanged" />
+		<Label x:Name="lblCase" Loaded="LblCase_Loaded" />
+		<Entry x:Name="txtCase" TextChanged="TxtCase_TextChanged" Focused="TxtBarcode_GotFocus" />
+		<Label x:Name="lblEach" Loaded="LblEach_Loaded" />
+		<Entry x:Name="txtEach" TextChanged="TxtEach_TextChanged" Focused="TxtBarcode_GotFocus"/>
+		<Label x:Name="lblBUM" Loaded="LblBUM_Loaded" />
+		<Entry x:Name="txtBum" TextChanged="TxtBum_TextChanged" />
+	</VerticalStackLayout>
+
+	<VerticalStackLayout 
+		x:Name="pnlDetails" IsVisible="False" Loaded="PnlDetails_Loaded">
+		<!-- Details content here -->
+	</VerticalStackLayout>
+	
+	<Button x:Name="btnDetails" Text="Details" Clicked="BtnDetails_Clicked" />
+	<Button x:name="btnAccept" Text="Accept" Clicked="BtnAccept_Clicked" />
+
+	<!-- CollectionViews for SKUs and Transfers -->
+	<CollectionView x:Name="lvSKU"
+                SelectionMode="Single"
+                ItemsSource="{Binding lvSKUCollection}"
+                SelectionChanged="lvSKU_SelectionChanged">
+		<CollectionView.ItemTemplate>
+			<DataTemplate>
+				<StackLayout Padding="5">
+					<Label Text="{Binding SKU}" FontAttributes="Bold"/>
+					<Label Text="{Binding Descr}" FontSize="12"/>
+					<Label Text="{Binding SortQty}" FontSize="12"/>
+				</StackLayout>
+			</DataTemplate>
+		</CollectionView.ItemTemplate>
+	</CollectionView>
+	<Button x:Name="Button1"
+        Text="Back"
+        Clicked="Button1_Click" />
+	
+	<VerticalStackLayout x:Name="pnlSelectTrf"
+                     Loaded="pnlSelectTrf_Loaded"
+						 IsVisible="False">
+		<!-- your content here -->
+	</VerticalStackLayout>
+	<CollectionView x:Name="lvSKU2"
+                    SelectionMode="Single"
+                    SelectionChanged="lvSKU2_SelectionChanged"
+                    ItemsSource="{Binding lvSKU2Collection}">
+		<CollectionView.ItemTemplate>
+			<DataTemplate>
+				<StackLayout Padding="5">
+					<Label Text="{Binding TransferNo}" FontAttributes="Bold"/>
+				</StackLayout>
+			</DataTemplate>
+		</CollectionView.ItemTemplate>
+	</CollectionView>
+	<Button x:Name="Button2"
+        Text="Select Transfer"
+        Clicked="Button2_Clicked" />
+
+	<Label x:Name="lblUser" Loaded="LblUser_Loaded" />
+
+
+
+
+</ContentPage>

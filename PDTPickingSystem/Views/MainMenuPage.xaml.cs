@@ -160,32 +160,46 @@ namespace PDTPickingSystem.Views
             await Navigation.PushModalAsync(navChecker);
         }
 
+        // ------------------------------------
         // OPTION 3 – SET USER
+        // ------------------------------------
         private async void BtnOpt3_Clicked(object sender, EventArgs e)
         {
-            var setUserPage = new SetUserPage();
-            var navPage = new NavigationPage(setUserPage);
-            await Navigation.PushModalAsync(navPage);
-
-            string userId = await setUserPage.TaskCompletion.Task;
-
-            if (!string.IsNullOrWhiteSpace(userId))
+            try
             {
-                bool ok = await AppGlobal.LoadUserInfoAsync(userId);
-                if (!ok)
-                {
-                    await DisplayAlert("User Not Found!", "Invalid User ID!", "OK");
-                    return;
-                }
+                // Navigate to SetUserPage using Shell routing
+                await Shell.Current.GoToAsync(nameof(SetUserPage));
 
-                lblUser.Text = $"User: {AppGlobal.sUserName}";
+                // When user returns to this page, just update the label from AppGlobal
+                lblUser.Text = string.IsNullOrEmpty(AppGlobal.sUserName)
+                    ? "User: (none)"
+                    : $"User: {AppGlobal.sUserName}";
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to open Set User page: {ex.Message}", "OK");
             }
         }
 
         // OPTION 4 – CONFIRM CHECK
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Confirm Check", "Confirm Check option selected.", "OK");
+            try
+            {
+                // Only Checker can use this option
+                if (!AppGlobal.IsChecker)
+                {
+                    await DisplayAlert("System Says", "Only Checker can use this option!", "OK");
+                    return;
+                }
+
+                // Navigate using Shell routing
+                await Shell.Current.GoToAsync(nameof(ConfirmCheckPage));
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error!", $"An error occurred: {ex.Message}", "OK");
+            }
         }
 
         // ------------------------------------

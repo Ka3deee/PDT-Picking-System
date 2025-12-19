@@ -54,6 +54,9 @@
 	  <MauiXaml Update="Views\CheckingPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\ConfirmCheckPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\PickingPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

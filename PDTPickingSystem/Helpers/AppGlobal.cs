@@ -400,15 +400,16 @@ namespace PDTPickingSystem.Helpers
 
             return false;
         }
-        public static async Task _WorkQuery(string sQuery, DataSet dsDatatoFill, string tblName)
+        public static async Task _WorkQueryAsync(string sQuery, DataSet dsDatatoFill, string tblName)
         {
             using var con = await _SQL_Connect();
             if (con != null)
             {
                 try
                 {
-                    using var sqlAdptr = new SqlDataAdapter(sQuery, con);
-                    sqlAdptr.Fill(dsDatatoFill, tblName);
+                    using var sqlAdp = new SqlDataAdapter(sQuery, con);
+                    // Wrap Fill in Task.Run to avoid blocking UI
+                    await Task.Run(() => sqlAdp.Fill(dsDatatoFill, tblName));
                 }
                 catch
                 {
