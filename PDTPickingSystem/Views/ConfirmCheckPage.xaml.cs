@@ -79,6 +79,8 @@ namespace PDTPickingSystem.Views
         public ConfirmCheckPage()
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
+
             BindingContext = this; // Required for XAML bindings
             // In your page constructor, subscribe to Focused/Unfocused events
             txtCase.Unfocused += TxtCaseOrEach_Unfocused;
@@ -87,12 +89,6 @@ namespace PDTPickingSystem.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
-            // ------------------------------------
-            // Signal image (equivalent to frmMenu.pbSignal.Image)
-            // ------------------------------------
-            pbSignal.Source = AppGlobal.MenuSignalImage;
-            // ↑ ImageSource instead of Image
 
             // ------------------------------------
             // Set user label

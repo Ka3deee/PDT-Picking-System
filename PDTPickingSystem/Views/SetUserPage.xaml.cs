@@ -23,6 +23,7 @@ namespace PDTPickingSystem.Views
         public SetUserPage()
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
 
             // Hide loader at start
             actLoading.IsRunning = false;

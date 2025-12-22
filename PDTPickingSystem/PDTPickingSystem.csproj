@@ -25,7 +25,6 @@
 		<MauiImage Include="Resources\Images\pickinglogo_320x100.png" />
 		<MauiImage Include="Resources\Images\scanned_icon.png" />
 		<MauiImage Include="Resources\Images\scanned_icon2.png" />
-		<MauiImage Include="Resources\Images\signal.png" />
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 		<MauiFont Include="Resources\Fonts\**" />
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
@@ -39,7 +38,6 @@
 	<ItemGroup>
 	  <None Remove="Resources\Images\scanned_icon.png" />
 	  <None Remove="Resources\Images\scanned_icon2.png" />
-	  <None Remove="Resources\Images\signal.png" />
 	</ItemGroup>
 
 	<ItemGroup>

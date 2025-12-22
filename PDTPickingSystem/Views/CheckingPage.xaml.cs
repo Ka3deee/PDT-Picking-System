@@ -22,6 +22,7 @@ namespace PDTPickingSystem.Views
         public CheckingPage(MainMenuPage mainMenu)
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
 
             // ===== Initialize tmrRequest =====
             tmrRequest = new System.Timers.Timer(1000); // 1-second interval
@@ -100,12 +101,6 @@ namespace PDTPickingSystem.Views
         {
             base.OnAppearing();
             DisableKeyboard();
-
-            // Use AppGlobal (already used elsewhere in your app)
-            if (AppGlobal.MenuSignalImage != null)
-            {
-                pbSignal.Source = AppGlobal.MenuSignalImage;
-            }
 
             _SetUser(lblTrf);
 

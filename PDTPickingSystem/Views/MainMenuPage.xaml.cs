@@ -11,11 +11,11 @@ namespace PDTPickingSystem.Views
 {
     public partial class MainMenuPage : ContentPage
     {
-        public ImageSource SignalSource => pbSignal.Source;
         public MainMenuPage()
         {
             InitializeComponent();
             Appearing += MainMenuPage_Appearing;
+            NavigationPage.SetHasNavigationBar(this, false);
         }
 
         // PAGE APPEARING
@@ -39,9 +39,6 @@ namespace PDTPickingSystem.Views
             lblUser.Text = string.IsNullOrEmpty(AppGlobal.sUserName)
                 ? "User: (none)"
                 : $"User: {AppGlobal.sUserName}";
-
-            // Set Global Image
-            AppGlobal.MenuSignalImage = pbSignal.Source;
         }
 
         // PERMISSIONS (Android)

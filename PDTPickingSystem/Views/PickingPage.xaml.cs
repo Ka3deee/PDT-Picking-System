@@ -51,10 +51,14 @@ namespace PDTPickingSystem.Views
         private object txtpEachTag;  // replaces txtpEach.Tag
         private string txtpSlotTag; // replaces txtpSlot.Tag
 
+        private bool _requestAlreadyShown = false;
+        private bool _requestFailedShown = false;
+
         public ObservableCollection<BarcodeItem> barcodeList = new ObservableCollection<BarcodeItem>();
         public PickingPage()
         {
-            InitializeComponent(); // MAUI equivalent of VB InitializeComponent()
+            InitializeComponent();// MAUI equivalent of VB InitializeComponent()
+            NavigationPage.SetHasNavigationBar(this, false);
 
             // ===== Initialize the focus tracker =====
             txtboxFocus = txtBarcode; // Initially focus on barcode Entry
@@ -127,9 +131,15 @@ namespace PDTPickingSystem.Views
             lblDone.Loaded += LblDone_Loaded;
             lblInput.Loaded += LblInput_Loaded;     // NEW: pnlConfirm inner label
 
-            // Tapped events
-            llblDescr.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(LlblDescr_Tapped) });
-            pnlSlots.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(PnlSlots_Tapped) });
+            // --- llblDescr TapGestureRecognizer ---
+            var descrTap = new TapGestureRecognizer();
+            descrTap.Tapped += LlblDescr_Tapped; // Event handler with sender, e
+            llblDescr.GestureRecognizers.Add(descrTap);
+
+            // --- pnlSlots TapGestureRecognizer ---
+            var slotsTap = new TapGestureRecognizer();
+            slotsTap.Tapped += PnlSlots_Tapped;
+            pnlSlots.GestureRecognizers.Add(slotsTap);
 
             // ===== Button click events (replaces VB Click handlers) =====
             btnCloseGoto.Clicked += BtnCloseGoto_Clicked;
@@ -403,23 +413,32 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                // ------------------- Request from server -------------------
-                bool requestFromServer = await DisplayAlert("Requesting...", "Request from server?", "Yes", "No");
-                if (requestFromServer)
+                // ------------------- Request from server (SHOW ONCE ONLY) -------------------
+                if (!_requestAlreadyShown)
                 {
-                    using (var updateCmd = new SqlCommand(
-                               $"UPDATE tblUsers SET isRequest=1, isSummary={AppGlobal.isSummary}, PickRef={AppGlobal.pPickNo} WHERE ID={AppGlobal.ID_User}",
-                               conn))
-                    {
-                        await updateCmd.ExecuteNonQueryAsync();
-                    }
+                    _requestAlreadyShown = true;
 
-                    // // VB: tmrRequest.Enabled = True
-                    tmrRequest.Start();
-                }
-                else
-                {
-                    await Navigation.PopAsync();
+                    bool requestFromServer = await DisplayAlert(
+                        "Requesting...",
+                        "Request from server?",
+                        "Yes",
+                        "No");
+
+                    if (requestFromServer)
+                    {
+                        using (var updateCmd = new SqlCommand(
+                            $"UPDATE tblUsers SET isRequest=1, isSummary={AppGlobal.isSummary}, PickRef={AppGlobal.pPickNo} WHERE ID={AppGlobal.ID_User}",
+                            conn))
+                        {
+                            await updateCmd.ExecuteNonQueryAsync();
+                        }
+
+                        tmrRequest.Start();
+                    }
+                    else
+                    {
+                        await Navigation.PopAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -429,10 +448,9 @@ namespace PDTPickingSystem.Views
             }
             finally
             {
-                pbReq.IsVisible = false; // hide progress indicator in all cases
+                pbReq.IsVisible = false;
             }
         }
-
 
         /// <summary>
         /// Reads the barcode and checks it against the database (bigint UPC).
@@ -772,17 +790,23 @@ namespace PDTPickingSystem.Views
                 // 2️⃣ Retry logic (5 seconds interval)
                 if (iRetry >= 5)
                 {
+                    tmrRequest.Stop();
                     iRetry = 0;
 
-                    using (var resetCmd = new SqlCommand(
-                        "UPDATE tblUsers SET isRequest=0, isSummary=0 WHERE ID=@ID", conn))
+                    if (!_requestFailedShown)
                     {
-                        resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
-                        await resetCmd.ExecuteNonQueryAsync();
-                    }
+                        _requestFailedShown = true;
 
-                    await DisplayAlert("Unable to request!", "No Picking no. available!", "OK");
-                    await Navigation.PopAsync();
+                        using (var resetCmd = new SqlCommand(
+                        "UPDATE tblUsers SET isRequest=0, isSummary=0 WHERE ID=@ID", conn))
+                        {
+                            resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
+                            await resetCmd.ExecuteNonQueryAsync();
+                        }
+
+                        await DisplayAlert("Unable to request!", "No Picking No. available!", "OK");
+                        await Navigation.PopAsync();
+                    }
                 }
                 else
                 {
@@ -887,44 +911,58 @@ namespace PDTPickingSystem.Views
             // Code that should run when the label is added to the visual tree
         }
 
-        private void LlblDescr_Tapped()
+        private void LlblDescr_Tapped(object sender, EventArgs e)
         {
-            barcodeList.Clear(); // equivalent of lvBarcodes.Items.Clear()
+            // Clear previous barcode items
+            barcodeList.Clear();
 
-            // Local UPCs (from Tag in VB.NET, txtpSKU_UPC is used instead)
-            if (!string.IsNullOrEmpty(txtpSKU?.Text))
+            // --- Local UPCs (from txtpSKU_UPC) ---
+            if (!string.IsNullOrWhiteSpace(txtpSKU?.Text) && !string.IsNullOrWhiteSpace(txtpSKU_UPC))
             {
-                // Use txtpSKU_UPC instead of Tag
-                var upcs = txtpSKU_UPC?.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var upcs = txtpSKU_UPC.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-                if (upcs != null)
+                foreach (var sUPC in upcs)
                 {
-                    foreach (var sUPC in upcs)
+                    var cleaned = sUPC.Replace("-", "").Trim();
+                    if (!string.IsNullOrEmpty(cleaned))
                     {
-                        var cleaned = sUPC.Replace("-", "").Trim();
-                        if (!string.IsNullOrEmpty(cleaned))
-                            barcodeList.Add(new BarcodeItem { Text = "", UPC = cleaned }); // equivalent of ListViewItem + SubItem
+                        barcodeList.Add(new BarcodeItem
+                        {
+                            Text = "",    // placeholder like SubItem in WinForms
+                            UPC = cleaned
+                        });
                     }
                 }
             }
-            // ----- For Online (commented, like in VB.NET) -----
+
+            // --- Optional: For Online UPC fetch (commented) ---
             /*
-            if (!await AppGlobal.ConnectSqlAsync()) return;
-
-            var dsData = await _WorkQueryAsync($"SELECT UPC FROM invMST WHERE CSKU='{txtpSKU.Text}'");
-
-            foreach (DataRow dRow in dsData.Tables[0].Rows)
+            Task.Run(async () =>
             {
-                var upc = dRow["UPC"].ToString().Trim();
-                if (!string.IsNullOrEmpty(upc))
-                    barcodeList.Add(new BarcodeItem { Text = "", UPC = upc });
-            }
+                if (!await AppGlobal.ConnectSqlAsync()) return;
 
-            dsData.Tables.Clear();
+                var dsData = await _WorkQueryAsync($"SELECT UPC FROM invMST WHERE CSKU='{txtpSKU.Text}'");
+
+                foreach (DataRow dRow in dsData.Tables[0].Rows)
+                {
+                    var upc = dRow["UPC"].ToString().Trim();
+                    if (!string.IsNullOrEmpty(upc))
+                        barcodeList.Add(new BarcodeItem { Text = "", UPC = upc });
+                }
+
+                dsData.Tables.Clear();
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    pnlBarcodes.IsVisible = true;
+                });
+            });
             */
+
+            // Show barcode panel
             pnlBarcodes.IsVisible = true;
 
-            // Focus first entry inside panel
+            // Focus the first Entry inside the panel if it exists
             if (pnlBarcodes.Content is Microsoft.Maui.Controls.Layout layout && layout.Children.FirstOrDefault() is Entry firstEntry)
             {
                 firstEntry.Focus();
@@ -942,18 +980,18 @@ namespace PDTPickingSystem.Views
             txtpSKU_UPC = item.Descr.Contains(",") ? item.Descr : item.Slot;
         }
 
-        private void LlblSlot_Tapped(object sender, TappedEventArgs e)
+        private void LlblSlot_Tapped(object sender, EventArgs e)
         {
-            // Use txtpSlot_Value instead of undefined txtpSlotTag
+            // Only proceed if multiple slots exist
             if (txtpSlot.Text == "<< Multiple Slots >>" && !string.IsNullOrEmpty(txtpSlot_Value))
             {
                 // Split slots from stored comma-separated string
                 var sSlots = txtpSlot_Value.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-                // Convert to SlotItem objects for CollectionView
+                // Convert to SlotItem objects for CollectionView/ListView binding
                 lvSlots.ItemsSource = sSlots.Select(s => new SlotItem { Slot = s.Trim() }).ToList();
 
-                // Show the panel
+                // Show the slots panel
                 pnlSlots.IsVisible = true;
             }
         }
@@ -993,7 +1031,7 @@ namespace PDTPickingSystem.Views
         }
 
         private void LblMultipleSlots_Loaded(object sender, EventArgs e) { }
-        private void PnlSlots_Tapped() { }
+        private void PnlSlots_Tapped(object sender, TappedEventArgs e) { }
         private void BtnCloseSlot_Clicked(object sender, EventArgs e)
         {
             pnlSlots.IsVisible = false;

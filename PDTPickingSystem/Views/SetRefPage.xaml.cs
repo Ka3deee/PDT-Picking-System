@@ -16,16 +16,11 @@ namespace PDTPickingSystem.Views
         public SetRefPage()
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
 
             lblRefDisplay.Text = string.IsNullOrEmpty(AppGlobal.pPickNo)
                 ? "(Reference #)"
                 : $"Reference #: {AppGlobal.pPickNo}";
-
-            // Set the signal image (equivalent to pbfrmSignal.Image = frmMenu.pbSignal.Image)
-            if (AppGlobal.MenuSignalImage != null)
-            {
-                pbfrmSignal.Source = AppGlobal.MenuSignalImage;
-            }
 
             // Optional: Attach TextChanged for numeric-only validation
             txtRefNo.TextChanged += TxtRefNo_TextChanged;
@@ -54,7 +49,7 @@ namespace PDTPickingSystem.Views
             {
                 AppGlobal.pPickNo = _currentRefNumber;         // Equivalent to pPickNo = txtRefNo.Tag
                 lblRefDisplay.Text = $"Reference #: {_currentRefNumber}";
-                await DisplayAlert("OK", "Ref Reference # Set!", "OK");
+                await DisplayAlert("Success!", "Picking Reference # Set!", "OK");
                 await Shell.Current.GoToAsync("..");          // Equivalent to Me.Close()
             }
             else

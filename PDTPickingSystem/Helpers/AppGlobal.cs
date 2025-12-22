@@ -28,10 +28,6 @@ namespace PDTPickingSystem.Helpers
         public const string fmtNumber2 = "0";
         public const string fmtTimeDate = "yy/MM/dd HH:mm:ss";
 
-        // ------------------------------
-        // UI state
-        // ------------------------------
-        public static ImageSource pbfrmSignal { get; set; }
 
         // ------------------------------
         // User info
@@ -60,11 +56,6 @@ namespace PDTPickingSystem.Helpers
         // Store / Department
         // ------------------------------
         public static string DeptStore { get; set; } = "";
-
-        // ------------------------------
-        // Image source
-        // ------------------------------
-        public static ImageSource MenuSignalImage { get; set; }
 
         // ------------------------------
         // Server config

@@ -3,19 +3,10 @@
     x:Class="PDTPickingSystem.Views.ConfirmCheckPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
     Title="Confirm Check">
 
-	<Grid x:Name="MainGrid" Padding="10">
-		<!-- pbSignal Image -->
-		<Image x:Name="pbSignal"
-               WidthRequest="50"
-               HeightRequest="50"
-               HorizontalOptions="Start"
-               VerticalOptions="Start"
-               Margin="5"/>
-	</Grid>
-	
-	<VerticalStackLayout x:Name="pnlMain"
+    <VerticalStackLayout x:Name="pnlMain"
                          Focused="pnlMain_Focused"
                          Padding="10"
                          Spacing="10"
@@ -60,7 +51,7 @@
 	</VerticalStackLayout>
 	
 	<Button x:Name="btnDetails" Text="Details" Clicked="BtnDetails_Clicked" />
-	<Button x:name="btnAccept" Text="Accept" Clicked="BtnAccept_Clicked" />
+	<Button x:Name="btnAccept" Text="Accept" Clicked="BtnAccept_Clicked" />
 
 	<!-- CollectionViews for SKUs and Transfers -->
 	<CollectionView x:Name="lvSKU"
