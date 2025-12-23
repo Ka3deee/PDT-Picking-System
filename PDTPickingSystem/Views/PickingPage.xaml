@@ -6,271 +6,232 @@
              BackgroundColor="White"
              Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="10" Spacing="0">
+    <!-- ROOT LAYER -->
+    <Grid>
+        <!-- ================= MAIN PAGE CONTENT ================= -->
+        <VerticalStackLayout 
+            Padding="5"
+            Spacing="5"
+            VerticalOptions="Start"
+            HorizontalOptions="FillAndExpand">
 
-            <!-- Activity Indicator for server request -->
-            <ActivityIndicator x:Name="pbReq"
-                  IsRunning="True"
-                  IsVisible="False"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center"
-                  WidthRequest="30"
-                  HeightRequest="30"/>
+            <Frame
+                x:Name="pnlHeader"
+                Padding="5"
+                Margin="0,0,0,10"
+                BackgroundColor="WhiteSmoke"
+                HasShadow="True"
+                CornerRadius="10">
 
-            <!-- ➤ Store No -->
-            <Grid ColumnDefinitions="120,*"
-                  Margin="0,0,0,5" 
-                  VerticalOptions="Center">
-                <Label x:Name="lblDeptStore" 
-                       Text="Store No:" 
-                       FontAttributes="Bold" 
-                       FontSize="Small"
-                       TextColor="Black"
-                       Grid.Column="0" 
-                       VerticalOptions="Center" 
-                       HorizontalOptions="Start"/>
-                <Entry x:Name="txtDeptStore" 
-                       TextChanged="TxtDeptStore_TextChanged"
-                       Grid.Column="1" 
-                       VerticalOptions="Center" 
-                       HorizontalOptions="Fill"
-                       BackgroundColor="WhiteSmoke" 
-                       HeightRequest="40" 
-                       FontSize="Small"/>
-            </Grid>
-
-            <!-- ➤ SKU to Pick -->
-            <Grid ColumnDefinitions="120,*" 
-                  Margin="0,0,0,10" 
-                  VerticalOptions="Center">
-                <Label x:Name="lblSkuToPick" 
-                      Text="SKU to Pick:" 
-                      FontAttributes="Bold" 
-                      FontSize="Small"
-                      TextColor="Black"
-                      Grid.Column="0" 
-                      VerticalOptions="Center" 
-                      HorizontalOptions="Start"/>
-                <Entry x:Name="txtpSKU" 
-                      IsReadOnly="True" 
-                      TextChanged="TxtpSKU_TextChanged"
-                      Grid.Column="1" 
-                      VerticalOptions="Center" 
-                      HorizontalOptions="Fill"
-                      BackgroundColor="WhiteSmoke" 
-                      HeightRequest="40" 
-                      FontSize="Small"/>
-            </Grid>
-
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*" Margin="0,-5,0,0">
-
-                <!-- ================= DESCRIPTION ================= -->
-                <Grid Row="0">
-                    <!-- Background Entry (read-only display) -->
-                    <Entry x:Name="txtpDescr"
-                        IsReadOnly="True"
-                        BackgroundColor="#EEEEEE"
-                        HeightRequest="38"
-                        VerticalOptions="FillAndExpand"
-                        HorizontalOptions="FillAndExpand"
-                        InputTransparent="True" />
-
-                    <!-- Clickable Label on top -->
-                    <Label x:Name="llblDescr"
-                        Text="{Binding Source={x:Reference txtpDescr}, Path=Text}" 
-                        TextColor="Blue"
-                        FontAttributes="Bold"
-                        BackgroundColor="Transparent"
-                        VerticalTextAlignment="Center"
-                        HorizontalTextAlignment="Center"
-                        HeightRequest="38"
-                        VerticalOptions="FillAndExpand"
-                        HorizontalOptions="FillAndExpand">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="LlblDescr_Tapped" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Grid>
-
-                <!-- ================= SLOT ================= -->
-                <Grid Row="1" ColumnDefinitions="120,*" Margin="0,5,0,0" HeightRequest="38">
-                    <!-- Label -->
-                    <Label x:Name="lblFromSlot"
-                        Text="From Slot:"
-                        TextColor="Black"
-                        FontAttributes="Bold"
-                        VerticalTextAlignment="Center"
-                        Grid.Column="0"
-                        VerticalOptions="Center"
-                        FontSize="Small"/>
-
-                    <!-- Background Entry (read-only display) -->
-                    <Entry x:Name="txtpSlot"
-                        IsReadOnly="True"
-                        BackgroundColor="#EEEEEE"
-                        HeightRequest="38"
-                        VerticalOptions="FillAndExpand"
-                        HorizontalOptions="FillAndExpand"
-                        InputTransparent="True"
-                        Grid.Column="1" />
-
-                    <!-- Clickable Label on top -->
-                    <Label x:Name="llblSlot"
-                        Text="{Binding Source={x:Reference txtpSlot}, Path=Text}" 
-                        TextColor="Blue"
-                        FontAttributes="Bold"
-                        BackgroundColor="Transparent"
-                        VerticalTextAlignment="Center"
-                        HorizontalTextAlignment="Center"
-                        HeightRequest="38"
-                        VerticalOptions="FillAndExpand"
-                        HorizontalOptions="FillAndExpand"
-                        Grid.Column="1">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="LlblSlot_Tapped" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Grid>
-            </Grid>
-
-            <!-- Slot Panel -->
-            <Frame x:Name="pnlSlots" 
-                   IsVisible="False" 
-                   BorderColor="Gray" 
-                   Padding="10" 
-                   Margin="0,10,0,10">
                 <VerticalStackLayout Spacing="10">
-                    <Label x:Name="lblMultipleSlots" 
-                        Text="Multiple Slots" 
-                        FontAttributes="Bold" 
-                        FontSize="Medium" 
-                        HorizontalOptions="Center" 
+
+                    <!-- Activity Indicator for server request -->
+                    <ActivityIndicator x:Name="pbReq"
+                        IsRunning="True"
+                        IsVisible="False"
+                        HorizontalOptions="Center"
                         VerticalOptions="Center"
-                        Loaded="LblMultipleSlots_Loaded"/>
+                        WidthRequest="30"
+                        HeightRequest="30"/>
 
-                    <CollectionView x:Name="lvSlots" SelectionMode="Single" SelectionChanged="LvSlots_SelectionChanged">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Label Text="{Binding Slot}" FontSize="Medium" Padding="5"/>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <!-- ➤ Store No -->
+                    <Grid ColumnDefinitions="120,*"
+                          Margin="0,-5,0,-10" 
+                          VerticalOptions="Center">
+                        <Label x:Name="lblDeptStore" 
+                               Text="Store No:" 
+                               FontAttributes="Bold" 
+                               FontSize="Medium"
+                               TextColor="Black"
+                               Grid.Column="0" 
+                               VerticalOptions="Center" 
+                               HorizontalOptions="Start"/>
+                        <Entry x:Name="txtDeptStore" 
+                               TextChanged="TxtDeptStore_TextChanged"
+                               Grid.Column="1" 
+                               VerticalOptions="Center" 
+                               HorizontalOptions="Fill"
+                               BackgroundColor="WhiteSmoke" 
+                               HeightRequest="40" 
+                               FontSize="Medium"/>
+                    </Grid>
 
-                    <Button x:Name="btnCloseSlot" 
-                        Text="Close" 
-                        BackgroundColor="Orange" 
-                        TextColor="White" 
-                        Clicked="BtnCloseSlot_Clicked"/>
+                    <!-- ➤ SKU to Pick -->
+                    <Grid ColumnDefinitions="120,*" 
+                          Margin="0,-5,0,0" 
+                          VerticalOptions="Center">
+                        <Label x:Name="lblSkuToPick" 
+                              Text="SKU to Pick:" 
+                              FontAttributes="Bold" 
+                              FontSize="Medium"
+                              TextColor="Black"
+                              Grid.Column="0" 
+                              VerticalOptions="Center" 
+                              HorizontalOptions="Start"/>
+                        <Entry x:Name="txtpSKU" 
+                              IsReadOnly="True" 
+                              TextChanged="TxtpSKU_TextChanged"
+                              Grid.Column="1" 
+                              VerticalOptions="Center" 
+                              HorizontalOptions="Fill"
+                              BackgroundColor="WhiteSmoke" 
+                              HeightRequest="40" 
+                              FontSize="Medium"/>
+                    </Grid>
+
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*" Margin="0,-5,0,0">
+
+                        <!-- ================= DESCRIPTION ================= -->
+                        <Grid Row="0">
+                            <!-- Background Entry (read-only display) -->
+                            <Entry x:Name="txtpDescr"
+                                IsReadOnly="True"
+                                BackgroundColor="#EEEEEE"
+                                HeightRequest="38"
+                                VerticalOptions="FillAndExpand"
+                                HorizontalOptions="FillAndExpand"
+                                InputTransparent="True" />
+
+                            <!-- Clickable Label on top -->
+                            <Label x:Name="llblDescr"
+                                Text="{Binding Source={x:Reference txtpDescr}, Path=Text}" 
+                                TextColor="Blue"
+                                FontAttributes="Bold"
+                                FontSize="Medium"
+                                BackgroundColor="Transparent"
+                                VerticalTextAlignment="Center"
+                                HorizontalTextAlignment="Center"
+                                HeightRequest="38"
+                                VerticalOptions="FillAndExpand"
+                                HorizontalOptions="FillAndExpand">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="LlblDescr_Tapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+
+                        <!-- ================= SLOT ================= -->
+                        <Grid Row="1" ColumnDefinitions="120,*" Margin="0,5,0,0" HeightRequest="38">
+                            <!-- Label -->
+                            <Label x:Name="lblFromSlot"
+                                Text="From Slot:"
+                                TextColor="Black"
+                                FontAttributes="Bold"
+                                VerticalTextAlignment="Center"
+                                Grid.Column="0"
+                                VerticalOptions="Center"
+                                FontSize="Medium"/>
+
+                            <!-- Background Entry (read-only display) -->
+                            <Entry x:Name="txtpSlot"
+                                IsReadOnly="True"
+                                BackgroundColor="#EEEEEE"
+                                HeightRequest="38"
+                                VerticalOptions="FillAndExpand"
+                                HorizontalOptions="FillAndExpand"
+                                FontSize="Medium"
+                                InputTransparent="True"
+                                Grid.Column="1" />
+
+                            <!-- Clickable Label on top -->
+                            <Label x:Name="llblSlot"
+                                Text="{Binding Source={x:Reference txtpSlot}, Path=Text}" 
+                                TextColor="Blue"
+                                FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                VerticalTextAlignment="Center"
+                                HorizontalTextAlignment="Center"
+                                HeightRequest="38"
+                                VerticalOptions="FillAndExpand"
+                                HorizontalOptions="FillAndExpand"
+                                Grid.Column="1">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="LlblSlot_Tapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ➤ Case & Each -->
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" 
+                          RowDefinitions="Auto" 
+                          Margin="0,-10,0,10">
+                        <Label x:Name="lblCase" 
+                               Text="Case:"
+                               FontAttributes="Bold"
+                               FontSize="Medium"
+                               TextColor="Black"
+                               Grid.Column="0" 
+                               VerticalOptions="Center"/>
+                        <Entry x:Name="txtpCase" 
+                               Grid.Column="1" 
+                               VerticalOptions="Center"
+                               HeightRequest="40" 
+                               HorizontalOptions="FillAndExpand"
+                               TextChanged="TxtpCase_TextChanged"
+                               FontSize="Medium"/>
+                        <Label Grid.Column="2"/>
+                        <Label x:Name="lblEach" 
+                               Text="Each:"
+                               FontAttributes="Bold"
+                               FontSize="Medium"
+                               TextColor="Black"
+                               Grid.Column="3" 
+                               VerticalOptions="Center"/>
+                        <Entry x:Name="txtpEach" 
+                               Grid.Column="4" 
+                               VerticalOptions="Center"
+                               HeightRequest="40" 
+                               HorizontalOptions="FillAndExpand"
+                               TextChanged="TxtpEach_TextChanged"
+                               FontSize="Medium"/>
+                    </Grid>
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- ➤ Case & Each -->
-            <Grid ColumnDefinitions="Auto,*,20,Auto,*" 
-                  RowDefinitions="Auto" 
-                  Margin="0,0,0,10">
-                <Label x:Name="lblCase" 
-                       Text="Case:"
-                       TextColor="Black"
-                       Grid.Column="0" 
-                       VerticalOptions="Center"/>
-                <Entry x:Name="txtpCase" 
-                       Grid.Column="1" 
-                       VerticalOptions="Center"
-                       HeightRequest="40" 
-                       HorizontalOptions="FillAndExpand"
-                       TextChanged="TxtpCase_TextChanged"/>
-                <Label Grid.Column="2"/>
-                <Label x:Name="lblEach" 
-                       Text="Each:"
-                       TextColor="Black"
-                       Grid.Column="3" 
-                       VerticalOptions="Center"/>
-                <Entry x:Name="txtpEach" Grid.Column="4" VerticalOptions="Center"
-                       HeightRequest="40" HorizontalOptions="FillAndExpand"
-                       TextChanged="TxtpEach_TextChanged"/>
-            </Grid>
-
             <!-- Buttons Container -->
-            <HorizontalStackLayout 
+            <Frame 
                 x:Name="pnlNavigate" 
-                Spacing="10" 
-                Margin="5,-10,0,0">
-                    <Button x:Name="btnGoto" 
+                Padding="5" 
+                Margin="0,-10,0,5" 
+                BackgroundColor="WhiteSmoke"
+                CornerRadius="10">
+                <HorizontalStackLayout Spacing="15">
+                <Button x:Name="btnGoto"
                         StyleId="btnGoto"
-                        Text="Go To" 
+                        Text="Go To"
+                        FontAttributes="Bold"
+                        FontSize="Subtitle"
                         Clicked="BtnNavigate_Clicked"
                         HeightRequest="40"
                         WidthRequest="90"
                         HorizontalOptions="FillAndExpand"/>
-                    <Button x:Name="btnPrev" 
+                <Button x:Name="btnPrev" 
                         StyleId="btnPrev" 
-                        Text="&lt; Prev" 
+                        Text="&lt; Prev"
+                        FontAttributes="Bold"
+                        FontSize="Subtitle"
                         Clicked="BtnNavigate_Clicked"
                         HeightRequest="40"
                         WidthRequest="90"
                         HorizontalOptions="FillAndExpand"/>
-                    <Button x:Name="btnNext" 
-                        Text="Next &gt;" 
+                <Button x:Name="btnNext" 
+                        Text="Next &gt;"
+                        FontAttributes="Bold"
+                        FontSize="Subtitle"
                         Clicked="BtnNext_Clicked"
                         HeightRequest="40"
                         WidthRequest="90"
                         HorizontalOptions="FillAndExpand"/>
-            </HorizontalStackLayout>
-
-            <!-- GO TO PANEL / pnlGoto -->
-            <Frame x:Name="pnlGoto" 
-                   IsVisible="False" 
-                   BorderColor="Gray" 
-                   Padding="20" 
-                   Margin="0,5,0,10">
-                <VerticalStackLayout Spacing="15">
-                    <Label x:Name="Gotolbl" 
-                           Text="GO TO" 
-                           FontSize="20" 
-                           HorizontalOptions="Center" 
-                           FontAttributes="Bold"/>
-                   <VerticalStackLayout Spacing="20">
-                        <Button x:Name="btnFirst"
-                                StyleId="btnFirst" 
-                                Text="First" 
-                                WidthRequest="150"
-                                Clicked="BtnNavigate_Clicked"/>
-                        <Button x:Name="btnLast" 
-                                StyleId="btnLast" 
-                                Text="Last" 
-                                WidthRequest="150" 
-                                Clicked="BtnNavigate_Clicked"/>
-                        <Button x:Name="btnUnpick" 
-                                StyleId="btnUnpick" 
-                                Text="Unpicked" 
-                                WidthRequest="150" 
-                                Clicked="BtnNavigate_Clicked"/>
-                   </VerticalStackLayout>
-                        <Label x:Name="lblLineNo" 
-                               Text="Line Number:" 
-                               HorizontalOptions="Center" 
-                               FontSize="14"/>
-                        <Entry x:Name="txtLine" 
-                               HorizontalOptions="Center" 
-                               WidthRequest="150" 
-                               FontSize="14"
-                               Margin="0,-10,0,0" 
-                               Completed="TxtLine_Completed"/>
-                        <Button x:Name="btnCloseGoto" 
-                                Text="Close" 
-                                WidthRequest="150" 
-                                BackgroundColor="Red"
-                                TextColor="White" 
-                                Clicked="BtnCloseGoto_Clicked"/>
-                </VerticalStackLayout>
+                </HorizontalStackLayout>
             </Frame>
-            
+
             <!-- PANEL INPUT / pnlInput -->
             <Frame x:Name="pnlInput" 
-                   Padding="10" 
-                   Margin="0,10,0,10" 
-                   BackgroundColor="WhiteSmoke">
+                   Padding="5" 
+                   Margin="0,-5,0,10" 
+                   BackgroundColor="WhiteSmoke"
+                   CornerRadius="10">
                 <VerticalStackLayout Spacing="10">
                     <!-- ➤ Barcode -->
                     <Grid ColumnDefinitions="120,*" 
@@ -280,7 +241,7 @@
                             Text="Barcode:"
                             TextColor="Black"
                             FontAttributes="Bold"
-                            FontSize="Small"
+                            FontSize="Medium"
                             Grid.Column="0"
                             VerticalOptions="Center"
                             HorizontalOptions="Start"/>
@@ -290,7 +251,7 @@
                             HorizontalOptions="FillAndExpand"
                             BackgroundColor="WhiteSmoke"
                             HeightRequest="40"
-                            FontSize="Small"
+                            FontSize="Medium"
                             Completed="Entry_BarcodeAndQty_Completed"
                             TextChanged="Entry_TextChanged"
                             StyleId="txtBarcode"
@@ -315,23 +276,22 @@
                             Spacing="50">
                             <!-- ➤ SKU: label + Entry -->
                             <Label x:Name="lblSKU"
-                            Text="SKU:"
-                            TextColor="Black"
-                            FontAttributes="Bold"
-                            FontSize="Small"
-                            VerticalOptions="Center"
-                            HorizontalOptions="End"/>
+                                Text="SKU:"
+                                TextColor="Black"
+                                FontAttributes="Bold"
+                                FontSize="Medium"
+                                VerticalOptions="Center"
+                                HorizontalOptions="End"/>
 
                             <Entry x:Name="txtSKU"
-                            VerticalOptions="Center"
-                            HorizontalOptions="FillAndExpand"
-                            BackgroundColor="WhiteSmoke"
-                            HeightRequest="40"
-                            FontSize="Small"
-                            TextChanged="TxtSKU_TextChanged"/>
+                                VerticalOptions="Center"
+                                HorizontalOptions="FillAndExpand"
+                                BackgroundColor="WhiteSmoke"
+                                HeightRequest="40"
+                                FontSize="Medium"
+                                TextChanged="TxtSKU_TextChanged"/>
                         </StackLayout>
                     </Grid>
-
 
                     <!-- ➤ Case2 & Each2 -->
                     <Grid ColumnDefinitions="Auto,*,20,Auto,*" 
@@ -339,6 +299,8 @@
                           VerticalOptions="Center">
                         <Label x:Name="lblCase2" 
                                Text="Case 2:"
+                               FontAttributes="Bold"
+                               FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="0" 
                                VerticalOptions="Center"/>
@@ -347,7 +309,8 @@
                                VerticalOptions="Center" 
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
-                               TextChanged="Entry_TextChanged" 
+                               TextChanged="Entry_TextChanged"
+                               FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
                                StyleId="txtCase"
@@ -356,6 +319,8 @@
                         <Label Grid.Column="2"/>
                         <Label x:Name="lblEach2" 
                                Text="Each 2:"
+                               FontAttributes="Bold"
+                               FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="3" 
                                VerticalOptions="Center"/>
@@ -365,6 +330,7 @@
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="Entry_TextChanged"
+                               FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
                                StyleId="txtEach" 
@@ -384,14 +350,17 @@
                             BackgroundColor="Green"
                             TextColor="White"
                             FontAttributes="Bold"
+                            FontSize="Medium"
                             HeightRequest="40"
                             HorizontalOptions="Start"
                             WidthRequest="150"
+                            Padding="5"
                             Clicked="BtnAccept_Clicked"/>
 
                         <!-- ➤ Done -->
                         <Grid Grid.Column="1"  
-                              ColumnDefinitions="Auto,*" 
+                              ColumnDefinitions="Auto,*"
+                              Margin="0,0,0,0"
                               VerticalOptions="Center" 
                               HorizontalOptions="FillAndExpand" 
                               ColumnSpacing="25">
@@ -419,124 +388,280 @@
             </Frame>
 
             <Grid ColumnDefinitions="*,Auto" 
-                Margin="0,-5,0,10" 
+                Margin="0,-10,0,10" 
                 VerticalOptions="Center" 
                 HorizontalOptions="FillAndExpand" 
                 ColumnSpacing="10">
                 <Label x:Name="lblUser"
-                Text="Please set USER ID!"
-                TextColor="Gray"
-                FontAttributes="Bold"
-                FontSize="Small"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                Loaded="LblUser_Loaded"/>
+                    Text="Please set USER ID!"
+                    TextColor="Black"
+                    FontAttributes="Bold"
+                    FontSize="Small"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Loaded="LblUser_Loaded"/>
             </Grid>
-
-            <!-- Confirm Panel -->
-            <Frame x:Name="pnlConfirm" 
-                   IsVisible="False" 
-                   Padding="10" 
-                   BackgroundColor="LightGray" 
-                   Margin="0,10,0,10">
-                <VerticalStackLayout Spacing="10">
-                    <Label x:Name="lblConfirmTitle"
-                        Text="Confirm Zero Qty from a Stocker"
-                        FontAttributes="Bold"
-                        FontSize="Medium"
-                        HorizontalOptions="Center"
-                        Loaded="LblConfirmTitle_Loaded"/>
-                    <Label x:Name="lblInput"
-                        Text="Stocker ID:"
-                        FontSize="Small" 
-                        TextColor="Gray"/>
-                    <Entry x:Name="txtStocker"
-                        Placeholder="Stocker"
-                        Keyboard="Numeric"
-                        Completed="TxtStocker_Completed"
-                        TextChanged="TxtStocker_TextChanged"
-                        StyleId="txtStocker"
-                        Focused="Entry_GotFocus"
-                        Unfocused="Entry_LostFocus"/>
-                    <Button x:Name="btnConfirm"
-                        Text="Confirm"
-                        Clicked="BtnConfirm_Clicked" />
-                    <Button x:Name="btnCancel"
-                        Text="Cancel"
-                        BackgroundColor="Red"
-                        TextColor="White"
-                        Clicked="BtnCancel_Clicked"/>
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- BARCODE PANEL -->
-            <Frame x:Name="pnlBarcodes"
-                IsVisible="False"
-                BackgroundColor="White"
-                BorderColor="Gray"
-                CornerRadius="10"
-                Padding="10"
-                HasShadow="True"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="Start">
-                <VerticalStackLayout Spacing="5">
-                    <!-- Header -->
-                    <Label x:Name="lblBarcodeTitle"
-                        Text="BARCODE"
-                        HorizontalOptions="Center"
-                        FontAttributes="Bold"
-                        Loaded="LblBarcodeTitle_Loaded"/>
-
-                    <!-- Search / Input Entry (first focusable control) -->
-                    <Entry x:Name="txtBarcodeSearch"
-                        Placeholder="Scan or enter UPC"
-                        HorizontalOptions="FillAndExpand"/>
-
-                    <!-- CollectionView for UPCs -->
-                    <CollectionView x:Name="lvBarcodes"
-                        ItemsSource="{Binding barcodeList}"
-                        SelectionMode="Single"
-                        HeightRequest="200">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Padding="5" ColumnDefinitions="*,*">
-                                    <Label Text="{Binding Text}" Grid.Column="0"/>
-                                    <Label Text="{Binding UPC}" Grid.Column="1" HorizontalTextAlignment="End"/>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-
-                    <!-- Close button -->
-                    <Button x:Name="btnClose"
-                        Text="Close"
-                        WidthRequest="150"
-                        BackgroundColor="Red"
-                        TextColor="White"
-                        Clicked="BtnClose_Clicked"
-                        HorizontalOptions="Center"
-                        Margin="0,10,0,0"/>
-
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- ➤ SKU List -->
-            <CollectionView x:Name="lvSKU"
-                SelectionMode="Single"
-                SelectionChanged="LvSKU_SelectionChanged"
-                HeightRequest="200"
-                Margin="0,0,0,10">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Label Text="{Binding SKU}" FontSize="Medium" Padding="5"/>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
 
             <!-- Finish Button -->
             <Button x:Name="btnFinished"
-                    Text="Finish Picking?" 
+                    Text="Finish Picking?"
+                    Clicked="BtnFinished_Clicked"
                     IsVisible="False"/>
+
         </VerticalStackLayout>
-    </ScrollView>
+
+        <!-- ================= POPUP OVERLAYS ================= -->
+
+        <!-- Confirm Panel POPUP -->
+        <Frame x:Name="pnlConfirm" 
+            IsVisible="False" 
+            Padding="20" 
+            BackgroundColor="White" 
+            BorderColor="Gray"
+            CornerRadius="10"
+            HasShadow="True"
+            Margin="20"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            WidthRequest="280"
+            HeightRequest="350"
+            InputTransparent="False"
+            ZIndex="100">
+            <VerticalStackLayout Spacing="10">
+                <Label x:Name="lblConfirmTitle"
+                    Text="Confirm Zero Qty from a Stocker"
+                    FontAttributes="Bold"
+                    FontSize="Large"
+                    TextColor="Black"
+                    HorizontalOptions="Center"
+                    Loaded="LblConfirmTitle_Loaded"/>
+                <Label x:Name="lblInput"
+                    Text="Stocker ID:"
+                    FontAttributes="Bold"
+                    FontSize="Medium" 
+                    TextColor="Black"
+                    Margin="0,10,0,0"/>
+                <Entry x:Name="txtStocker"
+                    Placeholder="Stocker"
+                    Keyboard="Numeric"
+                    Completed="TxtStocker_Completed"
+                    TextChanged="TxtStocker_TextChanged"
+                    StyleId="txtStocker"
+                    Margin="0,10,0,20"/>
+                <Button x:Name="btnConfirm"
+                    Text="Confirm"
+                    FontSize="Medium"
+                    WidthRequest="180"
+                    Margin="0,0,0,5"
+                    Clicked="BtnConfirm_Clicked" />
+                <Button x:Name="btnCancel"
+                    Text="Cancel"
+                    FontSize="Medium"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    Margin="0,0,0,0"
+                    WidthRequest="180"
+                    Clicked="BtnCancel_Clicked"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Slot Panel POPUP -->
+        <Frame x:Name="pnlSlots" 
+            IsVisible="False" 
+            BorderColor="Gray" 
+            BackgroundColor="White"
+            CornerRadius="10"
+            HasShadow="True"
+            Padding="20" 
+            Margin="20"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            WidthRequest="350"
+            InputTransparent="False"
+            ZIndex="100">
+            <VerticalStackLayout Spacing="10">
+                <Label x:Name="lblMultipleSlots" 
+                    Text="Multiple Slots" 
+                    FontAttributes="Bold" 
+                    FontSize="Medium" 
+                    HorizontalOptions="Center" 
+                    VerticalOptions="Center"
+                    Loaded="LblMultipleSlots_Loaded"/>
+
+                <CollectionView x:Name="lvSlots" SelectionMode="Single" SelectionChanged="LvSlots_SelectionChanged" HeightRequest="200">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding Slot}" FontSize="Medium" Padding="5"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Button x:Name="btnCloseSlot" 
+                    Text="Close" 
+                    BackgroundColor="Orange" 
+                    TextColor="White" 
+                    Clicked="BtnCloseSlot_Clicked"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- GO TO PANEL POPUP -->
+        <Frame x:Name="pnlGoto" 
+            IsVisible="False" 
+            BorderColor="Gray" 
+            BackgroundColor="White"
+            CornerRadius="10"
+            HasShadow="True"
+            Padding="20" 
+            Margin="40"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            WidthRequest="280"
+            InputTransparent="False"
+            ZIndex="100">
+            <VerticalStackLayout Spacing="15">
+                <Label x:Name="Gotolbl" 
+                    Text="GO TO"
+                    TextColor="Black"
+                    FontSize="25" 
+                    HorizontalOptions="Center" 
+                    FontAttributes="Bold"/>
+                <VerticalStackLayout Spacing="15">
+                    <Button x:Name="btnFirst"
+                        StyleId="btnFirst" 
+                        Text="First"
+                        FontAttributes="Bold"
+                        HeightRequest="40"
+                        WidthRequest="150"
+                        HorizontalOptions="Center"
+                        Clicked="BtnNavigate_Clicked"/>
+                    <Button x:Name="btnLast" 
+                        StyleId="btnLast" 
+                        Text="Last" 
+                        FontAttributes="Bold"
+                        HeightRequest="40"
+                        WidthRequest="150"
+                        HorizontalOptions="Center"
+                        Clicked="BtnNavigate_Clicked"/>
+                    <Button x:Name="btnUnpick" 
+                        StyleId="btnUnpick" 
+                        Text="Unpicked" 
+                        FontAttributes="Bold"
+                        HeightRequest="40"
+                        WidthRequest="150"
+                        HorizontalOptions="Center"
+                        Clicked="BtnNavigate_Clicked"/>
+                </VerticalStackLayout>
+                <Label x:Name="lblLineNo" 
+                        Text="Line Number:"
+                        FontAttributes="Bold"
+                        TextColor="Black"
+                        HorizontalOptions="Center" 
+                        FontSize="14"/>
+                <Entry x:Name="txtLine" 
+                        HorizontalOptions="Center" 
+                        WidthRequest="150" 
+                        FontSize="14"
+                        Margin="0,-15,0,0" 
+                        Completed="TxtLine_Completed"/>
+                <Button x:Name="btnCloseGoto" 
+                        Text="Close" 
+                        FontAttributes="Bold"
+                        WidthRequest="150"
+                        HorizontalOptions="Center"
+                        BackgroundColor="Red"
+                        TextColor="White" 
+                        Clicked="BtnCloseGoto_Clicked"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- BARCODE PANEL POPUP -->
+        <Frame x:Name="pnlBarcodes"
+            IsVisible="False"
+            BackgroundColor="White"
+            BorderColor="Gray"
+            CornerRadius="10"
+            Padding="10"
+            HasShadow="True"
+            Margin="20"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            WidthRequest="280"
+            InputTransparent="False"
+            ZIndex="100">
+            <VerticalStackLayout Spacing="10">
+                <!-- Header -->
+                <Label x:Name="lblBarcodeTitle"
+                    Text="BARCODE"
+                    TextColor="Black"
+                    HorizontalOptions="Center"
+                    FontAttributes="Bold"
+                    FontSize="Large"
+                    Loaded="LblBarcodeTitle_Loaded"/>
+
+                <!-- Search / Input Entry (first focusable control) -->
+                <Entry x:Name="txtBarcodeSearch"
+                    Placeholder="Scan or enter UPC"
+                    HorizontalOptions="FillAndExpand"/>
+
+                <!-- CollectionView for UPCs -->
+                <CollectionView x:Name="lvBarcodes"
+                    ItemsSource="{Binding barcodeList}"
+                    SelectionMode="Single"
+                    HeightRequest="200">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="5" ColumnDefinitions="*,*">
+                                <Label Text="{Binding Text}" Grid.Column="0"/>
+                                <Label Text="{Binding UPC}" Grid.Column="1" HorizontalTextAlignment="End"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Close button -->
+                <Button x:Name="btnClose"
+                    Text="Close"
+                    WidthRequest="150"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    Clicked="BtnClose_Clicked"
+                    HorizontalOptions="Center"
+                    Margin="0,10,0,20"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- SKU List POPUP -->
+        <Frame x:Name="pnlSKUList"
+               IsVisible="False"
+               BackgroundColor="White"
+               BorderColor="Gray"
+               CornerRadius="10"
+               Padding="20"
+               HasShadow="True"
+               Margin="20"
+               VerticalOptions="Center"
+               HorizontalOptions="Center"
+               WidthRequest="350"
+               InputTransparent="False"
+               ZIndex="100">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Select SKU" 
+                       FontAttributes="Bold" 
+                       FontSize="Large" 
+                       HorizontalOptions="Center"/>
+                <CollectionView x:Name="lvSKU"
+                    SelectionMode="Single"
+                    SelectionChanged="LvSKU_SelectionChanged"
+                    HeightRequest="250">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding SKU}" FontSize="Medium" Padding="5"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </Frame>
+
+    </Grid>
+
 </ContentPage>

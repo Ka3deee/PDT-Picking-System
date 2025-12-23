@@ -81,6 +81,7 @@ namespace PDTPickingSystem.Helpers
 
                 var con = new SqlConnection(BuildConnectionString(serverToUse));
 
+                // Connection timeout: 3s for SQL + 4s for Task.WhenAny = max 4 seconds total
                 var openTask = con.OpenAsync();
                 var completed = await Task.WhenAny(openTask, Task.Delay(4000));
 
@@ -260,10 +261,10 @@ namespace PDTPickingSystem.Helpers
 
         public static async Task<string> _GetDateTime(bool isDay = false)
         {
-            using var con = await _SQL_Connect();
-            if (con != null)
+            try
             {
-                try
+                using var con = await _SQL_Connect();
+                if (con != null)
                 {
                     string sql = "SELECT CONVERT(VARCHAR(8), GETDATE(), 12) AS Today, " +
                                  "CONVERT(VARCHAR(8), GETDATE(), 114) AS ServerTime";
@@ -272,18 +273,17 @@ namespace PDTPickingSystem.Helpers
                     using var reader = await cmd.ExecuteReaderAsync();
 
                     if (await reader.ReadAsync())
-                    {
                         return isDay
                             ? reader["Today"]?.ToString() ?? ""
                             : reader["ServerTime"]?.ToString() ?? "";
-                    }
-                }
-                catch
-                {
-                    // fallback to local time
                 }
             }
+            catch
+            {
+                // ignored, fallback to local time
+            }
 
+            // fallback to local machine time
             return isDay
                 ? DateTime.Now.ToString("yyMMdd")
                 : DateTime.Now.ToString("HH:mm:ss");
@@ -343,7 +343,7 @@ namespace PDTPickingSystem.Helpers
         // ------------------------------
         // NEW: Check Option Stocker
         // ------------------------------
-        public static async Task<bool> _CheckOption_Stocker()
+        public static async Task<bool> _CheckOption_StockerAsync()
         {
             using var con = await _SQL_Connect();
             if (con != null)

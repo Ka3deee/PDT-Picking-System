@@ -103,6 +103,9 @@ namespace PDTPickingSystem.Views
             txtpEach.Focused += Entry_GotFocus;
             txtpEach.Unfocused += Entry_LostFocus;
 
+            txtStocker.Focused += Entry_GotFocus;
+            txtStocker.Unfocused += Entry_LostFocus;
+
             txtDone.Focused += Entry_GotFocus;
             txtDone.Unfocused += Entry_LostFocus;
 
@@ -254,42 +257,46 @@ namespace PDTPickingSystem.Views
         {
             if (sender is not Entry entry) return;
 
-            // Allow only numeric input
-            if (!_isAllowedNum(e.NewTextValue))
+            foreach (char c in e.NewTextValue)
             {
-                entry.Text = e.OldTextValue; // revert invalid input
+                if (AppGlobal._isAllowedNum(c) == '\0') // ❌ invalid char
+                {
+                    entry.Text = e.OldTextValue; // revert to old value
+                    break;
+                }
             }
         }
 
         // ✅ Handle Enter key / Completed event
         private async void Entry_BarcodeAndQty_Completed(object sender, EventArgs e)
-        {
-            if (sender is not Entry entry) return;
+            {
+                if (sender is not Entry entry) return;
 
-            if (!_isAllowedNum(entry.Text))
-            {
-                entry.Text = "";
-                return;
+                // Validate that all characters are allowed
+                if (entry.Text != null && entry.Text.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
+                {
+                    entry.Text = "";
+                    return;
+                }
+
+                if (entry == txtBarcode)
+                {
+                    await GetSKUDescrAsync(); // async SKU lookup
+                }
+                else if (entry == txtCase)
+                {
+                    txtEach.Focus();
+                    txtEach.CursorPosition = 0;
+                    txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
+                }
+                else if (entry == txtEach)
+                {
+                    BtnAccept_Clicked(null, null);
+                }
             }
 
-            if (entry == txtBarcode)
-            {
-                await GetSKUDescrAsync(); // async SKU lookup
-            }
-            else if (entry == txtCase)
-            {
-                txtEach.Focus();
-                txtEach.CursorPosition = 0;
-                txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
-            }
-            else if (entry == txtEach)
-            {
-                BtnAccept_Clicked(null, null);
-            }
-        }
-
-        // Optional: Escape key (hardware keyboards)
-        private void HandleEscapeKey()
+    // Optional: Escape key (hardware keyboards)
+    private void HandleEscapeKey()
         {
             if (Navigation.NavigationStack.Count > 1)
                 Navigation.PopAsync(); // Close current page
@@ -316,10 +323,15 @@ namespace PDTPickingSystem.Views
         private void TxtStocker_TextChanged(object sender, TextChangedEventArgs e)
         {
             var txt = txtStocker.Text;
-            if (!string.IsNullOrEmpty(txt) && !_isAllowedNum(txt))
+            if (!string.IsNullOrEmpty(txt))
             {
-                txtStocker.Text = new string(txt.Where(c => char.IsDigit(c)).ToArray());
-                txtStocker.CursorPosition = txtStocker.Text.Length;
+                // Keep only allowed numeric characters
+                var filtered = new string(txt.Where(c => AppGlobal._isAllowedNum(c) != '\0').ToArray());
+                if (txt != filtered)
+                {
+                    txtStocker.Text = filtered;
+                    txtStocker.CursorPosition = txtStocker.Text.Length;
+                }
             }
         }
 
@@ -589,9 +601,9 @@ namespace PDTPickingSystem.Views
                         pnlInput.IsVisible = false;
 
                         txtStocker.Text = "";
-                        txtStockerTag = ""; // replacing Tag
+                        txtStockerTag = ""; // replacing .Tag
 
-                        txtStocker.IsReadOnly = _CheckOption_Stocker();
+                        txtStocker.IsReadOnly = await AppGlobal._CheckOption_StockerAsync();
                         pnlConfirm.IsVisible = true;
                         txtStocker.Focus();
                     }
@@ -745,9 +757,10 @@ namespace PDTPickingSystem.Views
         private void TxtLine_TextChanged(object sender, TextChangedEventArgs e)
         {
             var txt = txtLine.Text;
-            if (!string.IsNullOrEmpty(txt) && !_isAllowedNum(txt))
+            if (!string.IsNullOrEmpty(txt))
             {
-                txtLine.Text = new string(txt.Where(c => char.IsDigit(c)).ToArray());
+                // Keep only allowed characters
+                txtLine.Text = new string(txt.Where(c => AppGlobal._isAllowedNum(c) != '\0').ToArray());
                 txtLine.CursorPosition = txtLine.Text.Length;
             }
         }
@@ -1111,69 +1124,6 @@ namespace PDTPickingSystem.Views
             public string DisplayQty => PickedQty.ToString("N2");
         }
 
-        // ================= HELPER METHODS =================
-        private string _GetDateTime(bool onlyDate = false)
-        {
-            if (onlyDate)
-                return DateTime.Now.ToString("yyyy-MM-dd"); // just the date
-            else
-                return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); // full date + time
-        }
-
-        // Returns department name from department ID
-        private async Task<string> _GetDeptNameAsync(object deptId)
-        {
-            if (deptId == null) return string.Empty;
-
-            try
-            {
-                using var con = await AppGlobal._SQL_Connect();
-                if (con == null) return string.Empty;
-
-                using var cmd = new SqlCommand(
-                    "SELECT DeptName FROM tblDept WHERE ID = @ID",
-                    con);
-
-                cmd.Parameters.AddWithValue("@ID", deptId);
-
-                using var reader = await cmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return reader["DeptName"]?.ToString()?.Trim() ?? "";
-                }
-            }
-            catch
-            {
-                // optionally log
-            }
-
-            return string.Empty;
-        }
-
-        // Returns store number (for per transfer picking)
-        // Returns store number (for per transfer picking)
-        private string _GetStoreNo()
-        {
-            try
-            {
-                // Example: using AppGlobal.DeptStore or AppGlobal.StoreNo
-                return AppGlobal.DeptStore ?? string.Empty;
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        // Dummy methods
-        private bool _isAllowedNum(string input)
-        {
-            // Allow digits, dot, or empty
-            return string.IsNullOrEmpty(input) || double.TryParse(input, out _);
-        }
-
-        private bool _CheckOption_Stocker() => true;
-
         private async Task _AcceptItemAsync()
         {
             // 1️⃣ Connect to SQL
@@ -1199,7 +1149,7 @@ namespace PDTPickingSystem.Views
             if (!isStarted)
             {
                 isStarted = true;
-                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET isUpdate=1, TimeStart='{_GetDateTime()}' WHERE ID={ID_SumHdr}";
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET isUpdate=1, TimeStart='{await AppGlobal._GetDateTime()}' WHERE ID={ID_SumHdr}";
             }
             else
             {
@@ -1217,7 +1167,7 @@ namespace PDTPickingSystem.Views
             // 6️⃣ Update PickDtl
             if (isSummary == 1)
             {
-                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
                                      $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
             }
@@ -1225,7 +1175,7 @@ namespace PDTPickingSystem.Views
             {
                 var dsData = await _WorkQueryAsync($"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}");
 
-                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{_GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{_GetDateTime()}' " +
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{await AppGlobal._GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
                                      $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
 
@@ -1450,7 +1400,7 @@ namespace PDTPickingSystem.Views
                         else
                         {
                             lblDeptStore.Text = "Store No:";
-                            txtDeptStore.Text = _GetStoreNo(); // local method
+                            txtDeptStore.Text = await AppGlobal._GetStoreNo(); // local method
                         }
                     }
                 }
