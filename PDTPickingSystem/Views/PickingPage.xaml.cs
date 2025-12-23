@@ -1132,7 +1132,7 @@ namespace PDTPickingSystem.Views
 
             using var sqlCmd = conn.CreateCommand();
 
-            // 2️⃣ Calculate picked quantity using txtpCaseTag and txtpEachTag
+            // 2️⃣ Calculate picked quantity using txtpCaseTag and txtEach
             double caseTag = Convert.ToDouble(txtpCaseTag ?? 0);  // replaces txtpCase.Tag
             double caseQty = double.TryParse(txtCase.Text, out double cQty) ? cQty : 0;
             double eachQty = double.TryParse(txtEach.Text, out double eQty) ? eQty : 0;
@@ -1140,8 +1140,7 @@ namespace PDTPickingSystem.Views
 
             // 3️⃣ Get selected SKU item
             if (sSKU == -1 || lvSKU.SelectedItem == null) return;
-            var lvItem = lvSKU.SelectedItem as PickQtyItem;
-            if (lvItem == null) return;
+            if (lvSKU.SelectedItem is not PickQtyItem lvItem) return;
 
             lvItem.PickedQty = dQty;
 
@@ -1160,48 +1159,60 @@ namespace PDTPickingSystem.Views
             // 5️⃣ Prepare UPC update
             string sUPC = "";
             if (!pbScanned.IsVisible && !string.IsNullOrEmpty(txtBarcode.Text))
-                sUPC = $"UPC={txtBarcode.Text},";
+                sUPC = $"UPC='{txtBarcode.Text}',";
             if (eachQty == 0 && caseQty == 0)
                 sUPC = "";
 
             // 6️⃣ Update PickDtl
             if (isSummary == 1)
             {
-                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
-                                     $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
+                sqlCmd.CommandText =
+                    $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
+                    $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
             }
             else
             {
-                var dsData = await _WorkQueryAsync($"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}");
+                var dsData = new DataSet();
 
-                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{await AppGlobal._GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
-                                     $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
+                // Corrected _WorkQueryAsync call with DataSet and table name
+                await AppGlobal._WorkQueryAsync(
+                    $"SELECT ID, Qty FROM tbl{pPickNo}PickDtl WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}",
+                    dsData,
+                    "PickDtl"
+                );
+
+                sqlCmd.CommandText =
+                    $"UPDATE tbl{pPickNo}PickDtl SET {sUPC}SortTime='{await AppGlobal._GetDateTime()}', SortBy={AppGlobal.ID_User}, PickBy={AppGlobal.ID_User}, ConfBy={ID_Stocker}, PickTime='{await AppGlobal._GetDateTime()}' " +
+                    $"WHERE SKU='{lvItem.SKU}' AND ID_SumHdr={ID_SumHdr}";
                 await sqlCmd.ExecuteNonQueryAsync();
 
-                int lCount = dsData.Tables[0].Rows.Count - 1;
+                int lCount = dsData.Tables["PickDtl"].Rows.Count - 1;
 
                 for (int iCount = 0; iCount <= lCount; iCount++)
                 {
-                    var dRow = dsData.Tables[0].Rows[iCount];
+                    var dRow = dsData.Tables["PickDtl"].Rows[iCount];
                     double dNeedQty = Convert.ToDouble(dRow["Qty"]);
 
                     if (iCount == lCount)
                     {
-                        sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
+                        sqlCmd.CommandText =
+                            $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
                         await sqlCmd.ExecuteNonQueryAsync();
                     }
                     else
                     {
                         if (dQty >= dNeedQty)
                         {
-                            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty=Qty, isUpdate=1 WHERE ID={dRow["ID"]}";
+                            sqlCmd.CommandText =
+                                $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty=Qty, isUpdate=1 WHERE ID={dRow["ID"]}";
                             await sqlCmd.ExecuteNonQueryAsync();
                             dQty -= dNeedQty;
                         }
                         else
                         {
-                            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
+                            sqlCmd.CommandText =
+                                $"UPDATE tbl{pPickNo}PickDtl SET isSorted=1, SortQty={dQty}, isUpdate=1 WHERE ID={dRow["ID"]}";
                             await sqlCmd.ExecuteNonQueryAsync();
                             dQty = 0;
                         }
@@ -1210,7 +1221,8 @@ namespace PDTPickingSystem.Views
             }
 
             // 7️⃣ Update PickQty
-            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickQty SET isPicked=1, PickQty={lvItem.PickedQty} WHERE ID={lvItem.ID}";
+            sqlCmd.CommandText =
+                $"UPDATE tbl{pPickNo}PickQty SET isPicked=1, PickQty={lvItem.PickedQty} WHERE ID={lvItem.ID}";
             await sqlCmd.ExecuteNonQueryAsync();
 
             // 8️⃣ Move to next SKU
@@ -1222,7 +1234,7 @@ namespace PDTPickingSystem.Views
             else
             {
                 sSKU = -1;
-                await _GetSKUtoPickAsync(); // find next unpicked SKU like in VB.NET
+                await _GetSKUtoPickAsync(); // find next unpicked SKU
             }
         }
 
@@ -1352,26 +1364,6 @@ namespace PDTPickingSystem.Views
             pbReq.IsVisible = false;
         }
 
-
-        private async Task<DataSet> _WorkQueryAsync(string sql)
-        {
-            var ds = new DataSet();
-
-            // 1️⃣ Connect to SQL
-            using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null)
-                return ds; // return empty DataSet if connection fails
-
-            // 2️⃣ Execute query
-            using var cmd = new SqlCommand(sql, conn);
-            using var adapter = new SqlDataAdapter(cmd);
-
-            System.Diagnostics.Debug.WriteLine("SQL2: " + sql);
-            adapter.Fill(ds);
-
-            return ds;
-        }
-
         private async Task _AddSKUtoListAsync()
         {
             // 1️⃣ Connect to SQL
@@ -1395,21 +1387,29 @@ namespace PDTPickingSystem.Views
                         if (isSummary == 1)
                         {
                             lblDeptStore.Text = "Department:";
-                            txtDeptStore.Text = await AppGlobal._GetDeptName(deptId); // async call safe
+                            txtDeptStore.Text = await AppGlobal._GetDeptName(deptId); // async call
                         }
                         else
                         {
                             lblDeptStore.Text = "Store No:";
-                            txtDeptStore.Text = await AppGlobal._GetStoreNo(); // local method
+                            txtDeptStore.Text = await AppGlobal._GetStoreNo(); // async call
                         }
                     }
                 }
 
-                // 3️⃣ Load PickQty items
-                var dsData = await _WorkQueryAsync($"SELECT * FROM tbl{pPickNo}PickQty WHERE ID_SumHdr={ID_SumHdr} ORDER BY Slot, SKU");
+                // 3️⃣ Load PickQty items into DataSet
+                var dsData = new DataSet();
+                bool querySuccess = await AppGlobal._WorkQueryAsync(
+                    $"SELECT * FROM tbl{pPickNo}PickQty WHERE ID_SumHdr={ID_SumHdr} ORDER BY Slot, SKU",
+                    dsData,
+                    "PickQty"
+                );
 
+                if (!querySuccess || dsData.Tables.Count == 0) return;
+
+                // 4️⃣ Populate pickList
                 pickList.Clear();
-                foreach (DataRow dRow in dsData.Tables[0].Rows)
+                foreach (DataRow dRow in dsData.Tables["PickQty"].Rows)
                 {
                     var item = new PickQtyItem
                     {
@@ -1433,13 +1433,13 @@ namespace PDTPickingSystem.Views
                     pickList.Add(item);
                 }
 
-                // 4️⃣ Bind to UI
+                // 5️⃣ Bind to UI
                 lvSKU.ItemsSource = pickList;
 
-                // 5️⃣ Reset sSKU to -1 to find first unpicked item
+                // 6️⃣ Reset sSKU to -1 to find first unpicked item
                 sSKU = -1;
 
-                // 6️⃣ Load next SKU to pick
+                // 7️⃣ Load next SKU to pick
                 await _GetSKUtoPickAsync();
             }
             catch (Exception ex)

@@ -391,21 +391,26 @@ namespace PDTPickingSystem.Helpers
 
             return false;
         }
-        public static async Task _WorkQueryAsync(string sQuery, DataSet dsDatatoFill, string tblName)
+        public static async Task<bool> _WorkQueryAsync(string sQuery, DataSet dsDatatoFill, string tblName)
         {
-            using var con = await _SQL_Connect();
-            if (con != null)
+            try
             {
-                try
-                {
-                    using var sqlAdp = new SqlDataAdapter(sQuery, con);
-                    // Wrap Fill in Task.Run to avoid blocking UI
-                    await Task.Run(() => sqlAdp.Fill(dsDatatoFill, tblName));
-                }
-                catch
-                {
-                    // optionally handle exception
-                }
+                using var con = await _SQL_Connect();
+                if (con == null)
+                    return false; // connection failed
+
+                using var sqlAdp = new SqlDataAdapter(sQuery, con);
+
+                // Execute Fill asynchronously to avoid blocking UI
+                await Task.Run(() => sqlAdp.Fill(dsDatatoFill, tblName));
+
+                return true; // success
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                Debug.WriteLine($"_WorkQueryAsync error: {ex.Message}");
+                return false;
             }
         }
         public static async Task<string> _GetPickNo()
