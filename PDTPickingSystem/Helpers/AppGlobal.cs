@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using PDTPickingSystem.Helpers.Interfaces;
 using AEnvironment = Android.OS.Environment;
 
 namespace PDTPickingSystem.Helpers
@@ -16,7 +17,7 @@ namespace PDTPickingSystem.Helpers
         // ------------------------------
         // System info
         // ------------------------------
-        public const string sysVersion = "2019.05.03";
+        public const string sysVersion = "2025.10.15";
 
         public static string PDTName =>
             System.Net.Dns.GetHostName().ToUpper().Trim();
@@ -128,7 +129,7 @@ namespace PDTPickingSystem.Helpers
             try
             {
                 string sql =
-                    "SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName " +
+                    "SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, isChecker, isStocker " +
                     "FROM tblUsers WHERE EENo=@ID AND isActive=1";
 
                 using var cmd = new SqlCommand(sql, con);
@@ -140,6 +141,10 @@ namespace PDTPickingSystem.Helpers
                 ID_User = Convert.ToInt32(r["ID"]);
                 sEENo = userId;
                 sUserName = r["FullName"]?.ToString() ?? "";
+
+                // <-- Set these too!
+                isChecker = Convert.ToInt32(r["isChecker"]);
+                isStocker = Convert.ToInt32(r["isStocker"]);
 
                 return true;
             }
@@ -604,6 +609,41 @@ namespace PDTPickingSystem.Helpers
             }
 
             return "";
+        }
+
+        // ------------------------------
+        // WiFi Service
+        // ------------------------------
+        private static IWifiService? _wifiService;
+        public static IWifiService WifiService
+        {
+            get
+            {
+                if (_wifiService == null)
+                {
+                    _wifiService = Application.Current?.Handler?.MauiContext?.Services
+                        .GetService<IWifiService>() ?? new WifiService_Default();
+                }
+                return _wifiService;
+            }
+        }
+
+        /// <summary>
+        /// Get current WiFi connection status
+        /// </summary>
+        public static string GetWifiStatus()
+        {
+            return WifiService.GetConnectedWifiName();
+        }
+
+        /// <summary>
+        /// Check if connected to WiFi
+        /// </summary>
+        public static bool IsWifiConnected()
+        {
+            string status = GetWifiStatus();
+            return !status.Contains("Not connected") &&
+                   !status.Contains("unavailable");
         }
     }
 }

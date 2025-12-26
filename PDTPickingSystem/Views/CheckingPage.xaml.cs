@@ -16,13 +16,16 @@ namespace PDTPickingSystem.Views
 {
     public partial class CheckingPage : ContentPage
     {
+        // ObservableCollection to hold the SKUs
         public ObservableCollection<SKUItem> SKUList { get; set; } = new ObservableCollection<SKUItem>();
-
+        public ObservableCollection<SKUItem> SKUList2 { get; set; } = new ObservableCollection<SKUItem>();
 
         public CheckingPage(MainMenuPage mainMenu)
         {
             InitializeComponent();
             NavigationPage.SetHasNavigationBar(this, false);
+
+
 
             // ===== Initialize tmrRequest =====
             tmrRequest = new System.Timers.Timer(1000); // 1-second interval
@@ -108,8 +111,8 @@ namespace PDTPickingSystem.Views
             txtEachVal = string.Empty;
             txtBarcode.Focus();
 
-            pnlItems.IsVisible = true;
-            pnlitems2.IsVisible = true;
+            pnlItems.IsVisible = false;      // ← Changed to false
+            pnlitems2.IsVisible = false;     // ← Changed to false
             pbReq.IsVisible = true;
 
             isBarcode = true;
@@ -764,7 +767,7 @@ namespace PDTPickingSystem.Views
         private void btnCancel_Clicked(object sender, EventArgs e)
         {
             // Show/hide the MAUI StackLayouts / Panels
-            pnlNavigate.IsVisible = true;
+            pnlNavigate.IsVisible = false;
             pnlInput.IsVisible = true;
             pnlConfirm.IsVisible = false;
 
@@ -1087,16 +1090,6 @@ namespace PDTPickingSystem.Views
         // ====== Remaining event handlers ======
         private void lblDeptStore_Loaded(object sender, EventArgs e) { }
         private void txtDeptStore_TextChanged(object sender, TextChangedEventArgs e) { }
-        private void PnlInput_Tapped(object sender, EventArgs e)
-        {
-            // Equivalent to pnlInput_GotFocus in WinForms
-            // Set focus to the first entry inside the panel, e.g., txtBarcode
-            txtBarcode.Focus();
-
-            // Optional: select all text if needed
-            txtBarcode.CursorPosition = 0;
-            txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
-        }
         private void lblBarcode_Loaded(object sender, EventArgs e) { }
         private void txtBarcode_TextChanged(object sender, TextChangedEventArgs e) { }
         private void txtDesc_TextChanged(object sender, TextChangedEventArgs e) { }
@@ -1114,27 +1107,20 @@ namespace PDTPickingSystem.Views
         private void txtDone_TextChanged(object sender, TextChangedEventArgs e) { }
         private void btnViewItems_Clicked(object sender, EventArgs e)
         {
-            // Show the items panel
             pnlItems.IsVisible = true;
-
-            // Update the count label
             lblCnt.Text = $"Count: {lvSKU.ItemsSource?.Cast<object>().Count() ?? 0}";
-
-            // Focus the CollectionView
             lvSKU.Focus();
 
-            // Select the current item if SKU is not empty and there are items
             if (!string.IsNullOrWhiteSpace(txtSKU.Text) && lvSKU.ItemsSource != null)
             {
-                int index = _getIndexLV(); // assuming _getIndexLV() returns int index
+                int index = _getIndexLV();
                 if (index >= 0)
                 {
-                    // Scroll to item and select it
-                    var items = lvSKU.ItemsSource.Cast<CheckingPage.SKUItem>().ToList();
+                    var items = lvSKU.ItemsSource.Cast<SKUItem>().ToList();
                     if (index < items.Count)
                     {
                         lvSKU.ScrollTo(items[index], position: Microsoft.Maui.Controls.ScrollToPosition.MakeVisible, animate: true);
-                        // Optionally highlight item if needed (MAUI CollectionView does not have direct .Selected property)
+                        lvSKU.SelectedItem = items[index]; // highlight the item
                     }
                 }
             }

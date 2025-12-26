@@ -53,7 +53,8 @@
                                HorizontalOptions="Fill"
                                BackgroundColor="WhiteSmoke" 
                                HeightRequest="40" 
-                               FontSize="Medium"/>
+                               FontSize="Medium"
+                               IsReadOnly="True"/>
                     </Grid>
 
                     <!-- ➤ SKU to Pick -->
@@ -90,7 +91,8 @@
                                 HeightRequest="38"
                                 VerticalOptions="FillAndExpand"
                                 HorizontalOptions="FillAndExpand"
-                                InputTransparent="True" />
+                                InputTransparent="True"
+                                TextChanged="TxtpDescr_TextChanged"/>
 
                             <!-- Clickable Label on top -->
                             <Label x:Name="llblDescr"
@@ -131,6 +133,7 @@
                                 HorizontalOptions="FillAndExpand"
                                 FontSize="Medium"
                                 InputTransparent="True"
+                                TextChanged="TxtpSlot_TextChanged"
                                 Grid.Column="1" />
 
                             <!-- Clickable Label on top -->
@@ -162,13 +165,15 @@
                                FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="0" 
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center"
+                               Loaded="LblCase_Loaded"/>
                         <Entry x:Name="txtpCase" 
                                Grid.Column="1" 
                                VerticalOptions="Center"
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtpCase_TextChanged"
+                               IsReadOnly="True"
                                FontSize="Medium"/>
                         <Label Grid.Column="2"/>
                         <Label x:Name="lblEach" 
@@ -177,13 +182,15 @@
                                FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="3" 
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center"
+                               Loaded="LblEach_Loaded"/>
                         <Entry x:Name="txtpEach" 
                                Grid.Column="4" 
                                VerticalOptions="Center"
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtpEach_TextChanged"
+                               IsReadOnly="True"
                                FontSize="Medium"/>
                     </Grid>
                 </VerticalStackLayout>
@@ -197,32 +204,33 @@
                 BackgroundColor="WhiteSmoke"
                 CornerRadius="10">
                 <HorizontalStackLayout Spacing="15">
-                <Button x:Name="btnGoto"
-                        StyleId="btnGoto"
-                        Text="Go To"
-                        FontAttributes="Bold"
-                        FontSize="Subtitle"
-                        Clicked="BtnNavigate_Clicked"
-                        HeightRequest="40"
-                        WidthRequest="90"
-                        HorizontalOptions="FillAndExpand"/>
-                <Button x:Name="btnPrev" 
-                        StyleId="btnPrev" 
-                        Text="&lt; Prev"
-                        FontAttributes="Bold"
-                        FontSize="Subtitle"
-                        Clicked="BtnNavigate_Clicked"
-                        HeightRequest="40"
-                        WidthRequest="90"
-                        HorizontalOptions="FillAndExpand"/>
-                <Button x:Name="btnNext" 
-                        Text="Next &gt;"
-                        FontAttributes="Bold"
-                        FontSize="Subtitle"
-                        Clicked="BtnNext_Clicked"
-                        HeightRequest="40"
-                        WidthRequest="90"
-                        HorizontalOptions="FillAndExpand"/>
+                    <Button x:Name="btnGoto"
+                            StyleId="btnGoto"
+                            Text="Go To"
+                            FontAttributes="Bold"
+                            FontSize="Subtitle"
+                            Clicked="BtnNavigate_Clicked"
+                            HeightRequest="40"
+                            WidthRequest="90"
+                            HorizontalOptions="FillAndExpand"/>
+                    <Button x:Name="btnPrev" 
+                            StyleId="btnPrev" 
+                            Text="&lt; Prev"
+                            FontAttributes="Bold"
+                            FontSize="Subtitle"
+                            Clicked="BtnNavigate_Clicked"
+                            HeightRequest="40"
+                            WidthRequest="90"
+                            HorizontalOptions="FillAndExpand"/>
+                    <Button x:Name="btnNext" 
+                            StyleId="btnNext"
+                            Text="Next &gt;"
+                            FontAttributes="Bold"
+                            FontSize="Subtitle"
+                            Clicked="BtnNavigate_Clicked"
+                            HeightRequest="40"
+                            WidthRequest="90"
+                            HorizontalOptions="FillAndExpand"/>
                 </HorizontalStackLayout>
             </Frame>
 
@@ -244,7 +252,8 @@
                             FontSize="Medium"
                             Grid.Column="0"
                             VerticalOptions="Center"
-                            HorizontalOptions="Start"/>
+                            HorizontalOptions="Start"
+                            Loaded="LblBarcode_Loaded"/>
                         <Entry x:Name="txtBarcode"
                             Grid.Column="1"
                             VerticalOptions="FillAndExpand"
@@ -253,7 +262,7 @@
                             HeightRequest="40"
                             FontSize="Medium"
                             Completed="Entry_BarcodeAndQty_Completed"
-                            TextChanged="Entry_TextChanged"
+                            TextChanged="TxtBarcode_TextChanged"
                             StyleId="txtBarcode"
                             Focused="Entry_GotFocus"
                             Unfocused="Entry_LostFocus"/>
@@ -266,6 +275,7 @@
                             WidthRequest="40"
                             HeightRequest="40"
                             HorizontalOptions="Start"
+                            IsVisible="False"
                             Clicked="PbScanned_Clicked" />
 
                         <!-- ➤ SKU -->
@@ -281,7 +291,8 @@
                                 FontAttributes="Bold"
                                 FontSize="Medium"
                                 VerticalOptions="Center"
-                                HorizontalOptions="End"/>
+                                HorizontalOptions="End"
+                                Loaded="LblSKU_Loaded"/>
 
                             <Entry x:Name="txtSKU"
                                 VerticalOptions="Center"
@@ -289,7 +300,10 @@
                                 BackgroundColor="WhiteSmoke"
                                 HeightRequest="40"
                                 FontSize="Medium"
-                                TextChanged="TxtSKU_TextChanged"/>
+                                IsReadOnly="True"
+                                TextChanged="TxtSKU_TextChanged"
+                                Focused="Entry_GotFocus"
+                                Unfocused="Entry_LostFocus"/>
                         </StackLayout>
                     </Grid>
 
@@ -298,18 +312,19 @@
                           Margin="0,-10,0,10" 
                           VerticalOptions="Center">
                         <Label x:Name="lblCase2" 
-                               Text="Case 2:"
+                               Text="Case:"
                                FontAttributes="Bold"
                                FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="0" 
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center"
+                               Loaded="LblCase2_Loaded"/>
                         <Entry x:Name="txtCase" 
                                Grid.Column="1" 
                                VerticalOptions="Center" 
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
-                               TextChanged="Entry_TextChanged"
+                               TextChanged="TxtCase_TextChanged"
                                FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
@@ -318,18 +333,19 @@
                                Unfocused="Entry_LostFocus"/>
                         <Label Grid.Column="2"/>
                         <Label x:Name="lblEach2" 
-                               Text="Each 2:"
+                               Text="Each:"
                                FontAttributes="Bold"
                                FontSize="Medium"
                                TextColor="Black"
                                Grid.Column="3" 
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center"
+                               Loaded="LblEach2_Loaded"/>
                         <Entry x:Name="txtEach" 
                                Grid.Column="4" 
                                VerticalOptions="Center" 
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
-                               TextChanged="Entry_TextChanged"
+                               TextChanged="TxtEach_TextChanged"
                                FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
@@ -370,7 +386,8 @@
                                 FontAttributes="Bold"
                                 FontSize="Medium"
                                 VerticalOptions="Center"
-                                HorizontalOptions="Start"/>
+                                HorizontalOptions="Start"
+                                Loaded="LblDone_Loaded"/>
                             <Entry x:Name="txtDone"
                                 Grid.Column="1"
                                 VerticalOptions="Center"
@@ -381,7 +398,9 @@
                                 TextColor="Green"
                                 IsReadOnly="True"
                                 Text="0/0"
-                                TextChanged="TxtDone_TextChanged"/>
+                                TextChanged="TxtDone_TextChanged"
+                                Focused="Entry_GotFocus"
+                                Unfocused="Entry_LostFocus"/>
                         </Grid>
                     </Grid>
                 </VerticalStackLayout>
@@ -440,27 +459,34 @@
                     FontAttributes="Bold"
                     FontSize="Medium" 
                     TextColor="Black"
-                    Margin="0,10,0,0"/>
+                    HorizontalOptions="Center"
+                    Margin="0,10,0,0"
+                    Loaded="LblInput_Loaded"/>
                 <Entry x:Name="txtStocker"
                     Placeholder="Stocker"
                     Keyboard="Numeric"
+                    WidthRequest="150"
                     Completed="TxtStocker_Completed"
                     TextChanged="TxtStocker_TextChanged"
                     StyleId="txtStocker"
+                    Focused="Entry_GotFocus"
+                    Unfocused="Entry_LostFocus"
                     Margin="0,10,0,20"/>
                 <Button x:Name="btnConfirm"
                     Text="Confirm"
                     FontSize="Medium"
-                    WidthRequest="180"
+                    FontAttributes="Bold"
+                    WidthRequest="150"
                     Margin="0,0,0,5"
                     Clicked="BtnConfirm_Clicked" />
                 <Button x:Name="btnCancel"
                     Text="Cancel"
                     FontSize="Medium"
+                    FontAttributes="Bold"
                     BackgroundColor="Red"
                     TextColor="White"
                     Margin="0,0,0,0"
-                    WidthRequest="180"
+                    WidthRequest="150"
                     Clicked="BtnCancel_Clicked"/>
             </VerticalStackLayout>
         </Frame>
@@ -488,7 +514,10 @@
                     VerticalOptions="Center"
                     Loaded="LblMultipleSlots_Loaded"/>
 
-                <CollectionView x:Name="lvSlots" SelectionMode="Single" SelectionChanged="LvSlots_SelectionChanged" HeightRequest="200">
+                <CollectionView x:Name="lvSlots" 
+                    SelectionMode="Single" 
+                    SelectionChanged="LvSlots_SelectionChanged" 
+                    HeightRequest="200">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Label Text="{Binding Slot}" FontSize="Medium" Padding="5"/>
@@ -517,18 +546,21 @@
             HorizontalOptions="Center"
             WidthRequest="280"
             InputTransparent="False"
-            ZIndex="100">
+            ZIndex="100"
+            Focused="PnlGoto_Focused">
             <VerticalStackLayout Spacing="15">
                 <Label x:Name="Gotolbl" 
                     Text="GO TO"
                     TextColor="Black"
                     FontSize="25" 
                     HorizontalOptions="Center" 
-                    FontAttributes="Bold"/>
+                    FontAttributes="Bold"
+                    Loaded="Gotolbl_Loaded"/>
                 <VerticalStackLayout Spacing="15">
                     <Button x:Name="btnFirst"
                         StyleId="btnFirst" 
                         Text="First"
+                        FontSize="Medium"
                         FontAttributes="Bold"
                         HeightRequest="40"
                         WidthRequest="150"
@@ -537,6 +569,7 @@
                     <Button x:Name="btnLast" 
                         StyleId="btnLast" 
                         Text="Last" 
+                        FontSize="Medium"
                         FontAttributes="Bold"
                         HeightRequest="40"
                         WidthRequest="150"
@@ -544,7 +577,8 @@
                         Clicked="BtnNavigate_Clicked"/>
                     <Button x:Name="btnUnpick" 
                         StyleId="btnUnpick" 
-                        Text="Unpicked" 
+                        Text="Unpicked"
+                        FontSize="Medium"
                         FontAttributes="Bold"
                         HeightRequest="40"
                         WidthRequest="150"
@@ -554,18 +588,22 @@
                 <Label x:Name="lblLineNo" 
                         Text="Line Number:"
                         FontAttributes="Bold"
+                        FontSize="Medium"
                         TextColor="Black"
-                        HorizontalOptions="Center" 
-                        FontSize="14"/>
+                        HorizontalOptions="Center"
+                        Loaded="LblLineNo_Loaded"/>
                 <Entry x:Name="txtLine" 
                         HorizontalOptions="Center" 
                         WidthRequest="150" 
                         FontSize="14"
+                        Keyboard="Numeric"
                         Margin="0,-15,0,0" 
+                        TextChanged="TxtLine_TextChanged"
                         Completed="TxtLine_Completed"/>
                 <Button x:Name="btnCloseGoto" 
                         Text="Close" 
                         FontAttributes="Bold"
+                        FontSize="Medium"
                         WidthRequest="150"
                         HorizontalOptions="Center"
                         BackgroundColor="Red"
@@ -587,7 +625,8 @@
             HorizontalOptions="Center"
             WidthRequest="280"
             InputTransparent="False"
-            ZIndex="100">
+            ZIndex="100"
+            Focused="PnlBarcodes_Focused">
             <VerticalStackLayout Spacing="10">
                 <!-- Header -->
                 <Label x:Name="lblBarcodeTitle"
@@ -598,14 +637,8 @@
                     FontSize="Large"
                     Loaded="LblBarcodeTitle_Loaded"/>
 
-                <!-- Search / Input Entry (first focusable control) -->
-                <Entry x:Name="txtBarcodeSearch"
-                    Placeholder="Scan or enter UPC"
-                    HorizontalOptions="FillAndExpand"/>
-
                 <!-- CollectionView for UPCs -->
                 <CollectionView x:Name="lvBarcodes"
-                    ItemsSource="{Binding barcodeList}"
                     SelectionMode="Single"
                     HeightRequest="200">
                     <CollectionView.ItemTemplate>
@@ -629,39 +662,6 @@
                     Margin="0,10,0,20"/>
             </VerticalStackLayout>
         </Frame>
-
-        <!-- SKU List POPUP -->
-        <Frame x:Name="pnlSKUList"
-               IsVisible="False"
-               BackgroundColor="White"
-               BorderColor="Gray"
-               CornerRadius="10"
-               Padding="20"
-               HasShadow="True"
-               Margin="20"
-               VerticalOptions="Center"
-               HorizontalOptions="Center"
-               WidthRequest="350"
-               InputTransparent="False"
-               ZIndex="100">
-            <VerticalStackLayout Spacing="10">
-                <Label Text="Select SKU" 
-                       FontAttributes="Bold" 
-                       FontSize="Large" 
-                       HorizontalOptions="Center"/>
-                <CollectionView x:Name="lvSKU"
-                    SelectionMode="Single"
-                    SelectionChanged="LvSKU_SelectionChanged"
-                    HeightRequest="250">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Label Text="{Binding SKU}" FontSize="Medium" Padding="5"/>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </VerticalStackLayout>
-        </Frame>
-
     </Grid>
 
 </ContentPage>

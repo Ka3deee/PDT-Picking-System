@@ -3,7 +3,7 @@
              x:Class="PDTPickingSystem.Views.SetRefPage"
              Title="Set Picking Reference"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="Yellow">
+             BackgroundColor="White">
 
     <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
 

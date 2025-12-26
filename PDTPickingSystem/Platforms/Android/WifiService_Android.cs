@@ -2,11 +2,9 @@
 using Android.Net.Wifi;
 using Android.OS;
 using PDTPickingSystem.Helpers.Interfaces;
-using Microsoft.Maui.Controls;
-using Android.Net;
 
-// Register service for dependency injection
-[assembly: Dependency(typeof(PDTPickingSystem.Platforms.Android.WifiService_Android))]
+// ❌ REMOVE THIS LINE:
+// [assembly: Dependency(typeof(PDTPickingSystem.Platforms.Android.WifiService_Android))]
 
 namespace PDTPickingSystem.Platforms.Android
 {
@@ -17,12 +15,10 @@ namespace PDTPickingSystem.Platforms.Android
             try
             {
                 var context = global::Android.App.Application.Context;
-
                 var wifiManager = (WifiManager)context.GetSystemService(Context.WifiService);
                 if (wifiManager == null)
                     return "Not connected";
 
-                // If WiFi is OFF → clearly not connected
                 if (!wifiManager.IsWifiEnabled)
                     return "Not connected";
 
@@ -35,7 +31,6 @@ namespace PDTPickingSystem.Platforms.Android
 
                 string ssid = wifiInfo.SSID;
 
-                // Normalize result (some Kaicom PDTs return "0x" or unknown)
                 if (string.IsNullOrWhiteSpace(ssid) ||
                     ssid == "<unknown ssid>" ||
                     ssid == "0x" ||
@@ -43,16 +38,12 @@ namespace PDTPickingSystem.Platforms.Android
                     ssid == "\"\"" ||
                     ssid.Contains("0x"))
                 {
-                    // Android 10+ blocks SSID without proper permissions
                     if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
                         return "Connected (SSID hidden)";
-
                     return "Not connected";
                 }
 
-                // Remove quotes
                 ssid = ssid.Replace("\"", "");
-
                 return ssid;
             }
             catch

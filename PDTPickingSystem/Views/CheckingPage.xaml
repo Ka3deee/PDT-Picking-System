@@ -5,11 +5,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout x:Name="pnlNavigate" Padding="16" Spacing="10">
+    <!-- ROOT LAYER -->
+    <Grid>
+        <VerticalStackLayout Padding="5" Spacing="5">
 
-            <!-- Store / Department -->
-            <Grid ColumnDefinitions="120,*" Margin="0,0,0,10" VerticalOptions="Center">
+            <!-- Store / Department - AT THE TOP -->
+            <Grid ColumnDefinitions="120,*" Margin="10,5,5,10" VerticalOptions="Center">
                 <Label x:Name="lblDeptStore"
                        Text="Store No:"
                        FontAttributes="Bold"
@@ -22,14 +23,12 @@
                        TextChanged="txtDeptStore_TextChanged"/>
             </Grid>
 
+            <!-- Main Input Frame -->
             <Frame Padding="12"
-                    Margin="10"
+                    Margin="5,-5,5,0"
                     HasShadow="True"
                     BorderColor="LightGray">
-                <VerticalStackLayout x:Name="pnlInput" Spacing="8">
-                    <VerticalStackLayout.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="PnlInput_Tapped"/>
-                    </VerticalStackLayout.GestureRecognizers>
+                <VerticalStackLayout x:Name="pnlInput" Spacing="5">
 
                     <!-- Barcode -->
                     <Label x:Name="lblBarcode" Text="Barcode:" Loaded="lblBarcode_Loaded"/>
@@ -59,12 +58,12 @@
                                Loaded="lblSKU_Loaded"/>
                         <Entry x:Name="txtSKU"
                                Grid.Column="3"
-                               Placeholder="SKU"
+                               Placeholder=""
                                TextChanged="txtSKU_TextChanged"/>
                     </Grid>
 
                     <!-- Case / Each -->
-                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,0,0,10">
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,-5,0,10">
                         <Label x:Name="lblCase" Text="Case:" Grid.Column="0" VerticalOptions="Center"/>
                         <Entry x:Name="txtCase" Grid.Column="1" HeightRequest="40" Completed="Entry_Completed" TextChanged="txtCase_TextChanged"/>
                         <BoxView Grid.Column="2" WidthRequest="20"/>
@@ -73,7 +72,7 @@
                     </Grid>
 
                     <!-- BUM / Done -->
-                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,0,0,10">
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,-5,0,10">
                         <Label x:Name="lblBUM" Text="BUM:" Grid.Column="0" VerticalOptions="Center" Loaded="lblBUM_Loaded"/>
                         <Entry x:Name="txtBum" Grid.Column="1" HeightRequest="40" TextChanged="txtBum_TextChanged"/>
                         <BoxView Grid.Column="2" WidthRequest="20"/>
@@ -82,106 +81,109 @@
                     </Grid>
 
                     <!-- Buttons -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
-                        <Button x:Name="btnViewItems" Grid.Column="0" Text="View Items" Clicked="btnViewItems_Clicked"/>
-                        <Button x:Name="btnAccept" Grid.Column="1" Text="Accept" Clicked="btnAccept_Clicked"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,0">
+                        <Button x:Name="btnViewItems" Grid.Column="0" Text="View Items" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="btnViewItems_Clicked"/>
+                        <Button x:Name="btnAccept" Grid.Column="1" Text="Accept" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="btnAccept_Clicked"/>
                     </Grid>
-                    <!-- Add this inside pnlInput StackLayout (e.g., after the Accept button Grid) -->
+
+                    <!-- Finished Button -->
                     <Button x:Name="btnFinished"
-                        Text="Finished"
-                        IsVisible="False"
-                        Clicked="btnFinished_Clicked"
-                        HeightRequest="40"/>
-
-                    <!-- Items panel -->
-                    <StackLayout x:Name="pnlItems" IsVisible="False" Margin="0,10,0,0">
-                        <Label x:Name="lblCnt" Text="Count: 0"/>
-
-                        <CollectionView x:Name="lvSKU" HeightRequest="200" SelectionMode="Single"
-                                        ItemsSource="{Binding SKUList}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Frame Padding="5" Margin="0,2" BorderColor="LightGray" HasShadow="False">
-                                        <Grid ColumnDefinitions="*,*,*,*,*,*,*,*">
-                                            <Label Text="{Binding ID}" Grid.Column="0" FontSize="12"/>
-                                            <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
-                                            <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12"/>
-                                            <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12"/>
-                                            <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12"/>
-                                            <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12"/>
-                                            <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12"/>
-                                            <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12"/>
-                                        </Grid>
-                                    </Frame>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </StackLayout>
-
-                    <StackLayout x:Name="pnlitems2"
+                            Text="Finished"
                             IsVisible="False"
-                            Margin="0,10,0,0">
+                            Clicked="btnFinished_Clicked"
+                            HeightRequest="40"/>
 
-                        <!-- COUNT LABEL -->
-                        <Label x:Name="lblCnt2"
-                            Text="Count: 0"
-                            FontSize="14"
-                            HorizontalOptions="Start"
-                            VerticalOptions="Center" />
+                    <!-- Transfer, Location, Picker, Transfer # Labels -->
+                    <Label x:Name="lblTransfer" Text="Transfer:" Loaded="lblTransfer_Loaded"/>
+                    <Label x:Name="lblLoc" Text="Location:" Loaded="lblLoc_Loaded"/>
+                    <Label x:Name="lblPicker" Text="Picker:" Loaded="lblPicker_Loaded"/>
+                    <Label x:Name="lblTrf" Text="Transfer #" Loaded="lblTrf_Loaded"/>
 
-                        <!-- SECOND SKU LIST -->
-                        <CollectionView x:Name="lvSKU2"
-                            HeightRequest="200"
-                            SelectionMode="Single"
-                            ItemsSource="{Binding SKUList2}">
-
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Frame Padding="5"
-                                            Margin="0,2"
-                                            HasShadow="False"
-                                            BorderColor="LightGray">
-                                        <Grid ColumnDefinitions="*,*,*,*">
-                                            <Label Text="{Binding SKU}" FontSize="12"/>
-                                            <Label Text="{Binding Descr}" FontSize="12"/>
-                                            <Label Text="{Binding Qty}" FontSize="12"/>
-                                            <Label Text="{Binding ChkQty}" FontSize="12"/>
-                                        </Grid>
-                                    </Frame>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </StackLayout>
-
-
-                    <ImageButton x:Name="pbReq"
-                                 Source="your_image.png"
-                                 Clicked="pbReq_Clicked"
-                                 HeightRequest="50"
-                                 WidthRequest="50"
-                                 BackgroundColor="Black"/>
                 </VerticalStackLayout>
             </Frame>
-            <!-- Confirmation Panel -->
+
+            <!-- Items panel (OUTSIDE pnlInput) -->
+            <StackLayout x:Name="pnlItems" IsVisible="False" Margin="0,10,0,0">
+                <Label x:Name="lblCnt" Text="Count: 0"/>
+
+                <CollectionView x:Name="lvSKU" HeightRequest="200" SelectionMode="Single"
+                                ItemsSource="{Binding SKUList}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="5" Margin="0,2" BorderColor="LightGray" HasShadow="False">
+                                <Grid ColumnDefinitions="*,*,*,*,*,*,*,*">
+                                    <Label Text="{Binding ID}" Grid.Column="0" FontSize="12"/>
+                                    <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
+                                    <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12"/>
+                                    <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12"/>
+                                    <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12"/>
+                                    <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12"/>
+                                    <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12"/>
+                                    <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+
+            <!-- Second Items Panel (OUTSIDE pnlInput) -->
+            <StackLayout x:Name="pnlitems2" IsVisible="False" Margin="0,10,0,0">
+                <Label x:Name="lblCnt2"
+                       Text="Count: 0"
+                       FontSize="14"
+                       HorizontalOptions="Start"
+                       VerticalOptions="Center" />
+
+                <CollectionView x:Name="lvSKU2"
+                                HeightRequest="200"
+                                SelectionMode="Single"
+                                ItemsSource="{Binding SKUList2}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="5"
+                                   Margin="0,2"
+                                   HasShadow="False"
+                                   BorderColor="LightGray">
+                                <Grid ColumnDefinitions="*,*,*,*">
+                                    <Label Text="{Binding SKU}" FontSize="12"/>
+                                    <Label Text="{Binding Descr}" FontSize="12"/>
+                                    <Label Text="{Binding Qty}" FontSize="12"/>
+                                    <Label Text="{Binding ChkQty}" FontSize="12"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+
+            <!-- Request Button (OUTSIDE pnlInput) -->
+            <ImageButton x:Name="pbReq"
+                         Source="your_image.png"
+                         Clicked="pbReq_Clicked"
+                         HeightRequest="50"
+                         WidthRequest="50"
+                         BackgroundColor="Black"/>
+
+            <!-- Confirmation Panel (OUTSIDE pnlInput) -->
             <StackLayout x:Name="pnlConfirm" IsVisible="False" Margin="0,10,0,0" Spacing="10">
                 <Label Text="Confirm Stocker?" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <!-- Stocker Entry -->
                 <Entry x:Name="txtStocker"
-                    Placeholder="Enter Stocker ID"
-                    Keyboard="Numeric"/>
+                       Placeholder="Enter Stocker ID"
+                       Keyboard="Numeric"/>
                 <Button x:Name="btnConfirm" Text="Confirm" Clicked="btnConfirm_Clicked"/>
             </StackLayout>
 
-            <Label x:Name="lblTransfer" Text="Transfer:" Loaded="lblTransfer_Loaded"/>
-            <Label x:Name="lblLoc" Text="Location:" Loaded="lblLoc_Loaded"/>
-            <Label x:Name="lblPicker" Text="Picker:" Loaded="lblPicker_Loaded"/>
-            <Label x:Name="lblTrf" Text="Transfer #" Loaded="lblTrf_Loaded"/>
+            <StackLayout x:Name="pnlNavigate" IsVisible="False" Orientation="Horizontal" HorizontalOptions="Center" Margin="0,10,0,0" Spacing="10">
+            </StackLayout>
 
+            <!-- Additional Labels (OUTSIDE pnlInput) -->
             <Label x:Name="txtpCase"/>
             <Label x:Name="txtpDescr"/>
             <Label x:Name="txtpEach"/>
             <Label x:Name="txtpSKU"/>
             <Label x:Name="txtpSlot"/>
+
         </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage>
