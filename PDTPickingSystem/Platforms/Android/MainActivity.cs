@@ -40,7 +40,6 @@ namespace PDTPickingSystem
                             case Keycode.F1:
                                 MainThread.BeginInvokeOnMainThread(() => pickingPage.OnF1Pressed());
                                 return true;
-
                             case Keycode.F2:
                                 MainThread.BeginInvokeOnMainThread(() => pickingPage.OnF2Pressed());
                                 return true;
@@ -55,7 +54,6 @@ namespace PDTPickingSystem
                             case Keycode.F1: // Treat as Escape
                                 MainThread.BeginInvokeOnMainThread(() => setRefPage.btnBack_Clicked(null, null));
                                 return true;
-
                                 // Add more keys if needed
                         }
                     }
@@ -69,15 +67,15 @@ namespace PDTPickingSystem
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnEscapePressed());
                                 return true;
 
-                            case Keycode.Tab: // Tab key focuses barcode
-                                MainThread.BeginInvokeOnMainThread(() => checkingPage.FocusBarcode());
+                            case Keycode.Tab: // ✅ FIXED: Tab key focuses barcode
+                                MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
 
-                            case Keycode.F1: // Optional F1 key
+                            case Keycode.F1: // F1 key
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF1Pressed());
                                 return true;
 
-                            case Keycode.F2: // Optional F2 key
+                            case Keycode.F2: // F2 key
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
 

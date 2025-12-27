@@ -6,96 +6,279 @@
     Shell.NavBarIsVisible="False"
     Title="Confirm Check">
 
-    <VerticalStackLayout x:Name="pnlMain"
-                         Focused="pnlMain_Focused"
-                         Padding="10"
-                         Spacing="10"
-						 IsVisible="True">
-		<!-- lblBarcode is the Label control itself -->
-		<Label x:Name="lblBarcode"
-                            Text="Barcode:"
-                            FontAttributes="Bold"
-                            FontSize="Medium"
+    <!-- ✅ ROOT GRID with overlapping panels -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ========================================
+             PANEL 1: MAIN INPUT (pnlMain)
+             ======================================== -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout x:Name="pnlMain"
+                                 Padding="10"
+                                 Spacing="10"
+                                 IsVisible="True">
+
+                <!-- Barcode -->
+                <Label Text="Barcode:"
+                       FontAttributes="Bold"
+                       FontSize="Medium"/>
+                <Entry x:Name="txtBarcode"
+                       Placeholder="Scan or enter barcode"
+                       FontSize="16"
+                       HeightRequest="45"/>
+
+                <!-- Description (Label, not Entry) -->
+                <Label x:Name="txtDesc"
+                       Text=""
+                       FontSize="14"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       Margin="0,5"/>
+
+                <!-- Scanned Icon -->
+                <Image x:Name="pbScanned"
+                       Source="scanned_icon2.png"
+                       HeightRequest="40"
+                       WidthRequest="40"
+                       HorizontalOptions="Start"
+                       IsVisible="False"/>
+
+                <!-- SKU -->
+                <Grid ColumnDefinitions="Auto,*" Margin="0,10">
+                    <Label Text="SKU:" 
+                           Grid.Column="0" 
+                           VerticalOptions="Center"
+                           FontAttributes="Bold"/>
+                    <Entry x:Name="txtSKU" 
+                           Grid.Column="1"
+                           IsReadOnly="True"
+                           BackgroundColor="LightGray"/>
+                </Grid>
+
+                <!-- CASE / EACH -->
+                <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,10">
+                    <Label Text="CASE:" 
+                           Grid.Column="0" 
+                           VerticalOptions="Center"
+                           FontAttributes="Bold"
+                           TextColor="Red"/>
+                    <Entry x:Name="txtCase" 
+                           Grid.Column="1"
+                           Text="0"
+                           Keyboard="Numeric"
+                           HeightRequest="40"/>
+
+                    <Label Text="EACH:" 
+                           Grid.Column="3" 
+                           VerticalOptions="Center"
+                           FontAttributes="Bold"
+                           TextColor="Purple"/>
+                    <Entry x:Name="txtEach" 
+                           Grid.Column="4"
+                           Text="0"
+                           Keyboard="Numeric"
+                           HeightRequest="40"/>
+                </Grid>
+
+                <!-- BUM -->
+                <Grid ColumnDefinitions="Auto,*" Margin="0,10">
+                    <Label Text="BUM:" 
+                           Grid.Column="0" 
+                           VerticalOptions="Center"
+                           FontAttributes="Bold"/>
+                    <Entry x:Name="txtBum" 
+                           Grid.Column="1"
+                           Text="0"
+                           IsReadOnly="True"
+                           BackgroundColor="LightGray"/>
+                </Grid>
+
+                <!-- Buttons -->
+                <Grid ColumnDefinitions="*,*" 
+                      ColumnSpacing="10" 
+                      Margin="0,20,0,0">
+                    <Button x:Name="btnDetails"
                             Grid.Column="0"
-                            VerticalOptions="Center"
-                            HorizontalOptions="Start"/>
-		<Entry x:Name="txtBarcode"
-            TextChanged="txtBarcode_TextChanged"
-            Placeholder="" 
-			   Focused="TxtBarcode_GotFocus"
-			   Unfocused="TxtBarcode_Unfocused"/>
-		<Entry x:Name="txtDesc"
-       Placeholder="Enter description">
-			<Entry.GestureRecognizers>
-				<TapGestureRecognizer Tapped="TxtDesc_Tapped" NumberOfTapsRequired="1"/>
-			</Entry.GestureRecognizers>
-		</Entry>
-		<Image x:Name="pbScanned" Source="your_image.png">
-			<Image.GestureRecognizers>
-				<TapGestureRecognizer Tapped="PbScanned_Tapped"/>
-			</Image.GestureRecognizers>
-		</Image>
-		<Label x:Name="lblSKU" Text="SKU" Loaded="LblSKU_Loaded"/>
-		<Entry x:Name="txtSKU" TextChanged="TxtSKU_TextChanged" />
-		<Label x:Name="lblCase" Loaded="LblCase_Loaded" />
-		<Entry x:Name="txtCase" TextChanged="TxtCase_TextChanged" Focused="TxtBarcode_GotFocus" />
-		<Label x:Name="lblEach" Loaded="LblEach_Loaded" />
-		<Entry x:Name="txtEach" TextChanged="TxtEach_TextChanged" Focused="TxtBarcode_GotFocus"/>
-		<Label x:Name="lblBUM" Loaded="LblBUM_Loaded" />
-		<Entry x:Name="txtBum" TextChanged="TxtBum_TextChanged" />
-	</VerticalStackLayout>
+                            Text="View Details"
+                            BackgroundColor="DodgerBlue"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="45"
+                            Clicked="BtnDetails_Clicked"/>
 
-	<VerticalStackLayout 
-		x:Name="pnlDetails" IsVisible="False" Loaded="PnlDetails_Loaded">
-		<!-- Details content here -->
-	</VerticalStackLayout>
-	
-	<Button x:Name="btnDetails" Text="Details" Clicked="BtnDetails_Clicked" />
-	<Button x:Name="btnAccept" Text="Accept" Clicked="BtnAccept_Clicked" />
+                    <Button x:Name="btnAccept"
+                            Grid.Column="1"
+                            Text="Accept"
+                            BackgroundColor="DodgerBlue"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="45"
+                            Clicked="BtnAccept_Clicked"/>
+                </Grid>
 
-	<!-- CollectionViews for SKUs and Transfers -->
-	<CollectionView x:Name="lvSKU"
-                SelectionMode="Single"
-                ItemsSource="{Binding lvSKUCollection}"
-                SelectionChanged="lvSKU_SelectionChanged">
-		<CollectionView.ItemTemplate>
-			<DataTemplate>
-				<StackLayout Padding="5">
-					<Label Text="{Binding SKU}" FontAttributes="Bold"/>
-					<Label Text="{Binding Descr}" FontSize="12"/>
-					<Label Text="{Binding SortQty}" FontSize="12"/>
-				</StackLayout>
-			</DataTemplate>
-		</CollectionView.ItemTemplate>
-	</CollectionView>
-	<Button x:Name="Button1"
-        Text="Back"
-        Clicked="Button1_Click" />
-	
-	<VerticalStackLayout x:Name="pnlSelectTrf"
-                     Loaded="pnlSelectTrf_Loaded"
-						 IsVisible="False">
-		<!-- your content here -->
-	</VerticalStackLayout>
-	<CollectionView x:Name="lvSKU2"
-                    SelectionMode="Single"
-                    SelectionChanged="lvSKU2_SelectionChanged"
-                    ItemsSource="{Binding lvSKU2Collection}">
-		<CollectionView.ItemTemplate>
-			<DataTemplate>
-				<StackLayout Padding="5">
-					<Label Text="{Binding TransferNo}" FontAttributes="Bold"/>
-				</StackLayout>
-			</DataTemplate>
-		</CollectionView.ItemTemplate>
-	</CollectionView>
-	<Button x:Name="Button2"
-        Text="Select Transfer"
-        Clicked="Button2_Clicked" />
+            </VerticalStackLayout>
+        </ScrollView>
 
-	<Label x:Name="lblUser" Loaded="LblUser_Loaded" />
+        <!-- ========================================
+             PANEL 2: DETAILS VIEW (pnlDetails)
+             ======================================== -->
+        <VerticalStackLayout x:Name="pnlDetails"
+                             Grid.Row="0"
+                             Padding="10"
+                             Spacing="10"
+                             BackgroundColor="White"
+                             IsVisible="False">
 
+            <Label Text="SKU Details"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,10"/>
 
+            <!-- SKU CollectionView -->
+            <CollectionView x:Name="lvSKU"
+                            SelectionMode="Single"
+                            SelectionChanged="lvSKU_SelectionChanged"
+                            HeightRequest="450">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="8"
+                               Margin="0,2"
+                               BorderColor="Gray"
+                               CornerRadius="5"
+                               HasShadow="False">
+                            <Grid ColumnDefinitions="80,*,60,60" 
+                                  RowDefinitions="Auto,Auto"
+                                  RowSpacing="5">
 
+                                <!-- Row 1 -->
+                                <Label Text="{Binding SKU}" 
+                                       Grid.Column="0"
+                                       Grid.Row="0"
+                                       FontAttributes="Bold"
+                                       FontSize="12"
+                                       VerticalOptions="Center"/>
 
+                                <Label Text="{Binding Descr}" 
+                                       Grid.Column="1"
+                                       Grid.Row="0"
+                                       FontSize="11"
+                                       VerticalOptions="Center"/>
+
+                                <Label Text="{Binding Qty}" 
+                                       Grid.Column="2"
+                                       Grid.Row="0"
+                                       FontSize="11"
+                                       HorizontalOptions="End"
+                                       VerticalOptions="Center"/>
+
+                                <Label Text="{Binding SortQty}" 
+                                       Grid.Column="3"
+                                       Grid.Row="0"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="Green"
+                                       HorizontalOptions="End"
+                                       VerticalOptions="Center"/>
+
+                                <!-- Row 2 (Slot info) -->
+                                <Label Text="{Binding Slot, StringFormat='Slot: {0}'}" 
+                                       Grid.Column="0"
+                                       Grid.ColumnSpan="2"
+                                       Grid.Row="1"
+                                       FontSize="10"
+                                       TextColor="Gray"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Back Button -->
+            <Button x:Name="btnBackFromDetails"
+                    Text="Back"
+                    BackgroundColor="SteelBlue"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    HeightRequest="45"
+                    Clicked="Button1_Click"/>
+
+        </VerticalStackLayout>
+
+        <!-- ========================================
+             PANEL 3: SELECT TRANSFER (pnlSelectTrf)
+             ======================================== -->
+        <VerticalStackLayout x:Name="pnlSelectTrf"
+                             Grid.Row="0"
+                             Padding="10"
+                             Spacing="10"
+                             BackgroundColor="White"
+                             IsVisible="False">
+
+            <Label Text="Select Transfer"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,10"/>
+
+            <Label Text="Multiple transfers found. Please select one:"
+                   FontSize="14"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10"/>
+
+            <!-- Transfer CollectionView -->
+            <CollectionView x:Name="lvSKU2"
+                            SelectionMode="Single"
+                            SelectionChanged="lvSKU2_SelectionChanged"
+                            HeightRequest="450">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="15"
+                               Margin="0,5"
+                               BorderColor="DodgerBlue"
+                               CornerRadius="8"
+                               HasShadow="True">
+                            <StackLayout>
+                                <Label Text="Transfer Number"
+                                       FontSize="10"
+                                       TextColor="Gray"/>
+                                <Label Text="{Binding TransferNo}"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       TextColor="Black"/>
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Select Button -->
+            <Button x:Name="btnSelectTransfer"
+                    Text="Select Transfer"
+                    BackgroundColor="SteelBlue"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    HeightRequest="45"
+                    Clicked="Button2_Clicked"/>
+
+        </VerticalStackLayout>
+
+        <!-- ========================================
+             USER LABEL (Bottom)
+             ======================================== -->
+        <Label x:Name="lblUser"
+               Grid.Row="1"
+               Text="User:"
+               BackgroundColor="SteelBlue"
+               TextColor="White"
+               Padding="10"
+               FontAttributes="Bold,Italic"
+               FontSize="12"/>
+
+    </Grid>
 </ContentPage>

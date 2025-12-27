@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PDTPickingSystem.Helpers.Interfaces;
+using Plugin.Maui.Audio; // ✅ ADD THIS
 
 #if ANDROID
 using PDTPickingSystem.Platforms.Android;
@@ -27,9 +28,13 @@ namespace PDTPickingSystem
             builder.Services.AddSingleton<IWifiService, PDTPickingSystem.Helpers.WifiService_Default>();
 #endif
 
+            // ✅ ADD THIS - Register Audio Service for Idle Alarm
+            builder.Services.AddSingleton(AudioManager.Current);
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
+
             return builder.Build();
         }
     }

@@ -1,15 +1,16 @@
 ﻿using Android.OS;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.SqlTypes;
 using Microsoft.Maui.Controls;
 using PDTPickingSystem.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
-using static PDTPickingSystem.Views.CheckingPage;
+using System.Linq;
 
 namespace PDTPickingSystem.Views
 {
+    // ================== DATA CLASSES ==================
+
     public class SKUItem
     {
         public string ID { get; set; }           // lv.Text
@@ -33,186 +34,197 @@ namespace PDTPickingSystem.Views
         public string ID { get; set; }
         public string TransferNo { get; set; }
     }
+
+    // ================== MAIN PAGE CLASS ==================
+
     public partial class ConfirmCheckPage : ContentPage
     {
-        // 🔁 VB: Dim txtboxFocus As New TextBox
-        // MAUI does not use focus TextBox objects directly,
-        // but we keep it as a reference holder (DO NOT REMOVE)
-        private Entry txtboxFocus = new Entry();
-        // 🔁 VB: Dim iSKU As Integer, sSKU As String = "", ID_Stocker As Integer = 0
+        // ================== PRIVATE FIELDS ==================
+
+        // Focus tracking
+        private Entry _focusedEntry;
+
+        // SKU and stocker tracking
         private int iSKU;
-        private string sSKU = "";
+        private int sSKU = -1; // Changed to int for index
         private int ID_Stocker = 0;
 
-        // 🔁 VB: Dim isStarted As Boolean = False
+        // State
         private bool isStarted = false;
 
-        // 🔁 VB: Dim dtSet As DataSet
-        private DataSet dtSet;
+        // Data management
+        private DataSet dtSet = new DataSet(); // ✅ FIXED: Initialize in declaration
 
-        // 🔁 VB: Dim sqlAdp As SqlDataAdapter
-        private SqlDataAdapter sqlAdp;
-
-        // 🔁 VB: Dim sqlCmd As SqlCommand
-        private SqlCommand sqlCmd;
-
-        // 🔁 VB: Dim skuArr() As Integer
-        // MAUI/C#: dynamic array → List<int>
+        // SKU tracking
         private List<int> skuArr = new List<int>();
-
-        // 🔁 VB: Dim sumhdr As Integer
         private int sumhdr;
-
-        // 🔁 VB: Dim trfNo As String = ""
-        // ❗ IMPORTANT: stays PAGE-LOCAL (NOT AppGlobal)
         private string trfNo = "";
-
-        // 🔁 VB: Dim isConfirmed As Integer = 0
         private int isConfirmed = 0;
 
-        // -------------------------------
-        // 📌 NEW: ObservableCollections for binding
-        // -------------------------------
-        public ObservableCollection<SKUItem> lvSKUCollection = new();
-        public ObservableCollection<TransferItem> lvSKU2Collection = new();
+        // ObservableCollections for binding
+        public ObservableCollection<SKUItem> lvSKUCollection { get; set; } = new();
+        public ObservableCollection<TransferItem> lvSKU2Collection { get; set; } = new();
+
+        // ================== CONSTRUCTOR ==================
 
         public ConfirmCheckPage()
         {
             InitializeComponent();
             NavigationPage.SetHasNavigationBar(this, false);
 
-            BindingContext = this; // Required for XAML bindings
-            // In your page constructor, subscribe to Focused/Unfocused events
+            BindingContext = this;
+
+            // ✅ FIXED: Add Entry Completed handlers
+            txtBarcode.Completed += Entry_Completed;
+            txtCase.Completed += Entry_Completed;
+            txtEach.Completed += Entry_Completed;
+
+            // ✅ FIXED: Add TextChanged validation
+            txtBarcode.TextChanged += Entry_TextChanged;
+            txtCase.TextChanged += Entry_TextChanged;
+            txtEach.TextChanged += Entry_TextChanged;
+
+            // Focus events
+            txtBarcode.Focused += TxtBarcode_GotFocus;
+            txtCase.Focused += TxtBarcode_GotFocus;
+            txtEach.Focused += TxtBarcode_GotFocus;
+
+            txtBarcode.Unfocused += TxtBarcode_Unfocused;
             txtCase.Unfocused += TxtCaseOrEach_Unfocused;
             txtEach.Unfocused += TxtCaseOrEach_Unfocused;
+
+            // Bind CollectionViews
+            lvSKU.ItemsSource = lvSKUCollection;
+            lvSKU2.ItemsSource = lvSKU2Collection;
         }
+
+        // ================== PAGE LIFECYCLE ==================
+
         protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            // ------------------------------------
-            // Set user label
-            // ------------------------------------
             AppGlobal._SetUser(lblUser);
 
-            // ------------------------------------
-            // Layout handling (Dock / Size not used in MAUI)
-            // ------------------------------------
             pnlMain.IsVisible = true;
-
             pnlDetails.IsVisible = false;
             pnlSelectTrf.IsVisible = false;
 
-            // Layouts already stretch automatically in MAUI
-            // (DockStyle.Fill is implicit)
-
-            // ------------------------------------
-            // Barcode initialization
-            // ------------------------------------
             AppGlobal.isBarcode = true;
             txtBarcode.Text = string.Empty;
 
-            // Focus barcode entry
-            Dispatcher.Dispatch(() =>
-            {
-                txtBarcode.Focus();
-            });
+            Dispatcher.Dispatch(() => txtBarcode.Focus());
         }
 
-        // Equivalent of pnlMain_GotFocus
-        private void pnlMain_Focused(object sender, FocusEventArgs e)
+        // ================== ENTRY VALIDATION & COMPLETION ==================
+
+        /// <summary>
+        /// ✅ FIXED: Entry Completed handler (replaces KeyPress)
+        /// </summary>
+        private async void Entry_Completed(object sender, EventArgs e)
         {
-            // Your original code was empty
-        }
-        private void txtBarcode_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // sender is the Entry control
             var entry = sender as Entry;
+            if (entry == null) return;
 
-            // New text value: e.NewTextValue
-            // Old text value: e.OldTextValue
-
-            // Your code here
-        }
-        private void TxtDesc_Tapped(object sender, EventArgs e)
-        {
-            // Your logic here
-        }
-        private void PbScanned_Tapped(object sender, EventArgs e)
-        {
-            // Logic for when pbScanned is tapped
-        }
-        private void LblSKU_Loaded(object sender, EventArgs e)
-        {
-            // Your logic here
-        }
-        private void TxtSKU_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Your logic here
-        }
-        private void LblCase_Loaded(object sender, EventArgs e)
-        {
-            // Your logic here
-        }
-        private void TxtCase_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Your logic here
-        }
-        private void LblEach_Loaded(object sender, EventArgs e)
-        {
-            // Your logic here
-        }
-        private void TxtEach_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Your logic here
-            // e.NewTextValue contains the new text
-            // e.OldTextValue contains the old text
-        }
-        private void LblBUM_Loaded(object sender, EventArgs e)
-        {
-            // Your logic here
-        }
-        private void TxtBum_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Your logic here
-        }
-        private void PnlDetails_Loaded(object sender, EventArgs e)
-        {
-            // This replaces pnlDetails.GotFocus
-            // Add your logic here
-        }
-        private void lvSKU_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Get the newly selected item
-            var selected = e.CurrentSelection.FirstOrDefault() as SKUItem;
-            if (selected != null)
+            // Validate input
+            if (entry.Text != null && entry.Text.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
             {
-                // Your logic here, e.g., show details
-                txtSKU.Text = selected.SKU;
-                txtDesc.Text = selected.Descr;
-                trfNo = selected.TransferNo;
+                entry.Text = "";
+                return;
+            }
+
+            dtSet = new DataSet();
+
+            if (entry == txtBarcode)
+            {
+                pbScanned.IsVisible = false;
+
+                if (!await _isUPCFoundAsync(txtBarcode.Text.Trim()))
+                {
+                    pbScanned.IsVisible = false;
+                    await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
+                    _ClearScan();
+                }
+            }
+            else if (entry == txtCase)
+            {
+                txtCase.CursorPosition = 0;
+                txtCase.SelectionLength = 0;
+                txtEach.Focus();
+                txtEach.CursorPosition = 0;
+                txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
+            }
+            else if (entry == txtEach)
+            {
+                BtnAccept_Clicked(null, null);
             }
         }
-        private void LblUser_Loaded(object sender, EventArgs e)
+
+        /// <summary>
+        /// ✅ FIXED: TextChanged validation (numeric only)
+        /// </summary>
+        private void Entry_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Your logic here
+            var entry = sender as Entry;
+            if (entry == null) return;
+
+            if (e.NewTextValue != null && e.NewTextValue.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
+            {
+                entry.Text = e.OldTextValue;
+            }
         }
+
+        // ================== FOCUS MANAGEMENT ==================
+
+        private void TxtBarcode_GotFocus(object sender, FocusEventArgs e)
+        {
+            _focusedEntry = (Entry)sender;
+
+            if (_focusedEntry == txtBarcode)
+            {
+                AppGlobal.isBarcode = true;
+                _focusedEntry.BackgroundColor = Colors.PaleGreen;
+            }
+            else
+            {
+                _focusedEntry.CursorPosition = 0;
+                _focusedEntry.SelectionLength = _focusedEntry.Text?.Length ?? 0;
+            }
+        }
+
+        private void TxtBarcode_Unfocused(object sender, FocusEventArgs e)
+        {
+            if (sender is Entry entry)
+            {
+                entry.BackgroundColor = Colors.WhiteSmoke;
+                entry.CursorPosition = entry.Text?.Length ?? 0;
+                entry.SelectionLength = 0;
+            }
+        }
+
+        private void TxtCaseOrEach_Unfocused(object sender, FocusEventArgs e)
+        {
+            if (sender is Entry entry)
+            {
+                entry.CursorPosition = entry.Text?.Length ?? 0;
+                entry.SelectionLength = 0;
+            }
+        }
+
+        // ================== BUTTON CLICK HANDLERS ==================
+
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
-            // Check if quantities are filled and valid
             if (!string.IsNullOrEmpty(txtEach.Text) &&
                 !string.IsNullOrEmpty(txtCase.Text) &&
                 double.TryParse(txtEach.Text, out double eachVal) && eachVal >= 0 &&
                 double.TryParse(txtCase.Text, out double caseVal) && caseVal >= 0)
             {
-                // Check if SKU and items exist
                 if (!string.IsNullOrWhiteSpace(txtSKU.Text) && lvSKUCollection.Count > 0)
                 {
-                    // Ask user confirmation
                     bool accept = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
                     if (accept)
                     {
-                        // Call the async accept method
                         await _AcceptItemAsync();
                     }
                 }
@@ -222,273 +234,69 @@ namespace PDTPickingSystem.Views
                 }
             }
         }
-        private async Task _AcceptItemAsync()
-        {
-            var conn = await AppGlobal._SQL_Connect();
-            if (conn == null) return;
 
-            using var txn = conn.BeginTransaction();
-            using var sqlCmd = conn.CreateCommand();
-            sqlCmd.Transaction = txn;
-            sqlCmd.CommandType = CommandType.Text;
-
-            try
-            {
-                // Parse quantities safely
-                double bum = double.TryParse(txtBum.Text, out double tmpBum) ? tmpBum : 0;
-                double caseQty = double.TryParse(txtCase.Text, out double tmpCase) ? tmpCase : 0;
-                double each = double.TryParse(txtEach.Text, out double tmpEach) ? tmpEach : 0;
-
-                double dQty = (bum * caseQty) + each;
-                double totQty = 0;
-
-                // Update PickHdr
-                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
-                                     $"SET cnfrmDate='{AppGlobal._GetDateTime(true)}', isUpdate=1 " +
-                                     $"WHERE ID={AppGlobal.ID_SumHdr}";
-                await sqlCmd.ExecuteNonQueryAsync();
-
-                // Get PickDtl data
-                var dsData = new DataSet();
-                await AppGlobal._WorkQueryAsync(
-                    $"SELECT ID, Qty FROM tbl{AppGlobal.pPickNo}PickDtl " +
-                    $"WHERE SKU={txtSKU.Text.Trim()} AND ID_SumHdr={AppGlobal.ID_SumHdr} " +
-                    $"ORDER BY slot, sku", dsData, "DATA");
-
-                var rows = dsData.Tables[0].Rows;
-                for (int i = 0; i < rows.Count; i++)
-                {
-                    var row = rows[i];
-                    double dNeedQty = Convert.ToDouble(row["Qty"]);
-
-                    string whereClause = string.IsNullOrEmpty(trfNo)
-                        ? $"ID={row["ID"]}"
-                        : $"tranNo='{trfNo}' AND sku={txtSKU.Text.Trim()}";
-
-                    if (i == rows.Count - 1)
-                    {
-                        sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl " +
-                                             $"SET isCnfrmSorted=1, cnfrmSortQty={dQty}, sortQty={dQty}, cSortQty={dQty}, isUpdate=1 " +
-                                             $"WHERE {whereClause}";
-                        await sqlCmd.ExecuteNonQueryAsync();
-                        totQty += dQty;
-
-                        // Update ObservableCollection
-                        if (lvSKUCollection.Count > i)
-                        {
-                            lvSKUCollection[i].SortQty = dQty.ToString("N2");
-                        }
-                    }
-                    else
-                    {
-                        if (dQty >= dNeedQty)
-                        {
-                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl " +
-                                                 $"SET isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
-                                                 $"WHERE {whereClause}";
-                            await sqlCmd.ExecuteNonQueryAsync();
-                            totQty += dNeedQty;
-                            dQty -= dNeedQty;
-
-                            if (lvSKUCollection.Count > i)
-                                lvSKUCollection[i].SortQty = dNeedQty.ToString("N2");
-                        }
-                        else
-                        {
-                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl " +
-                                                 $"SET isCnfrmSorted=1, cnfrmSortQty={dQty}, sortQty={dQty}, cSortQty={dQty}, isUpdate=1 " +
-                                                 $"WHERE {whereClause}";
-                            await sqlCmd.ExecuteNonQueryAsync();
-                            totQty += dQty;
-
-                            if (lvSKUCollection.Count > i)
-                                lvSKUCollection[i].SortQty = dQty.ToString("N2");
-
-                            dQty = 0;
-                            break;
-                        }
-                    }
-                }
-
-                // Update PickQty
-                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty " +
-                                     $"SET isConfirmed=1, cnfrmQty={totQty} " +
-                                     $"WHERE ID_sumhdr={AppGlobal.ID_SumHdr} AND sku={txtSKU.Text.Trim()}";
-                await sqlCmd.ExecuteNonQueryAsync();
-
-                txn.Commit();
-
-                // UI updates on main thread
-                Dispatcher.Dispatch(() =>
-                {
-                    pbScanned.IsVisible = true;
-                    _ClearScan();
-                });
-
-                await DisplayAlert("System Says", "Pick Qty Updated!", "OK");
-                dsData.Tables.Clear();
-            }
-            catch (Exception ex)
-            {
-                txn.Rollback();
-                await DisplayAlert("Transaction Error", $"Please retry.\n{ex.Message}", "OK");
-            }
-        }
-        // ------------------------------------
-        // Handle LostFocus for txtCase and txtEach
-        // Equivalent to VB.NET LostFocus event
-        // ------------------------------------
-        private void TxtCaseOrEach_Unfocused(object sender, FocusEventArgs e)
-        {
-            // In MAUI, Entry does not have SelectionLength property directly like WinForms TextBox
-            // So we reset the cursor position to the end to mimic "deselect text"
-            if (sender is Entry entry)
-            {
-                entry.CursorPosition = entry.Text?.Length ?? 0;
-                entry.SelectionLength = 0; // MAUI Entry supports SelectionLength
-            }
-        }
         private void BtnDetails_Clicked(object sender, EventArgs e)
         {
             pnlMain.IsVisible = false;
             pnlDetails.IsVisible = true;
         }
-        private void Button2_Clicked(object sender, EventArgs e)
-        {
-            try
-            {
-                if (lvSKU2.SelectedItem is SKUItem selected)
-                {
-                    // Parse and assign
-                    if (!int.TryParse(selected.ID.ToString(), out int sumhdr))
-                    {
-                        DisplayAlert("Error", "Invalid ID format.", "OK");
-                        return;
-                    }
 
-                    AppGlobal.ID_SumHdr = sumhdr;
-                    trfNo = selected.TransferNo?.Trim() ?? "";
-
-                    _hideShow(1); // Show the main panel
-                }
-                else
-                {
-                    DisplayAlert("Notice", "Please select a Transfer to Edit", "OK");
-                }
-            }
-            catch (Exception ex)
-            {
-                DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
-            }
-        }
-        private bool _isInList(int col, string strTrf)
-        {
-            // MAUI ListView doesn't have ListViewItem; use the bound collection instead
-            foreach (var item in lvSKU2.ItemsSource) // Assuming lvSKU2.ItemsSource is your bound collection
-            {
-                if (item is SKUItem lv) // Replace SKUItem with your actual bound item class
-                {
-                    // Simulate SubItems(col).Text.Trim using your class properties
-                    string value = col switch
-                    {
-                        0 => lv.ID.ToString(),
-                        1 => lv.TransferNo?.Trim(),
-                        2 => lv.SKU?.Trim(),
-                        // add more mappings if needed for other columns
-                        _ => ""
-                    };
-
-                    if (value == strTrf)
-                        return true;
-                }
-            }
-            return false;
-        }
         private void Button1_Click(object sender, EventArgs e)
         {
-            try
-            {
-                pnlDetails.IsVisible = false;  // Hide details panel
-                pnlMain.IsVisible = true;      // Show main panel
-            }
-            catch (Exception ex)
-            {
-                DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
-            }
+            pnlDetails.IsVisible = false;
+            pnlMain.IsVisible = true;
         }
-        private void pnlSelectTrf_Loaded(object sender, EventArgs e)
-        {
-            try
-            {
-                // Your logic here
-            }
-            catch (Exception ex)
-            {
-                DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
-            }
-        }
-        private void lvSKU2_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                // Get the newly selected TransferItem
-                var selected = e.CurrentSelection.FirstOrDefault() as TransferItem;
-                if (selected != null)
-                {
-                    // Example logic: assign to page-level variables
-                    AppGlobal.ID_SumHdr = int.TryParse(selected.ID, out int sumhdr) ? sumhdr : 0;
-                    trfNo = selected.TransferNo?.Trim() ?? "";
 
-                    // Show the main panel after selection
-                    _hideShow(1);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
-            }
-        }
-        private void lvSKU_Unfocused(object sender, FocusEventArgs e)
+        private void Button2_Clicked(object sender, EventArgs e)
         {
-            // Converted from VB.NET lvSKU.Validated
-            // Place your validation or post-selection logic here
-        }
-        private void TxtBarcode_GotFocus(object sender, FocusEventArgs e)
-        {
-            // ------------------------------------
-            // Equivalent of: txtboxFocus = sender
-            // ------------------------------------
-            txtboxFocus = (Entry)sender;
-
-            // ------------------------------------
-            // Check if focused control is txtBarcode
-            // ------------------------------------
-            if (txtboxFocus == txtBarcode)
+            if (lvSKU2.SelectedItem is TransferItem selected)
             {
-                // Same duplicated logic preserved
-                if (txtboxFocus == txtBarcode)
+                if (!int.TryParse(selected.ID, out int sumhdrVal))
                 {
-                    AppGlobal.isBarcode = true;
-                }
-                else
-                {
-                    AppGlobal.isBarcode = false;
+                    _ = DisplayAlert("Error", "Invalid ID format.", "OK");
+                    return;
                 }
 
-                // ------------------------------------
-                // WinForms BackColor → MAUI BackgroundColor
-                // ------------------------------------
-                txtboxFocus.BackgroundColor = Colors.PaleGreen;
+                AppGlobal.ID_SumHdr = sumhdrVal;
+                trfNo = selected.TransferNo?.Trim() ?? "";
+
+                _hideShow(1);
             }
             else
             {
-                // ------------------------------------
-                // SelectAll equivalent in MAUI
-                // ------------------------------------
-                txtboxFocus.CursorPosition = 0;
-                txtboxFocus.SelectionLength = txtboxFocus.Text?.Length ?? 0;
+                _ = DisplayAlert("Notice", "Please select a Transfer to Edit", "OK");
             }
         }
+
+        // ================== COLLECTION VIEW SELECTION ==================
+
+        private void lvSKU_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selected = e.CurrentSelection.FirstOrDefault() as SKUItem;
+            if (selected != null)
+            {
+                txtSKU.Text = selected.SKU;
+                txtDesc.Text = selected.Descr;
+                trfNo = selected.TransferNo;
+            }
+        }
+
+        private void lvSKU2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selected = e.CurrentSelection.FirstOrDefault() as TransferItem;
+            if (selected != null)
+            {
+                AppGlobal.ID_SumHdr = int.TryParse(selected.ID, out int sumhdrVal) ? sumhdrVal : 0;
+                trfNo = selected.TransferNo?.Trim() ?? "";
+                _hideShow(1);
+            }
+        }
+
+        // ================== CORE BUSINESS LOGIC ==================
+
+        /// <summary>
+        /// ✅ FIXED: Parameterized stored procedure call
+        /// </summary>
         private async Task<bool> _isUPCFoundAsync(string upc)
         {
             pnlDetails.IsVisible = true;
@@ -505,15 +313,18 @@ namespace PDTPickingSystem.Views
             {
                 lvSKUCollection.Clear();
                 lvSKU2Collection.Clear();
-                dtSet?.Tables.Clear();
+                dtSet.Tables.Clear();
 
-                string cmdText = $"exec spTransfer {AppGlobal.pPickNo},'{txtBarcode.Text.Trim()}',{AppGlobal.ID_User}";
+                // ✅ FIXED: Parameterized stored procedure call
+                using var sqlCmd = new SqlCommand("spTransfer", conn);
+                sqlCmd.CommandType = CommandType.StoredProcedure;
+                sqlCmd.CommandTimeout = 0;
+                sqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
+                sqlCmd.Parameters.AddWithValue("@Barcode", txtBarcode.Text.Trim());
+                sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
 
-                using var sqlAdp = new SqlDataAdapter(cmdText, conn);
-                sqlAdp.SelectCommand.CommandTimeout = 0;
-
-                dtSet.Clear();
-                await Task.Run(() => sqlAdp.Fill(dtSet, "trfs")); // FillAsync not available, wrap in Task.Run
+                using var sqlAdp = new SqlDataAdapter(sqlCmd);
+                await Task.Run(() => sqlAdp.Fill(dtSet, "trfs"));
 
                 isConfirmed = 0;
 
@@ -532,7 +343,6 @@ namespace PDTPickingSystem.Views
                     return true;
                 }
 
-                dtSet.Dispose();
                 return false;
             }
             catch (Exception ex)
@@ -541,19 +351,10 @@ namespace PDTPickingSystem.Views
                 return false;
             }
         }
-        private void TxtBarcode_Unfocused(object sender, FocusEventArgs e)
-        {
-            if (sender is Entry entry)
-            {
-                // Reset background color to WhiteSmoke
-                entry.BackgroundColor = Colors.WhiteSmoke;
 
-                // Optional: reset cursor and selection
-                entry.CursorPosition = entry.Text?.Length ?? 0;
-                entry.SelectionLength = 0;
-            }
-        }
-
+        /// <summary>
+        /// ✅ FIXED: Parameterized stored procedure call
+        /// </summary>
         private async Task _getDetailsAsync()
         {
             pnlDetails.IsVisible = true;
@@ -570,15 +371,18 @@ namespace PDTPickingSystem.Views
             {
                 lvSKUCollection.Clear();
                 lvSKU2Collection.Clear();
-                dtSet?.Tables.Clear();
+                dtSet.Tables.Clear();
 
-                string cmdText = $"exec spTransfer {AppGlobal.pPickNo},'{txtBarcode.Text.Trim()}',{AppGlobal.ID_User}";
+                // ✅ FIXED: Parameterized stored procedure call
+                using var sqlCmd = new SqlCommand("spTransfer", conn);
+                sqlCmd.CommandType = CommandType.StoredProcedure;
+                sqlCmd.CommandTimeout = 0;
+                sqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
+                sqlCmd.Parameters.AddWithValue("@Barcode", txtBarcode.Text.Trim());
+                sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
 
-                using var sqlAdp = new SqlDataAdapter(cmdText, conn);
-                sqlAdp.SelectCommand.CommandTimeout = 0;
-
-                dtSet.Clear();
-                await Task.Run(() => sqlAdp.Fill(dtSet, "trfs")); // FillAsync workaround
+                using var sqlAdp = new SqlDataAdapter(sqlCmd);
+                await Task.Run(() => sqlAdp.Fill(dtSet, "trfs"));
 
                 if (dtSet.Tables[0].Rows.Count > 0)
                 {
@@ -592,6 +396,9 @@ namespace PDTPickingSystem.Views
             }
         }
 
+        /// <summary>
+        /// Load list views from dataset
+        /// </summary>
         private void _loadlv()
         {
             string trno = "";
@@ -637,7 +444,6 @@ namespace PDTPickingSystem.Views
 
                 lvSKUCollection.Add(lv);
 
-                // Call details loader
                 _loadDetails(
                     drow["sku"].ToString(),
                     Convert.ToDouble(drow["bum"]),
@@ -648,10 +454,6 @@ namespace PDTPickingSystem.Views
                 cnt++;
             }
 
-            // Bind collections to your MAUI ListViews
-            lvSKU.ItemsSource = lvSKUCollection;
-            lvSKU2.ItemsSource = lvSKU2Collection;
-
             AppGlobal.ID_SumHdr = sumhdr;
 
             if (lvSKU2Collection.Count > 1)
@@ -659,43 +461,214 @@ namespace PDTPickingSystem.Views
                 _hideShow(3);
             }
 
-            pnlDetails.IsVisible = true; // keep panel visible like in VB.NET
+            pnlDetails.IsVisible = true;
         }
 
-        private void _hideShow(int toShow)
+        /// <summary>
+        /// ✅ FIXED: Accept item with parameterized queries
+        /// </summary>
+        private async Task _AcceptItemAsync()
         {
-            pnlDetails.IsVisible = false;
-            pnlSelectTrf.IsVisible = false;
-            pnlMain.IsVisible = false;
+            using var conn = await AppGlobal._SQL_Connect();
+            if (conn == null) return;
 
-            if (toShow == 1)
+            SqlTransaction txn = null;
+
+            try
             {
-                pnlMain.IsVisible = true;
+                txn = conn.BeginTransaction();
+                using var sqlCmd = conn.CreateCommand();
+                sqlCmd.Transaction = txn;
+
+                // Parse quantities
+                double bum = double.TryParse(txtBum.Text, out double tmpBum) ? tmpBum : 0;
+                double caseQty = double.TryParse(txtCase.Text, out double tmpCase) ? tmpCase : 0;
+                double each = double.TryParse(txtEach.Text, out double tmpEach) ? tmpEach : 0;
+                double dQty = (bum * caseQty) + each;
+                double totQty = 0;
+
+                // ✅ FIXED: Update PickHdr with parameterized query
+                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
+                                     "SET cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
+                sqlCmd.Parameters.AddWithValue("@cnfrmDate", await AppGlobal._GetDateTime(true));
+                sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                // ✅ FIXED: Get PickDtl data with parameterized query
+                var dsData = new DataSet();
+                using (var selectCmd = conn.CreateCommand())
+                {
+                    selectCmd.Transaction = txn;
+                    selectCmd.CommandText = $"SELECT ID, Qty FROM tbl{AppGlobal.pPickNo}PickDtl " +
+                                            "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr ORDER BY slot, sku";
+                    selectCmd.Parameters.AddWithValue("@SKU", txtSKU.Text.Trim());
+                    selectCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
+
+                    using var adapter = new SqlDataAdapter(selectCmd);
+                    adapter.Fill(dsData, "DATA");
+                }
+
+                var rows = dsData.Tables[0].Rows;
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var row = rows[i];
+                    double dNeedQty = Convert.ToDouble(row["Qty"]);
+
+                    if (i == rows.Count - 1) // Last item
+                    {
+                        // ✅ FIXED: Parameterized UPDATE
+                        if (string.IsNullOrEmpty(trfNo))
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                "WHERE ID=@ID";
+                            sqlCmd.Parameters.Clear();
+                            sqlCmd.Parameters.AddWithValue("@qty", dQty);
+                            sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
+                        }
+                        else
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                "WHERE tranNo=@tranNo AND sku=@sku";
+                            sqlCmd.Parameters.Clear();
+                            sqlCmd.Parameters.AddWithValue("@qty", dQty);
+                            sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
+                            sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
+                        }
+                        await sqlCmd.ExecuteNonQueryAsync();
+                        totQty += dQty;
+
+                        if (lvSKUCollection.Count > i)
+                            lvSKUCollection[i].SortQty = dQty.ToString("N2");
+                    }
+                    else
+                    {
+                        if (dQty >= dNeedQty)
+                        {
+                            // ✅ FIXED: Parameterized UPDATE
+                            if (string.IsNullOrEmpty(trfNo))
+                            {
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    "WHERE ID=@ID";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
+                            }
+                            else
+                            {
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    "WHERE tranNo=@tranNo AND sku=@sku";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
+                                sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
+                            }
+                            await sqlCmd.ExecuteNonQueryAsync();
+                            totQty += dNeedQty;
+                            dQty -= dNeedQty;
+
+                            if (lvSKUCollection.Count > i)
+                                lvSKUCollection[i].SortQty = dNeedQty.ToString("N2");
+                        }
+                        else
+                        {
+                            // ✅ FIXED: Parameterized UPDATE
+                            if (string.IsNullOrEmpty(trfNo))
+                            {
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    "WHERE ID=@ID";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@qty", dQty);
+                                sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
+                            }
+                            else
+                            {
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    "WHERE tranNo=@tranNo AND sku=@sku";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@qty", dQty);
+                                sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
+                                sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
+                            }
+                            await sqlCmd.ExecuteNonQueryAsync();
+                            totQty += dQty;
+
+                            if (lvSKUCollection.Count > i)
+                                lvSKUCollection[i].SortQty = dQty.ToString("N2");
+
+                            dQty = 0;
+                            break;
+                        }
+                    }
+                }
+
+                // ✅ FIXED: Update PickQty with parameterized query
+                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty " +
+                    "SET isConfirmed=1, cnfrmQty=@totQty " +
+                    "WHERE ID_sumhdr=@SumHdr AND sku=@sku";
+                sqlCmd.Parameters.Clear();
+                sqlCmd.Parameters.AddWithValue("@totQty", totQty);
+                sqlCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
+                sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                txn.Commit();
+
+                Dispatcher.Dispatch(() =>
+                {
+                    pbScanned.IsVisible = true;
+                    _ClearScan();
+                });
+
+                await DisplayAlert("System Says", "Pick Qty Updated!", "OK");
+                dsData.Tables.Clear();
             }
-            else if (toShow == 2)
+            catch (Exception ex)
             {
-                pnlDetails.IsVisible = true;
-            }
-            else
-            {
-                pnlSelectTrf.IsVisible = true;
+                txn?.Rollback();
+                await DisplayAlert("Transaction Error", $"Please retry.\n{ex.Message}", "OK");
             }
         }
+
+        /// <summary>
+        /// ✅ FIXED: Get duplicate SKU indices
+        /// </summary>
+        private void _getDuplicateSKUIndex(string sku)
+        {
+            skuArr = new List<int>();
+
+            for (int i = 0; i < lvSKUCollection.Count; i++)
+            {
+                var item = lvSKUCollection[i];
+                if (string.IsNullOrWhiteSpace(item.SKU))
+                    continue;
+
+                if (item.SKU.Trim() == sku)
+                {
+                    skuArr.Add(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load SKU details into input fields
+        /// </summary>
         private void _loadDetails(string sku, double cse, int qty, string skuDesc)
         {
-            double dSetQty = cse; // Val(txtpCase.Tag)
-            txtCase.IsEnabled = true;
-            if (dSetQty == 1)
-                txtCase.IsEnabled = false;
+            double dSetQty = cse;
+            txtCase.IsEnabled = dSetQty != 1;
 
             if (dSetQty == 1 || qty < dSetQty)
             {
                 txtCase.Text = "0";
-                txtEach.Text = qty.ToString("N2"); // assuming fmtNumber2 = "N2"
+                txtEach.Text = qty.ToString("N2");
             }
             else
             {
-                double dQty = qty; // Val(txtpEach.Tag)
+                double dQty = qty;
                 txtCase.Text = Math.Floor(dQty / dSetQty).ToString("N2");
                 txtEach.Text = (dQty % dSetQty).ToString("N2");
             }
@@ -720,6 +693,10 @@ namespace PDTPickingSystem.Views
                 txtCase.SelectionLength = txtCase.Text.Length;
             }
         }
+
+        /// <summary>
+        /// Clear scan fields
+        /// </summary>
         private void _ClearScan(bool bWithBarcode = true)
         {
             if (bWithBarcode)
@@ -729,14 +706,12 @@ namespace PDTPickingSystem.Views
             txtEach.Text = "0";
             txtCase.Text = "0";
 
-            // Reset cursor / selection
             txtCase.CursorPosition = 0;
             txtCase.SelectionLength = 0;
 
             txtEach.CursorPosition = 0;
             txtEach.SelectionLength = 0;
 
-            // Focus the barcode entry and select all text
             Dispatcher.Dispatch(() =>
             {
                 txtBarcode.Focus();
@@ -745,5 +720,88 @@ namespace PDTPickingSystem.Views
             });
         }
 
+        /// <summary>
+        /// Show/hide panels
+        /// </summary>
+        private void _hideShow(int toShow)
+        {
+            pnlDetails.IsVisible = false;
+            pnlSelectTrf.IsVisible = false;
+            pnlMain.IsVisible = false;
+
+            if (toShow == 1)
+                pnlMain.IsVisible = true;
+            else if (toShow == 2)
+                pnlDetails.IsVisible = true;
+            else
+                pnlSelectTrf.IsVisible = true;
+        }
+
+        /// <summary>
+        /// Check if transfer is in list
+        /// </summary>
+        private bool _isInList(int col, string strTrf)
+        {
+            foreach (var item in lvSKU2Collection)
+            {
+                string value = col switch
+                {
+                    0 => item.ID,
+                    1 => item.TransferNo?.Trim(),
+                    _ => ""
+                };
+
+                if (value == strTrf)
+                    return true;
+            }
+            return false;
+        }
+
+        // ================== HARDWARE KEY HANDLERS ==================
+
+        /// <summary>
+        /// ✅ FIXED: Escape key handler
+        /// </summary>
+        public void OnEscapePressed()
+        {
+            if (Navigation.NavigationStack.Count > 0)
+            {
+                MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
+            }
+        }
+
+        /// <summary>
+        /// ✅ FIXED: F2 key handler (focus barcode)
+        /// </summary>
+        public void OnF2Pressed()
+        {
+            if (txtBarcode != null)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    txtBarcode.Focus();
+                    txtBarcode.CursorPosition = 0;
+                    txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
+                });
+            }
+        }
+
+        // ================== EMPTY EVENT HANDLERS (FOR XAML BINDING) ==================
+
+        private void pnlMain_Focused(object sender, FocusEventArgs e) { }
+        private void TxtDesc_Tapped(object sender, EventArgs e) { }
+        private void PbScanned_Tapped(object sender, EventArgs e) { }
+        private void LblSKU_Loaded(object sender, EventArgs e) { }
+        private void TxtSKU_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void LblCase_Loaded(object sender, EventArgs e) { }
+        private void TxtCase_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void LblEach_Loaded(object sender, EventArgs e) { }
+        private void TxtEach_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void LblBUM_Loaded(object sender, EventArgs e) { }
+        private void TxtBum_TextChanged(object sender, TextChangedEventArgs e) { }
+        private void PnlDetails_Loaded(object sender, EventArgs e) { }
+        private void LblUser_Loaded(object sender, EventArgs e) { }
+        private void pnlSelectTrf_Loaded(object sender, EventArgs e) { }
+        private void lvSKU_Unfocused(object sender, FocusEventArgs e) { }
     }
 }
