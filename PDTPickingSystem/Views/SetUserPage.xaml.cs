@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Controls;
+using Microsoft.Data.SqlClient;
 using PDTPickingSystem.Helpers;
 using System;
 using System.Threading.Tasks;
@@ -8,17 +9,7 @@ namespace PDTPickingSystem.Views
     public partial class SetUserPage : ContentPage
     {
         // Class-level variables
-        private int iSKU;
-        private string sSKU = "";
-        private bool isKeyPress = false;
-
-        // Replacement for lblName.Tag and txtEENo.Tag
-        private string lblNameTag;
-        private string txtEENoTag;
-
-        // User roles
-        private bool isStocker;
-        private bool isChecker;
+        private string lblNameTag = "";
 
         public SetUserPage()
         {
@@ -29,15 +20,19 @@ namespace PDTPickingSystem.Views
             actLoading.IsRunning = false;
             actLoading.IsVisible = false;
 
+            // Pre-populate if user already set (VB.NET Lines 17-20)
+            if (!string.IsNullOrEmpty(AppGlobal.sEENo))
+            {
+                txtEENo.Text = AppGlobal.sEENo;
+                lblName.Text = $"( {AppGlobal.sUserName} )";
+            }
+
             // Update current user label
             UpdateCurrentUserLabel();
 
             // Subscribe to events
-            lblInputUserID.Loaded += LblInputUserID_Loaded;
-            lblName.Loaded += LblName_Loaded;
-            lblUser.Loaded += LblUser_Loaded;
-
             txtEENo.TextChanged += TxtEENo_TextChanged;
+            txtEENo.Completed += TxtEENo_Completed;
             txtEENo.Focused += TxtEENo_Focused;
             txtEENo.Unfocused += TxtEENo_Unfocused;
 
@@ -47,12 +42,14 @@ namespace PDTPickingSystem.Views
             btnBack.Focused += BtnButtons_Focused;
             btnApply.Unfocused += BtnButtons_Unfocused;
             btnBack.Unfocused += BtnButtons_Unfocused;
+
+            // Check if user input should be readonly (VB.NET Line 22)
+            // txtEENo.IsReadOnly = AppGlobal._CheckOption_User();
         }
 
-        private void LblInputUserID_Loaded(object sender, EventArgs e) { }
-        private void LblName_Loaded(object sender, EventArgs e) { }
-        private void LblUser_Loaded(object sender, EventArgs e) { }
-
+        // ====================================================================
+        // UPDATE CURRENT USER LABEL
+        // ====================================================================
         private void UpdateCurrentUserLabel()
         {
             lblUser.Text = string.IsNullOrEmpty(AppGlobal.sEENo)
@@ -60,11 +57,31 @@ namespace PDTPickingSystem.Views
                 : $"User: {AppGlobal.sUserName}";
         }
 
+        // ====================================================================
+        // TEXT CHANGED - ENABLE/DISABLE APPLY BUTTON
+        // ====================================================================
         private void TxtEENo_TextChanged(object sender, TextChangedEventArgs e)
         {
             btnApply.IsEnabled = !string.IsNullOrWhiteSpace(e.NewTextValue);
         }
 
+        // ====================================================================
+        // ENTRY COMPLETED (ENTER KEY PRESSED) - VB.NET txtEENo_KeyPress
+        // ====================================================================
+        private async void TxtEENo_Completed(object sender, EventArgs e)
+        {
+            await GetUserNameAsync();
+
+            // If user found, trigger apply (VB.NET behavior)
+            if (!string.IsNullOrEmpty(lblNameTag))
+            {
+                BtnApply_Clicked(btnApply, e);
+            }
+        }
+
+        // ====================================================================
+        // FOCUS HANDLERS (VB.NET txtEENo_GotFocus / LostFocus)
+        // ====================================================================
         private void TxtEENo_Focused(object sender, FocusEventArgs e)
         {
             txtEENo.BackgroundColor = Colors.PaleGreen;
@@ -75,6 +92,9 @@ namespace PDTPickingSystem.Views
             txtEENo.BackgroundColor = Colors.WhiteSmoke;
         }
 
+        // ====================================================================
+        // BUTTON FOCUS HANDLERS (VB.NET btnButtons_GotFocus / LostFocus)
+        // ====================================================================
         private void BtnButtons_Focused(object sender, FocusEventArgs e)
         {
             if (sender is Button btn) btn.TextColor = Colors.OrangeRed;
@@ -85,66 +105,43 @@ namespace PDTPickingSystem.Views
             if (sender is Button btn) btn.TextColor = Colors.Black;
         }
 
+        // ====================================================================
+        // APPLY BUTTON CLICKED (VB.NET btnApply_Click)
+        // ====================================================================
         private async void BtnApply_Clicked(object sender, EventArgs e)
         {
+            // Only proceed if user was found (lblName.Tag <> "")
+            if (string.IsNullOrEmpty(lblNameTag))
+            {
+                await DisplayAlert("Error", "Please enter a valid User ID first.", "OK");
+                return;
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(txtEENo.Text))
-                    return;
+                // Set global variables (VB.NET Lines 62-64)
+                AppGlobal.sEENo = lblNameTag;
+                AppGlobal.sUserName = lblName.Text.Replace("( ", "").Replace(" )", "").Trim();
 
-                var conn = await AppGlobal._SQL_Connect();
-                if (conn == null) return;
+                UpdateCurrentUserLabel();
 
-                using var sqlCmd = conn.CreateCommand();
-                sqlCmd.CommandText = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, isStocker, isChecker " +
-                                     $"FROM tblUsers WHERE isActive=1 AND EENo={txtEENo.Text}";
+                // Show success (VB.NET Line 66)
+                await DisplayAlert("Welcome!", "User accepted!", "OK");
 
-                using var reader = await sqlCmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    txtEENoTag = reader["ID"].ToString().Trim();
-                    lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
-                    lblNameTag = txtEENoTag;
-                    isStocker = Convert.ToBoolean(reader["isStocker"]);
-                    isChecker = Convert.ToBoolean(reader["isChecker"]);
-
-                    // Set global variables
-                    AppGlobal.ID_User = Convert.ToInt32(txtEENoTag);
-                    AppGlobal.sEENo = lblNameTag;
-                    AppGlobal.sUserName = reader["FullName"].ToString().Trim();
-
-                    UpdateCurrentUserLabel();
-
-                    // Show success
-                    await DisplayAlert("Welcome!", $"User accepted: {AppGlobal.sUserName}", "OK");
-
-                    // Go back via Shell (instead of modal/pop)
-                    await Shell.Current.GoToAsync("..");
-                }
-                else
-                {
-                    await DisplayAlert("Not Found!", "User ID not found!", "OK");
-                    lblName.Text = "( Name )";
-                    lblNameTag = "";
-
-                    txtEENo.Focus();
-                    txtEENo.CursorPosition = 0;
-                    txtEENo.SelectionLength = txtEENo.Text.Length;
-                }
+                // Go back (VB.NET Line 67: Me.Close())
+                await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to get user info.\n{ex.Message}", "OK");
-            }
-            finally
-            {
-                isKeyPress = false;
+                await DisplayAlert("Error", $"Failed to apply user.\n{ex.Message}", "OK");
             }
         }
 
+        // ====================================================================
+        // BACK BUTTON CLICKED (VB.NET btnBack_Click)
+        // ====================================================================
         private async void BtnBack_Clicked(object sender, EventArgs e)
         {
-            // Navigate back safely
             try
             {
                 await Shell.Current.GoToAsync("..");
@@ -155,6 +152,9 @@ namespace PDTPickingSystem.Views
             }
         }
 
+        // ====================================================================
+        // GET USER NAME (VB.NET GetUserName() Sub)
+        // ====================================================================
         public async Task GetUserNameAsync()
         {
             if (string.IsNullOrWhiteSpace(txtEENo.Text))
@@ -166,30 +166,41 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                using var sqlCmd = conn.CreateCommand();
-                sqlCmd.CommandText = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, ID_SumHdr, isStocker, isChecker " +
-                                     $"FROM tblUsers WHERE isActive=1 AND EENo={txtEENo.Text}";
+                // ✅ FIXED: Parameterized query to prevent SQL injection
+                using var sqlCmd = new SqlCommand(
+                    "SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, " +
+                    "ID_SumHdr, isStocker, isChecker " +
+                    "FROM tblUsers WHERE isActive=1 AND EENo=@EENo",
+                    conn
+                );
+
+                sqlCmd.Parameters.Add("@EENo", System.Data.SqlDbType.VarChar, 50).Value = txtEENo.Text.Trim();
 
                 using var reader = await sqlCmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    txtEENoTag = reader["ID"].ToString().Trim();
+                    // VB.NET Lines 79-83
+                    AppGlobal.ID_User = Convert.ToInt32(reader["ID"]);
                     lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
-                    lblNameTag = txtEENoTag; // assign from reader
-                    isStocker = Convert.ToBoolean(reader["isStocker"]);
-                    isChecker = Convert.ToBoolean(reader["isChecker"]);
+                    lblNameTag = txtEENo.Text.Trim();  // VB.NET: lblName.Tag = txtEENo.Text
 
+                    // ✅ CORRECT (writable integer fields):
+                    AppGlobal.isStocker = Convert.ToInt32(reader["isStocker"]);
+                    AppGlobal.isChecker = Convert.ToInt32(reader["isChecker"]);
+
+                    // VB.NET Line 84: Focus on Apply button
                     btnApply.Focus();
                 }
                 else
                 {
+                    // VB.NET Lines 86-90
                     await DisplayAlert("Not Found!", "User ID not found!", "OK");
                     lblName.Text = "( Name )";
                     lblNameTag = "";
 
                     txtEENo.Focus();
                     txtEENo.CursorPosition = 0;
-                    txtEENo.SelectionLength = txtEENo.Text.Length;
+                    txtEENo.SelectionLength = txtEENo.Text?.Length ?? 0;
                 }
             }
             catch (Exception ex)

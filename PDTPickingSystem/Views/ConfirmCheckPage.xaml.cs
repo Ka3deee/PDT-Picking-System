@@ -45,15 +45,14 @@ namespace PDTPickingSystem.Views
         private Entry _focusedEntry;
 
         // SKU and stocker tracking
-        private int iSKU;
-        private int sSKU = -1; // Changed to int for index
+        private int sSKU = -1;
         private int ID_Stocker = 0;
 
         // State
         private bool isStarted = false;
 
         // Data management
-        private DataSet dtSet = new DataSet(); // ✅ FIXED: Initialize in declaration
+        private DataSet dtSet = new DataSet();
 
         // SKU tracking
         private List<int> skuArr = new List<int>();
@@ -74,12 +73,12 @@ namespace PDTPickingSystem.Views
 
             BindingContext = this;
 
-            // ✅ FIXED: Add Entry Completed handlers
+            // Entry Completed handlers
             txtBarcode.Completed += Entry_Completed;
             txtCase.Completed += Entry_Completed;
             txtEach.Completed += Entry_Completed;
 
-            // ✅ FIXED: Add TextChanged validation
+            // TextChanged validation
             txtBarcode.TextChanged += Entry_TextChanged;
             txtCase.TextChanged += Entry_TextChanged;
             txtEach.TextChanged += Entry_TextChanged;
@@ -119,7 +118,7 @@ namespace PDTPickingSystem.Views
         // ================== ENTRY VALIDATION & COMPLETION ==================
 
         /// <summary>
-        /// ✅ FIXED: Entry Completed handler (replaces KeyPress)
+        /// Entry Completed handler (replaces KeyPress)
         /// </summary>
         private async void Entry_Completed(object sender, EventArgs e)
         {
@@ -161,7 +160,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// ✅ FIXED: TextChanged validation (numeric only)
+        /// TextChanged validation (numeric only)
         /// </summary>
         private void Entry_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -295,7 +294,7 @@ namespace PDTPickingSystem.Views
         // ================== CORE BUSINESS LOGIC ==================
 
         /// <summary>
-        /// ✅ FIXED: Parameterized stored procedure call
+        /// Check if UPC is found - Parameterized stored procedure call
         /// </summary>
         private async Task<bool> _isUPCFoundAsync(string upc)
         {
@@ -315,7 +314,7 @@ namespace PDTPickingSystem.Views
                 lvSKU2Collection.Clear();
                 dtSet.Tables.Clear();
 
-                // ✅ FIXED: Parameterized stored procedure call
+                // Parameterized stored procedure call
                 using var sqlCmd = new SqlCommand("spTransfer", conn);
                 sqlCmd.CommandType = CommandType.StoredProcedure;
                 sqlCmd.CommandTimeout = 0;
@@ -336,6 +335,7 @@ namespace PDTPickingSystem.Views
                     {
                         pbScanned.IsVisible = true;
                         dtSet.Tables.Clear();
+                        dtSet.Dispose(); // ✅ FIXED: Dispose DataSet
                         _ClearScan();
                         await DisplayAlert("System Says", "Item Already Confirmed!", "OK");
                         return false;
@@ -343,6 +343,7 @@ namespace PDTPickingSystem.Views
                     return true;
                 }
 
+                dtSet.Dispose(); // ✅ FIXED: Dispose DataSet
                 return false;
             }
             catch (Exception ex)
@@ -353,7 +354,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// ✅ FIXED: Parameterized stored procedure call
+        /// Get details - Parameterized stored procedure call
         /// </summary>
         private async Task _getDetailsAsync()
         {
@@ -373,7 +374,7 @@ namespace PDTPickingSystem.Views
                 lvSKU2Collection.Clear();
                 dtSet.Tables.Clear();
 
-                // ✅ FIXED: Parameterized stored procedure call
+                // Parameterized stored procedure call
                 using var sqlCmd = new SqlCommand("spTransfer", conn);
                 sqlCmd.CommandType = CommandType.StoredProcedure;
                 sqlCmd.CommandTimeout = 0;
@@ -389,6 +390,8 @@ namespace PDTPickingSystem.Views
                     _loadlv();
                     pbScanned.IsVisible = true;
                 }
+
+                dtSet.Dispose(); // ✅ FIXED: Dispose DataSet
             }
             catch (Exception ex)
             {
@@ -465,7 +468,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// ✅ FIXED: Accept item with parameterized queries
+        /// Accept item with parameterized queries
         /// </summary>
         private async Task _AcceptItemAsync()
         {
@@ -487,14 +490,28 @@ namespace PDTPickingSystem.Views
                 double dQty = (bum * caseQty) + each;
                 double totQty = 0;
 
-                // ✅ FIXED: Update PickHdr with parameterized query
+                // ✅ FIXED: UPC update logic
+                string sUPC = "";
+                if (!pbScanned.IsVisible && !string.IsNullOrWhiteSpace(txtBarcode.Text))
+                {
+                    sUPC = "UPC=@UPC,";
+                }
+                if (each == 0 && caseQty == 0)
+                {
+                    sUPC = "";
+                }
+
+                // ✅ FIXED: Update PickHdr with UPC
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
-                                     "SET cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
+                                     $"SET {sUPC}cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
+                sqlCmd.Parameters.Clear();
+                if (!string.IsNullOrEmpty(sUPC))
+                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                 sqlCmd.Parameters.AddWithValue("@cnfrmDate", await AppGlobal._GetDateTime(true));
                 sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                 await sqlCmd.ExecuteNonQueryAsync();
 
-                // ✅ FIXED: Get PickDtl data with parameterized query
+                // Get PickDtl data with parameterized query
                 var dsData = new DataSet();
                 using (var selectCmd = conn.CreateCommand())
                 {
@@ -516,22 +533,27 @@ namespace PDTPickingSystem.Views
 
                     if (i == rows.Count - 1) // Last item
                     {
-                        // ✅ FIXED: Parameterized UPDATE
                         if (string.IsNullOrEmpty(trfNo))
                         {
+                            // ✅ FIXED: Added UPC to UPDATE
                             sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                 "WHERE ID=@ID";
                             sqlCmd.Parameters.Clear();
+                            if (!string.IsNullOrEmpty(sUPC))
+                                sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                             sqlCmd.Parameters.AddWithValue("@qty", dQty);
                             sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                         }
                         else
                         {
+                            // ✅ FIXED: Added UPC to UPDATE
                             sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                 "WHERE tranNo=@tranNo AND sku=@sku";
                             sqlCmd.Parameters.Clear();
+                            if (!string.IsNullOrEmpty(sUPC))
+                                sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                             sqlCmd.Parameters.AddWithValue("@qty", dQty);
                             sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                             sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
@@ -546,21 +568,26 @@ namespace PDTPickingSystem.Views
                     {
                         if (dQty >= dNeedQty)
                         {
-                            // ✅ FIXED: Parameterized UPDATE
                             if (string.IsNullOrEmpty(trfNo))
                             {
+                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
                                     "WHERE ID=@ID";
                                 sqlCmd.Parameters.Clear();
+                                if (!string.IsNullOrEmpty(sUPC))
+                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                             }
                             else
                             {
+                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
                                     "WHERE tranNo=@tranNo AND sku=@sku";
                                 sqlCmd.Parameters.Clear();
+                                if (!string.IsNullOrEmpty(sUPC))
+                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                                 sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
                             }
@@ -573,22 +600,27 @@ namespace PDTPickingSystem.Views
                         }
                         else
                         {
-                            // ✅ FIXED: Parameterized UPDATE
                             if (string.IsNullOrEmpty(trfNo))
                             {
+                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                     "WHERE ID=@ID";
                                 sqlCmd.Parameters.Clear();
+                                if (!string.IsNullOrEmpty(sUPC))
+                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@qty", dQty);
                                 sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                             }
                             else
                             {
+                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                     "WHERE tranNo=@tranNo AND sku=@sku";
                                 sqlCmd.Parameters.Clear();
+                                if (!string.IsNullOrEmpty(sUPC))
+                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@qty", dQty);
                                 sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                                 sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
@@ -605,7 +637,7 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // ✅ FIXED: Update PickQty with parameterized query
+                // Update PickQty with parameterized query
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty " +
                     "SET isConfirmed=1, cnfrmQty=@totQty " +
                     "WHERE ID_sumhdr=@SumHdr AND sku=@sku";
@@ -624,6 +656,10 @@ namespace PDTPickingSystem.Views
                 });
 
                 await DisplayAlert("System Says", "Pick Qty Updated!", "OK");
+
+                // ✅ FIXED: Add success vibration
+                _VibrateDevice(200);
+
                 dsData.Tables.Clear();
             }
             catch (Exception ex)
@@ -634,7 +670,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// ✅ FIXED: Get duplicate SKU indices
+        /// Get duplicate SKU indices
         /// </summary>
         private void _getDuplicateSKUIndex(string sku)
         {
@@ -757,10 +793,37 @@ namespace PDTPickingSystem.Views
             return false;
         }
 
+        /// <summary>
+        /// ✅ FIXED: Vibrate device
+        /// </summary>
+        private void _VibrateDevice(int durationMs)
+        {
+            try
+            {
+                var duration = TimeSpan.FromMilliseconds(durationMs);
+                Vibration.Default.Vibrate(duration);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Vibration failed: {ex.Message}");
+            }
+        }
+
         // ================== HARDWARE KEY HANDLERS ==================
 
         /// <summary>
-        /// ✅ FIXED: Escape key handler
+        /// ✅ FIXED: F1 key handler (Go back/Exit)
+        /// </summary>
+        public void OnF1Pressed()
+        {
+            if (Navigation.NavigationStack.Count > 0)
+            {
+                MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
+            }
+        }
+
+        /// <summary>
+        /// Escape key handler
         /// </summary>
         public void OnEscapePressed()
         {
@@ -771,7 +834,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// ✅ FIXED: F2 key handler (focus barcode)
+        /// F2 key handler (focus barcode)
         /// </summary>
         public void OnF2Pressed()
         {

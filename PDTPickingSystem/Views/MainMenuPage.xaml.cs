@@ -333,6 +333,7 @@ namespace PDTPickingSystem.Views
 
             try
             {
+                // ✅ CORRECT: CheckingPage constructor requires MainMenuPage parameter
                 var checkerPage = new CheckingPage(this);
                 var navChecker = new NavigationPage(checkerPage);
                 await Navigation.PushModalAsync(navChecker);
@@ -366,16 +367,17 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
+            // ✅ FIXED: Validation FIRST (outside try-catch)
+            if (!AppGlobal.IsChecker)
+            {
+                await DisplayAlert("System Says",
+                    "Only Checker can use this option!", "OK");
+                return;
+            }
+
+            // Then try-catch for navigation
             try
             {
-                // Validation: Only Checker can use this option
-                if (!AppGlobal.IsChecker)
-                {
-                    await DisplayAlert("System Says",
-                        "Only Checker can use this option!", "OK");
-                    return;
-                }
-
                 var frmCheck = new ConfirmCheckPage();
                 await Navigation.PushModalAsync(frmCheck);
             }
