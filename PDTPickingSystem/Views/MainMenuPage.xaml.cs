@@ -95,7 +95,7 @@ namespace PDTPickingSystem.Views
                     string fullPath = Path.Combine(
                         root,
                         "Android", "data",
-                        AppInfo.PackageName,  // ✅ Dynamic package name
+                        AppInfo.PackageName,  // Package name
                         "files",
                         "Backup", "PDTPicking"
                     );
@@ -225,10 +225,6 @@ namespace PDTPickingSystem.Views
             {
                 string wifiStatus = AppGlobal.GetWifiStatus();
 
-                // Optional: Show WiFi status in existing status label
-                // lblStatus.Text = $"WiFi: {wifiStatus}";
-
-                // Flush memory (from VB.NET)
                 AppGlobal._FlushMemory();
             }
             catch (Exception ex)
@@ -271,8 +267,7 @@ namespace PDTPickingSystem.Views
             string pickSetup = await AppGlobal._GetPickNo();
             if (string.IsNullOrEmpty(pickSetup))
             {
-                await DisplayAlert("No Picking!",
-                    "No Picking Reference Set! Please ask to set reference #", "OK");
+                await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
                 return;
             }
 
@@ -285,8 +280,7 @@ namespace PDTPickingSystem.Views
             // Validation: Checker cannot pick
             if (AppGlobal.IsChecker)
             {
-                await DisplayAlert("System Says",
-                    "You are a Checker, not a Picker!", "OK");
+                await DisplayAlert("System Says", "You are a Checker, not a Picker!", "OK");
                 return;
             }
 
@@ -303,7 +297,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 2 – START CHECKING (VB.NET Case "5")
+        // OPTION 2 – START CHECKING
         // ====================================================================
         private async void BtnOpt2_Clicked(object sender, EventArgs e)
         {
@@ -329,11 +323,10 @@ namespace PDTPickingSystem.Views
                 AppGlobal.isSummary = 2;
             }
 
-            // ✅ NO isChecker validation here (matches VB.NET Case "5")
+            // NO isChecker validation
 
             try
             {
-                // ✅ CORRECT: CheckingPage constructor requires MainMenuPage parameter
                 var checkerPage = new CheckingPage(this);
                 var navChecker = new NavigationPage(checkerPage);
                 await Navigation.PushModalAsync(navChecker);
@@ -345,7 +338,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 3 – SET USER (VB.NET Case "2")
+        // OPTION 3 – SET USER
         // ====================================================================
         private async void BtnOpt3_Clicked(object sender, EventArgs e)
         {
@@ -363,19 +356,16 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 4 – CONFIRM CHECK (VB.NET Case "6")
+        // OPTION 4 – CONFIRM CHECK
         // ====================================================================
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
-            // ✅ FIXED: Validation FIRST (outside try-catch)
             if (!AppGlobal.IsChecker)
             {
-                await DisplayAlert("System Says",
-                    "Only Checker can use this option!", "OK");
+                await DisplayAlert("System Says", "Only Checker can use this option!", "OK");
                 return;
             }
 
-            // Then try-catch for navigation
             try
             {
                 var frmCheck = new ConfirmCheckPage();
@@ -388,7 +378,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 5 – SERVER SETTINGS (VB.NET Case "3" - WiFi Settings)
+        // OPTION 5 – SERVER SETTINGS
         // ====================================================================
         private async void BtnOpt5_Clicked(object sender, EventArgs e)
         {
@@ -411,10 +401,7 @@ namespace PDTPickingSystem.Views
             {
                 await AppGlobal.SaveServerConfigAsync();
                 UpdateServerStatusLabel();
-                await DisplayAlert("Saved!",
-                    $"Server updated to: {AppGlobal.sServer}", "OK");
-
-                // Recheck connection with new server
+                await DisplayAlert("Saved!", $"Server updated to: {AppGlobal.sServer}", "OK");
                 await CheckDatabaseConnectionAsync();
             }
             catch (Exception ex)
@@ -424,7 +411,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 6 – SET REFERENCE (VB.NET Button1_Click_1)
+        // OPTION 6 – SET REFERENCE
         // ====================================================================
         private async void BtnOpt6_Clicked(object sender, EventArgs e)
         {
@@ -439,7 +426,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // OPTION 7 – EXIT APP (VB.NET Case "4")
+        // OPTION 7 – EXIT APP
         // ====================================================================
         private async void BtnOpt7_Clicked(object sender, EventArgs e)
         {
@@ -451,21 +438,17 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void ImgLogo_Tapped(object sender, EventArgs e)
         {
-            await DisplayAlert(
-                "LCC Picking System",
-                $"Version {AppGlobal.sysVersion}\n\nPDT Picking Application",
-                "OK"
-            );
+            await DisplayAlert("LCC Picking System", $"Version {AppGlobal.sysVersion}\n\nPDT Picking Application", "OK");
         }
 
         // ====================================================================
-        // EXIT CONFIRMATION LOGIC (VB.NET frmMenu_Closing)
+        // EXIT CONFIRMATION
         // ====================================================================
         private async Task ConfirmExitAsync()
         {
             bool exit = await DisplayAlert(
                 "EXIT",
-                "Exit Program?",
+                "Exit PDT Picking System?",
                 "Yes",
                 "No"
             );
@@ -479,7 +462,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // HANDLE HARDWARE BACK BUTTON (Android)
+        // HANDLE HARDWARE BACK BUTTON 
         // ====================================================================
         protected override bool OnBackButtonPressed()
         {

@@ -32,7 +32,7 @@ namespace PDTPickingSystem
 
                 if (currentPage != null)
                 {
-                    // --- Handle PickingPage keys ---
+                    // --- Handles PickingPage keys ---
                     if (currentPage is PDTPickingSystem.Views.PickingPage pickingPage)
                     {
                         switch (e.KeyCode)
@@ -46,19 +46,18 @@ namespace PDTPickingSystem
                         }
                     }
 
-                    // --- Handle SetRefPage keys ---
+                    // --- Handles SetRefPage keys ---
                     if (currentPage is PDTPickingSystem.Views.SetRefPage setRefPage)
                     {
                         switch (e.KeyCode)
                         {
-                            case Keycode.F1: // Treat as Escape
+                            case Keycode.F1: // as Escape
                                 MainThread.BeginInvokeOnMainThread(() => setRefPage.btnBack_Clicked(null, null));
                                 return true;
-                                // Add more keys if needed
                         }
                     }
 
-                    // --- Handle CheckingPage keys ---
+                    // --- Handles CheckingPage keys ---
                     if (currentPage is PDTPickingSystem.Views.CheckingPage checkingPage)
                     {
                         switch (e.KeyCode)
@@ -67,7 +66,7 @@ namespace PDTPickingSystem
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnEscapePressed());
                                 return true;
 
-                            case Keycode.Tab: // ✅ FIXED: Tab key focuses barcode
+                            case Keycode.Tab: // Tab key focuses barcode
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
 
@@ -78,8 +77,6 @@ namespace PDTPickingSystem
                             case Keycode.F2: // F2 key
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
-
-                                // Add more keys if needed
                         }
                     }
                 }

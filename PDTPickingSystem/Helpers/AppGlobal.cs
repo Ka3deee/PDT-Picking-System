@@ -69,7 +69,7 @@ namespace PDTPickingSystem.Helpers
             $"Server={server};Database=dbPicking3;User Id={SqlUser};Password={SqlPass};Encrypt=False;TrustServerCertificate=True;Connect Timeout=3;";
 
         // ------------------------------
-        // SQL CONNECTION (MAUI-SAFE)
+        // SQL CONNECTION
         // ------------------------------
         public static async Task<SqlConnection?> _SQL_Connect(string testServer = "")
         {
@@ -142,7 +142,6 @@ namespace PDTPickingSystem.Helpers
                 sEENo = userId;
                 sUserName = r["FullName"]?.ToString() ?? "";
 
-                // <-- Set these too!
                 isChecker = Convert.ToInt32(r["isChecker"]);
                 isStocker = Convert.ToInt32(r["isStocker"]);
 
@@ -155,7 +154,7 @@ namespace PDTPickingSystem.Helpers
         }
 
         // ======================================================================
-        // STORAGE PATH (ANDROID + FALLBACK)
+        // STORAGE PATH
         // ======================================================================
         public static string GetExternalBackupFolder()
         {
@@ -179,7 +178,6 @@ namespace PDTPickingSystem.Helpers
             }
             catch
             {
-                // fall through
             }
 #endif
             string internalPath = Path.Combine(
@@ -295,7 +293,7 @@ namespace PDTPickingSystem.Helpers
         }
 
         // ------------------------------
-        // NEW: Get Dept Name
+        // Get Dept Name
         // ------------------------------
         public static async Task<string> _GetDeptName(int iDept)
         {
@@ -321,7 +319,7 @@ namespace PDTPickingSystem.Helpers
         }
 
         // ------------------------------
-        // NEW: Get Store No
+        // Get Store No
         // ------------------------------
         public static async Task<string> _GetStoreNo()
         {
@@ -346,7 +344,7 @@ namespace PDTPickingSystem.Helpers
             return "";
         }
         // ------------------------------
-        // NEW: Check Option Stocker
+        // Check Option Stocker
         // ------------------------------
         public static async Task<bool> _CheckOption_StockerAsync()
         {
@@ -498,7 +496,6 @@ namespace PDTPickingSystem.Helpers
         }
         public static async Task _CheckUpdate(string sqlServer, string sqlUser, string sqlPass, string sqlDatabase, string sysAppName)
         {
-            // Adjust path for cross-platform usage
             string appUpdater = Path.Combine(FileSystem.AppDataDirectory, "Programs", "Picking System", "PDT Exe Updater.exe");
 
             if (!File.Exists(appUpdater))
@@ -538,8 +535,6 @@ namespace PDTPickingSystem.Helpers
                         Directory.CreateDirectory(Path.GetDirectoryName(fileUpdateInfo)!);
 
                         await File.WriteAllLinesAsync(fileUpdateInfo, new[] { sqlServer, sqlUser, sqlPass, sqlDatabase, sysAppName });
-
-                        // Launch external updater
                         try
                         {
                             Process.Start(new ProcessStartInfo
@@ -553,8 +548,6 @@ namespace PDTPickingSystem.Helpers
                             await Shell.Current.DisplayAlert("Error!", "Unable to start updater.", "OK");
                             return;
                         }
-
-                        // Wait for a moment
                         await Task.Delay(3000);
 
 #if WINDOWS
@@ -572,7 +565,6 @@ namespace PDTPickingSystem.Helpers
 
             foreach (var item in listView.ItemsSource)
             {
-                // Use reflection to get the property by column index
                 var properties = item.GetType().GetProperties();
                 if (col >= 0 && col < properties.Length)
                 {
@@ -628,17 +620,13 @@ namespace PDTPickingSystem.Helpers
             }
         }
 
-        /// <summary>
-        /// Get current WiFi connection status
-        /// </summary>
+        // Get current WiFi connection status
         public static string GetWifiStatus()
         {
             return WifiService.GetConnectedWifiName();
         }
 
-        /// <summary>
-        /// Check if connected to WiFi
-        /// </summary>
+        // Check if connected to WiFi
         public static bool IsWifiConnected()
         {
             string status = GetWifiStatus();

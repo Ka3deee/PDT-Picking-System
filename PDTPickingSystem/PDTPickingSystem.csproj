@@ -21,8 +21,7 @@
 	<ItemGroup>
 		<MauiIcon Include="Resources\Images\appicon.png" />
 		<MauiIcon Include="Resources\Images\dotnet_bot.png" />
-		<MauiImage Include="Resources\Images\pickinglogo.png" />
-		<MauiImage Include="Resources\Images\pickinglogo_320x100.png" />
+		<MauiImage Include="Resources\Images\pbLogo.png" />
 		<MauiImage Include="Resources\Images\scanned_icon.png" />
 		<MauiImage Include="Resources\Images\scanned_icon2.png" />
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />

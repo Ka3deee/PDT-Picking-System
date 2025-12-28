@@ -10,7 +10,9 @@
         <VerticalStackLayout Padding="5" Spacing="5">
 
             <!-- Store / Department - AT THE TOP -->
-            <Grid ColumnDefinitions="120,*" Margin="10,5,5,10" VerticalOptions="Center">
+            <Grid ColumnDefinitions="120,*"
+                  Margin="10,5,5,10"
+                  VerticalOptions="Center">
                 <Label x:Name="lblDeptStore"
                        Text="Store No:"
                        FontAttributes="Bold"
@@ -29,10 +31,13 @@
                     Margin="5,-5,5,0"
                     HasShadow="True"
                     BorderColor="LightGray">
-                <VerticalStackLayout x:Name="pnlInput" Spacing="5">
+                <VerticalStackLayout x:Name="pnlInput"
+                                     Spacing="5">
 
                     <!-- Barcode -->
-                    <Label x:Name="lblBarcode" Text="Barcode:" Loaded="LblBarcode_Loaded"/>
+                    <Label x:Name="lblBarcode"
+                           Text="Barcode:"
+                           Loaded="LblBarcode_Loaded"/>
                     <Entry x:Name="txtBarcode"
                            Placeholder="Barcode"
                            Completed="Entry_Completed"
@@ -44,7 +49,8 @@
                            TextChanged="TxtDesc_TextChanged"/>
 
                     <!-- Scanner + SKU -->
-                    <Grid ColumnDefinitions="Auto,10,Auto,*" Margin="0,0,0,10">
+                    <Grid ColumnDefinitions="Auto,10,Auto,*"
+                          Margin="0,0,0,10">
                         <ImageButton x:Name="pbScanned"
                                      Grid.Column="0"
                                      Source="scanned_icon2.png"
@@ -64,46 +70,117 @@
                     </Grid>
 
                     <!-- Case / Each -->
-                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,-5,0,10">
-                        <Label x:Name="lblCase" Text="Case:" Grid.Column="0" VerticalOptions="Center" Loaded="LblCase_Loaded"/>
-                        <Entry x:Name="txtCase" Grid.Column="1" HeightRequest="40" Completed="Entry_Completed" TextChanged="Entry_TextChanged"/>
-                        <BoxView Grid.Column="2" WidthRequest="20"/>
-                        <Label x:Name="lblEach" Text="Each:" Grid.Column="3" VerticalOptions="Center" Loaded="LblEach_Loaded"/>
-                        <Entry x:Name="txtEach" Grid.Column="4" HeightRequest="40" Completed="Entry_Completed" TextChanged="Entry_TextChanged"/>
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*"
+                          Margin="0,-5,0,10">
+                        <Label x:Name="lblCase"
+                               Text="Case:"
+                               Grid.Column="0" 
+                               VerticalOptions="Center" 
+                               Loaded="LblCase_Loaded"/>
+                        <Entry x:Name="txtCase" 
+                               Grid.Column="1" 
+                               HeightRequest="40" 
+                               Completed="Entry_Completed" 
+                               TextChanged="Entry_TextChanged"/>
+                        <BoxView Grid.Column="2" 
+                                 WidthRequest="20"/>
+                        <Label x:Name="lblEach" 
+                               Text="Each:" 
+                               Grid.Column="3" 
+                               VerticalOptions="Center" 
+                               Loaded="LblEach_Loaded"/>
+                        <Entry x:Name="txtEach" 
+                               Grid.Column="4"
+                               HeightRequest="40" 
+                               Completed="Entry_Completed" 
+                               TextChanged="Entry_TextChanged"/>
                     </Grid>
 
                     <!-- BUM / Done -->
-                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,-5,0,10">
-                        <Label x:Name="lblBUM" Text="BUM:" Grid.Column="0" VerticalOptions="Center" Loaded="LblBUM_Loaded"/>
-                        <Entry x:Name="txtBum" Grid.Column="1" HeightRequest="40" TextChanged="TxtBum_TextChanged"/>
-                        <BoxView Grid.Column="2" WidthRequest="20"/>
-                        <Label x:Name="lblDone" Text="Done:" Grid.Column="3" VerticalOptions="Center" Loaded="LblDone_Loaded"/>
-                        <Entry x:Name="txtDone" Grid.Column="4" HeightRequest="40" TextChanged="TxtDone_TextChanged"/>
+                    <Grid ColumnDefinitions="Auto,*,20,Auto,*" 
+                          Margin="0,-5,0,10">
+                        <Label x:Name="lblBUM" 
+                               Text="BUM:" 
+                               Grid.Column="0" 
+                               VerticalOptions="Center" 
+                               Loaded="LblBUM_Loaded"/>
+                        <Entry x:Name="txtBum" 
+                               Grid.Column="1" 
+                               HeightRequest="40" 
+                               TextChanged="TxtBum_TextChanged"/>
+                        <BoxView Grid.Column="2" 
+                                 WidthRequest="20"/>
+                        <Label x:Name="lblDone" 
+                               Text="Done:" 
+                               Grid.Column="3" 
+                               VerticalOptions="Center" 
+                               Loaded="LblDone_Loaded"/>
+                        <Entry x:Name="txtDone" 
+                               Grid.Column="4" 
+                               HeightRequest="40" 
+                               TextChanged="TxtDone_TextChanged"/>
                     </Grid>
 
                     <!-- Buttons Row -->
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" Margin="0,0,0,0">
-                        <Button x:Name="btnViewItems" Grid.Column="0" Text="View Items" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="BtnViewItems_Clicked"/>
-                        <Button x:Name="btnConso" Grid.Column="1" Text="Conso" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="BtnConso_Clicked"/>
-                        <Button x:Name="btnAccept" Grid.Column="2" Text="Accept" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="BtnAccept_Clicked"/>
+                    <Grid ColumnDefinitions="*,*,*" 
+                          ColumnSpacing="10" 
+                          Margin="0,0,0,0">
+                        <Button x:Name="btnViewItems" 
+                                Grid.Column="0" 
+                                Text="View Items" 
+                                FontAttributes="Bold" 
+                                FontSize="Medium" 
+                                HeightRequest="40" 
+                                Clicked="BtnViewItems_Clicked"/>
+                        <Button x:Name="btnConso" 
+                                Grid.Column="1" 
+                                Text="Conso" 
+                                FontAttributes="Bold" 
+                                FontSize="Medium" 
+                                HeightRequest="40" 
+                                Clicked="BtnConso_Clicked"/>
+                        <Button x:Name="btnAccept" 
+                                Grid.Column="2" 
+                                Text="Accept" 
+                                FontAttributes="Bold" 
+                                FontSize="Medium" 
+                                HeightRequest="40" 
+                                Clicked="BtnAccept_Clicked"/>
                     </Grid>
 
-                    <!-- ❌ REMOVE standalone btnFinished from here -->
-
                     <!-- Transfer, Location, Picker, Transfer # Labels -->
-                    <Label x:Name="lblTransfer" Text="Transfer:" Loaded="LblTransfer_Loaded"/>
-                    <Label x:Name="lblLoc" Text="Location:" Loaded="LblLoc_Loaded"/>
-                    <Label x:Name="lblPicker" Text="Picker:" Loaded="LblPicker_Loaded"/>
-                    <Label x:Name="lblTrf" Text="Transfer #" Loaded="LblTrf_Loaded"/>
+                    <Label x:Name="lblTransfer" 
+                           Text="Transfer:" 
+                           Loaded="LblTransfer_Loaded"/>
+                    <Label x:Name="lblLoc"
+                           Text="Location:" 
+                           Loaded="LblLoc_Loaded"/>
+                    <Label x:Name="lblPicker" 
+                           Text="Picker:" 
+                           Loaded="LblPicker_Loaded"/>
+                    <Label x:Name="lblTrf" 
+                           Text="Transfer #" 
+                           Loaded="LblTrf_Loaded"/>
 
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Items panel (OUTSIDE pnlInput) -->
-            <StackLayout x:Name="pnlItems" IsVisible="False" Margin="0,10,0,0">
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,5">
-                    <Label x:Name="lblCnt" Text="Count: 0" Grid.Column="0" VerticalOptions="Center"/>
-                    <Button x:Name="btnCloseItems" Grid.Column="1" Text="Close" Clicked="BtnCloseItems_Clicked" HeightRequest="35" WidthRequest="80"/>
+            <StackLayout x:Name="pnlItems" 
+                         IsVisible="False" 
+                         Margin="0,10,0,0">
+                <Grid ColumnDefinitions="*,Auto" 
+                      Margin="0,0,0,5">
+                    <Label x:Name="lblCnt" 
+                           Text="Count: 0" 
+                           Grid.Column="0" 
+                           VerticalOptions="Center"/>
+                    <Button x:Name="btnCloseItems" 
+                            Grid.Column="1" 
+                            Text="Close" 
+                            Clicked="BtnCloseItems_Clicked" 
+                            HeightRequest="35" 
+                            WidthRequest="80"/>
                 </Grid>
 
                 <CollectionView x:Name="lvSKU" HeightRequest="200" SelectionMode="Single">
@@ -127,14 +204,21 @@
             </StackLayout>
 
             <!-- Second Items Panel (OUTSIDE pnlInput) -->
-            <StackLayout x:Name="pnlitems2" IsVisible="False" Margin="0,10,0,0">
+            <StackLayout x:Name="pnlitems2" 
+                         IsVisible="False" 
+                         Margin="0,10,0,0">
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,5">
                     <Label x:Name="lblCnt2"
                            Text="Count: 0"
                            FontSize="14"
                            Grid.Column="0"
                            VerticalOptions="Center" />
-                    <Button x:Name="btnCloseItems2" Grid.Column="1" Text="Close" Clicked="BtnCloseItems2_Clicked" HeightRequest="35" WidthRequest="80"/>
+                    <Button x:Name="btnCloseItems2" 
+                            Grid.Column="1" 
+                            Text="Close"
+                            Clicked="BtnCloseItems2_Clicked"
+                            HeightRequest="35" 
+                            WidthRequest="80"/>
                 </Grid>
 
                 <CollectionView x:Name="lvSKU2"
@@ -167,21 +251,37 @@
                          IsVisible="False"/>
 
             <!-- Confirmation Panel (OUTSIDE pnlInput) -->
-            <StackLayout x:Name="pnlConfirm" IsVisible="False" Margin="0,10,0,0" Spacing="10">
-                <Label Text="Confirm Stocker?" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <StackLayout x:Name="pnlConfirm" 
+                         IsVisible="False" 
+                         Margin="0,10,0,0" 
+                         Spacing="10">
+                <Label Text="Confirm Stocker?" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center"/>
                 <Entry x:Name="txtStocker"
                        Placeholder="Enter Stocker ID"
                        Keyboard="Numeric"
                        Completed="TxtStocker_Completed"
                        TextChanged="TxtStocker_TextChanged"/>
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button x:Name="btnConfirm" Grid.Column="0" Text="Confirm" Clicked="BtnConfirm_Clicked"/>
-                    <Button x:Name="btnCancel" Grid.Column="1" Text="Cancel" Clicked="BtnCancel_Clicked"/>
+                    <Button x:Name="btnConfirm" 
+                            Grid.Column="0" 
+                            Text="Confirm" 
+                            Clicked="BtnConfirm_Clicked"/>
+                    <Button x:Name="btnCancel" 
+                            Grid.Column="1" 
+                            Text="Cancel" 
+                            Clicked="BtnCancel_Clicked"/>
                 </Grid>
             </StackLayout>
 
             <!-- Navigation Panel (OUTSIDE pnlInput) -->
-            <StackLayout x:Name="pnlNavigate" IsVisible="False" Orientation="Horizontal" HorizontalOptions="Center" Margin="0,10,0,0" Spacing="10">
+            <StackLayout x:Name="pnlNavigate" 
+                         IsVisible="False" 
+                         Orientation="Horizontal" 
+                         HorizontalOptions="Center"
+                         Margin="0,10,0,0" 
+                         Spacing="10">
             </StackLayout>
 
             <!-- Hidden Labels for data storage (OUTSIDE pnlInput) -->

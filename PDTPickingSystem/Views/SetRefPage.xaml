@@ -8,7 +8,7 @@
     <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
 
         <!-- App Logo -->
-        <Image Source="pickinglogo.png"
+        <Image Source="pbLogo.png"
                    HorizontalOptions="Center"
                    HeightRequest="100"
                    WidthRequest="320"

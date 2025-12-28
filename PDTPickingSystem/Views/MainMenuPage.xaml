@@ -9,7 +9,7 @@
 
         <!-- App Logo with Tap Gesture for Version Info -->
         <Image x:Name="imgLogo"
-               Source="pickinglogo.png"
+               Source="pbLogo.png"
                HorizontalOptions="Fill"
                VerticalOptions="Start"
                HeightRequest="100"
