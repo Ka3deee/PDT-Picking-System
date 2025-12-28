@@ -69,6 +69,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Platforms\Android\Services\" />
+	  <Folder Include="Services\" />
 	  <Folder Include="ViewModels\" />
 	</ItemGroup>
 

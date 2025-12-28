@@ -3,9 +3,6 @@ using Android.Net.Wifi;
 using Android.OS;
 using PDTPickingSystem.Helpers.Interfaces;
 
-// ❌ REMOVE THIS LINE:
-// [assembly: Dependency(typeof(PDTPickingSystem.Platforms.Android.WifiService_Android))]
-
 namespace PDTPickingSystem.Platforms.Android
 {
     public class WifiService_Android : IWifiService
