@@ -88,12 +88,7 @@
                         <Button x:Name="btnAccept" Grid.Column="2" Text="Accept" FontAttributes="Bold" FontSize="Medium" HeightRequest="40" Clicked="BtnAccept_Clicked"/>
                     </Grid>
 
-                    <!-- Finished Button -->
-                    <Button x:Name="btnFinished"
-                            Text="Finished"
-                            IsVisible="False"
-                            Clicked="BtnFinished_Clicked"
-                            HeightRequest="40"/>
+                    <!-- ❌ REMOVE standalone btnFinished from here -->
 
                     <!-- Transfer, Location, Picker, Transfer # Labels -->
                     <Label x:Name="lblTransfer" Text="Transfer:" Loaded="LblTransfer_Loaded"/>
@@ -197,5 +192,24 @@
             <Label x:Name="txtpSlot" IsVisible="False"/>
 
         </VerticalStackLayout>
+
+        <!-- ✅ FLOATING FINISHED BUTTON - Above txtBarcode -->
+        <Button x:Name="btnFinished"
+                Text="✓ Finished"
+                IsVisible="False"
+                BackgroundColor="#28a745"
+                TextColor="White"
+                FontAttributes="Bold"
+                FontSize="18"
+                HeightRequest="55"
+                WidthRequest="200"
+                CornerRadius="27"
+                Clicked="BtnFinished_Clicked"
+                VerticalOptions="Start"
+                HorizontalOptions="Center"
+                Margin="0,110,0,0"
+                ZIndex="1000"
+                Opacity="0.95"/>
+
     </Grid>
 </ContentPage>

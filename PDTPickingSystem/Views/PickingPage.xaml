@@ -421,13 +421,27 @@
                     Loaded="LblUser_Loaded"/>
             </Grid>
 
-            <!-- Finish Button -->
-            <Button x:Name="btnFinished"
-                    Text="Finish Picking?"
-                    Clicked="BtnFinished_Clicked"
-                    IsVisible="False"/>
+            <!-- ❌ DELETE standalone btnFinished from here (lines 376-379) -->
 
         </VerticalStackLayout>
+
+        <!-- ✅ FLOATING FINISHED BUTTON - Between pnlNavigate and pnlInput -->
+        <Button x:Name="btnFinished"
+                Text="✓ Finish Picking"
+                IsVisible="False"
+                BackgroundColor="#28a745"
+                TextColor="White"
+                FontAttributes="Bold"
+                FontSize="18"
+                HeightRequest="55"
+                WidthRequest="220"
+                CornerRadius="27"
+                Clicked="BtnFinished_Clicked"
+                VerticalOptions="Start"
+                HorizontalOptions="Center"
+                Margin="0,395,0,0"
+                ZIndex="1000"
+                Opacity="0.95"/>
 
         <!-- ================= POPUP OVERLAYS ================= -->
 
