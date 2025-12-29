@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFrameworks>net9.0-android</TargetFrameworks>
 		<OutputType>Exe</OutputType>
@@ -15,30 +14,37 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
-	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- App Icon -->
 		<MauiIcon Include="Resources\Images\appicon.png" />
-		<MauiIcon Include="Resources\Images\dotnet_bot.png" />
-		<MauiImage Include="Resources\Images\pbLogo.png" />
+
+		<!-- Cross-platform Images -->
+		<MauiImage Include="Resources\Images\pblogo.png" />
 		<MauiImage Include="Resources\Images\scanned_icon.png" />
 		<MauiImage Include="Resources\Images\scanned_icon2.png" />
+
+		<!-- Splash Screen (default MAUI splash - can keep or remove) -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+
+		<!-- Fonts -->
 		<MauiFont Include="Resources\Fonts\**" />
+
+		<!-- Raw Assets -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!-- ✅ Android Platform Resources (Splash Screen Files) -->
 	<ItemGroup>
-	  <MauiImage Remove="Resources\Images\appicon.png" />
-	  <MauiImage Remove="Resources\Images\dotnet_bot.png" />
+		<AndroidResource Include="Platforms\Android\Resources\drawable\lcclogo.png" />
+		<AndroidResource Include="Platforms\Android\Resources\drawable\splash_screen.xml" />
+		<AndroidResource Include="Platforms\Android\Resources\values\styles.xml" />
+		<AndroidResource Include="Platforms\Android\Resources\values\colors.xml" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Resources\Images\scanned_icon.png" />
-	  <None Remove="Resources\Images\scanned_icon2.png" />
-	</ItemGroup>
-
+	<!-- NuGet Packages -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.111" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.111" />
@@ -48,28 +54,34 @@
 		<PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
 	</ItemGroup>
 
+	<!-- XAML Pages -->
 	<ItemGroup>
-	  <MauiXaml Update="Views\CheckingPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\ConfirmCheckPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\PickingPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\SetRefPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\SetUserPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+		<MauiXaml Update="Views\CheckingPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\ConfirmCheckPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\PickingPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\SetRefPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\SetUserPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 	</ItemGroup>
 
+	<!-- Empty Folders -->
 	<ItemGroup>
-	  <Folder Include="Platforms\Android\Services\" />
-	  <Folder Include="Services\" />
-	  <Folder Include="ViewModels\" />
+		<Folder Include="Platforms\Android\Services\" />
+		<Folder Include="Services\" />
+		<Folder Include="ViewModels\" />
 	</ItemGroup>
-
+	<ItemGroup>
+	  <MauiAsset Update="Resources\Raw\alarm_sound.mp3">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </MauiAsset>
+	</ItemGroup>
 </Project>

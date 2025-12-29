@@ -484,8 +484,6 @@ namespace PDTPickingSystem.Views
 
         private async void CheckingPage_Appearing(object sender, EventArgs e)
         {
-            _SetUser(lblTrf);
-
             txtBarcode.Text = string.Empty;
             txtEachVal = string.Empty;
             txtBarcode.Focus();
@@ -903,7 +901,7 @@ namespace PDTPickingSystem.Views
 
                     if (Convert.ToInt32(reader["isChecker"]) != 1)
                     {
-                        await DisplayAlert("System Says", "Only Checker Can access this Menu!", "OK");
+                        await DisplayAlert("System Says", "Only Checker can access this Menu!", "OK");
                         await Navigation.PopAsync();
                         return;
                     }

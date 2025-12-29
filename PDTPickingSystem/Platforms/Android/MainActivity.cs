@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace PDTPickingSystem
 {
-    [Activity(Theme = "@style/Maui.SplashTheme",
+    [Activity(Theme = "@style/Maui.SplashTheme",  // ✅ Already correct!
               MainLauncher = true,
               LaunchMode = LaunchMode.SingleTop,
               ConfigurationChanges = ConfigChanges.ScreenSize |
@@ -19,6 +19,16 @@ namespace PDTPickingSystem
                                      ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity
     {
+        // ✅ ADD THIS METHOD - Switch from splash theme to main theme
+        protected override void OnCreate(Bundle savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+
+            // Switch to main app theme after splash screen
+            SetTheme(Resource.Style.MainTheme);
+        }
+
+        // ✅ Keep existing DispatchKeyEvent method
         public override bool DispatchKeyEvent(KeyEvent e)
         {
             if (e.Action == KeyEventActions.Up) // Key released
@@ -65,15 +75,12 @@ namespace PDTPickingSystem
                             case Keycode.Escape: // Escape key closes page
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnEscapePressed());
                                 return true;
-
                             case Keycode.Tab: // Tab key focuses barcode
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
-
                             case Keycode.F1: // F1 key
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF1Pressed());
                                 return true;
-
                             case Keycode.F2: // F2 key
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;

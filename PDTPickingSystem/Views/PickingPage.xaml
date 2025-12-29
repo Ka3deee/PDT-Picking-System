@@ -48,6 +48,7 @@
                                HorizontalOptions="Start"/>
                         <Entry x:Name="txtDeptStore" 
                                TextChanged="TxtDeptStore_TextChanged"
+                               HorizontalTextAlignment="Center"
                                Grid.Column="1" 
                                VerticalOptions="Center" 
                                HorizontalOptions="Fill"
@@ -72,6 +73,7 @@
                         <Entry x:Name="txtpSKU" 
                               IsReadOnly="True" 
                               TextChanged="TxtpSKU_TextChanged"
+                               HorizontalTextAlignment="Center"
                               Grid.Column="1" 
                               VerticalOptions="Center" 
                               HorizontalOptions="Fill"
@@ -88,11 +90,13 @@
                             <Entry x:Name="txtpDescr"
                                 IsReadOnly="True"
                                 BackgroundColor="#EEEEEE"
+                                TextColor="Transparent" 
                                 HeightRequest="38"
                                 VerticalOptions="FillAndExpand"
                                 HorizontalOptions="FillAndExpand"
                                 InputTransparent="True"
-                                TextChanged="TxtpDescr_TextChanged"/>
+                                TextChanged="TxtpDescr_TextChanged"
+                                HorizontalTextAlignment="Center"/>
 
                             <!-- Clickable Label on top -->
                             <Label x:Name="llblDescr"
@@ -128,12 +132,14 @@
                             <Entry x:Name="txtpSlot"
                                 IsReadOnly="True"
                                 BackgroundColor="#EEEEEE"
+                                TextColor="Transparent" 
                                 HeightRequest="38"
                                 VerticalOptions="FillAndExpand"
                                 HorizontalOptions="FillAndExpand"
                                 FontSize="Medium"
                                 InputTransparent="True"
                                 TextChanged="TxtpSlot_TextChanged"
+                                HorizontalTextAlignment="Center"
                                 Grid.Column="1" />
 
                             <!-- Clickable Label on top -->
@@ -173,6 +179,7 @@
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtpCase_TextChanged"
+                               HorizontalTextAlignment="Center"
                                IsReadOnly="True"
                                FontSize="Medium"/>
                         <Label Grid.Column="2"/>
@@ -190,6 +197,7 @@
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtpEach_TextChanged"
+                               HorizontalTextAlignment="Center"
                                IsReadOnly="True"
                                FontSize="Medium"/>
                     </Grid>
@@ -263,6 +271,7 @@
                             FontSize="Medium"
                             Completed="Entry_BarcodeAndQty_Completed"
                             TextChanged="TxtBarcode_TextChanged"
+                            HorizontalTextAlignment="Center"
                             StyleId="txtBarcode"
                             Focused="Entry_GotFocus"
                             Unfocused="Entry_LostFocus"/>
@@ -302,6 +311,7 @@
                                 FontSize="Medium"
                                 IsReadOnly="True"
                                 TextChanged="TxtSKU_TextChanged"
+                                HorizontalTextAlignment="Center"
                                 Focused="Entry_GotFocus"
                                 Unfocused="Entry_LostFocus"/>
                         </StackLayout>
@@ -325,6 +335,7 @@
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtCase_TextChanged"
+                               HorizontalTextAlignment="Center"
                                FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
@@ -346,6 +357,7 @@
                                HeightRequest="40" 
                                HorizontalOptions="FillAndExpand"
                                TextChanged="TxtEach_TextChanged"
+                               HorizontalTextAlignment="Center"
                                FontSize="Medium"
                                Completed="Entry_BarcodeAndQty_Completed" 
                                Keyboard="Numeric" 
@@ -399,6 +411,7 @@
                                 IsReadOnly="True"
                                 Text="0/0"
                                 TextChanged="TxtDone_TextChanged"
+                                HorizontalTextAlignment="Center"
                                 Focused="Entry_GotFocus"
                                 Unfocused="Entry_LostFocus"/>
                         </Grid>

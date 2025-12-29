@@ -23,12 +23,14 @@
                        Grid.Column="1"
                        HeightRequest="40"
                        BackgroundColor="WhiteSmoke"
+                       IsReadOnly="True"
+                       HorizontalTextAlignment="Center"
                        TextChanged="TxtDeptStore_TextChanged"/>
             </Grid>
 
             <!-- Main Input Frame -->
-            <Frame Padding="12"
-                    Margin="5,-5,5,0"
+            <Frame Padding="10"
+                    Margin="5,-15,5,0"
                     HasShadow="True"
                     BorderColor="LightGray">
                 <VerticalStackLayout x:Name="pnlInput"
@@ -41,11 +43,14 @@
                     <Entry x:Name="txtBarcode"
                            Placeholder="Barcode"
                            Completed="Entry_Completed"
+                           HorizontalTextAlignment="Center"
                            TextChanged="Entry_TextChanged"/>
 
                     <!-- Description -->
                     <Entry x:Name="txtDesc"
                            Placeholder="Description"
+                           IsReadOnly="True"
+                           HorizontalTextAlignment="Center"
                            TextChanged="TxtDesc_TextChanged"/>
 
                     <!-- Scanner + SKU -->
@@ -66,6 +71,8 @@
                         <Entry x:Name="txtSKU"
                                Grid.Column="3"
                                Placeholder=""
+                               IsReadOnly="True"
+                               HorizontalTextAlignment="Center"
                                TextChanged="TxtSKU_TextChanged"/>
                     </Grid>
 
@@ -81,6 +88,7 @@
                                Grid.Column="1" 
                                HeightRequest="40" 
                                Completed="Entry_Completed" 
+                               HorizontalTextAlignment="Center"
                                TextChanged="Entry_TextChanged"/>
                         <BoxView Grid.Column="2" 
                                  WidthRequest="20"/>
@@ -93,6 +101,7 @@
                                Grid.Column="4"
                                HeightRequest="40" 
                                Completed="Entry_Completed" 
+                               HorizontalTextAlignment="Center"
                                TextChanged="Entry_TextChanged"/>
                     </Grid>
 
@@ -107,6 +116,8 @@
                         <Entry x:Name="txtBum" 
                                Grid.Column="1" 
                                HeightRequest="40" 
+                               IsReadOnly="True"
+                               HorizontalTextAlignment="Center"
                                TextChanged="TxtBum_TextChanged"/>
                         <BoxView Grid.Column="2" 
                                  WidthRequest="20"/>
@@ -118,37 +129,52 @@
                         <Entry x:Name="txtDone" 
                                Grid.Column="4" 
                                HeightRequest="40" 
+                               IsReadOnly="True"
+                               HorizontalTextAlignment="Center"
                                TextChanged="TxtDone_TextChanged"/>
                     </Grid>
 
                     <!-- Buttons Row -->
-                    <Grid ColumnDefinitions="*,*,*" 
-                          ColumnSpacing="10" 
-                          Margin="0,0,0,0">
+                    <Grid ColumnDefinitions="*,*" 
+                              ColumnSpacing="10" 
+                              Margin="0,0,0,0">
+
                         <Button x:Name="btnViewItems" 
                                 Grid.Column="0" 
                                 Text="View Items" 
                                 FontAttributes="Bold" 
                                 FontSize="Medium" 
-                                HeightRequest="40" 
+                                HeightRequest="50" 
                                 Clicked="BtnViewItems_Clicked"/>
+
+                        <Button x:Name="btnAccept" 
+                                Grid.Column="1" 
+                                Text="Accept" 
+                                FontAttributes="Bold" 
+                                FontSize="Medium" 
+                                HeightRequest="50" 
+                                Clicked="BtnAccept_Clicked"/>
+
+                        <!-- ✅ HIDDEN - Kept for future use, overlaps btnAccept -->
                         <Button x:Name="btnConso" 
                                 Grid.Column="1" 
                                 Text="Conso" 
                                 FontAttributes="Bold" 
                                 FontSize="Medium" 
-                                HeightRequest="40" 
-                                Clicked="BtnConso_Clicked"/>
-                        <Button x:Name="btnAccept" 
-                                Grid.Column="2" 
-                                Text="Accept" 
-                                FontAttributes="Bold" 
-                                FontSize="Medium" 
-                                HeightRequest="40" 
-                                Clicked="BtnAccept_Clicked"/>
+                                HeightRequest="50" 
+                                Clicked="BtnConso_Clicked"
+                                IsVisible="False"
+                                IsEnabled="False"/>
                     </Grid>
+                </VerticalStackLayout>
+            </Frame>
 
-                    <!-- Transfer, Location, Picker, Transfer # Labels -->
+            <Frame Padding="8"
+                    Margin="5,0,5,0"
+                    HasShadow="True"
+                    BorderColor="LightGray">
+                <VerticalStackLayout>
+                <!-- Transfer, Location, Picker, Transfer # Labels -->
                     <Label x:Name="lblTransfer" 
                            Text="Transfer:" 
                            Loaded="LblTransfer_Loaded"/>
@@ -159,9 +185,8 @@
                            Text="Picker:" 
                            Loaded="LblPicker_Loaded"/>
                     <Label x:Name="lblTrf" 
-                           Text="Transfer #" 
+                           Text="Transfer #:" 
                            Loaded="LblTrf_Loaded"/>
-
                 </VerticalStackLayout>
             </Frame>
 
@@ -262,6 +287,7 @@
                        Placeholder="Enter Stocker ID"
                        Keyboard="Numeric"
                        Completed="TxtStocker_Completed"
+                       HorizontalTextAlignment="Center"
                        TextChanged="TxtStocker_TextChanged"/>
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                     <Button x:Name="btnConfirm" 

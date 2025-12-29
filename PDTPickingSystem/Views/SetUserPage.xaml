@@ -8,7 +8,7 @@
         <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
 
             <!-- App Logo -->
-            <Image Source="pbLogo.png"
+            <Image Source="pblogo.png"
                    HorizontalOptions="Center"
                    HeightRequest="100"
                    WidthRequest="320"
@@ -38,6 +38,7 @@
                    TextColor="Black"
                    Keyboard="Numeric"
                    HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
                    WidthRequest="220"
                    Margin="0,-5,0,0" />
 

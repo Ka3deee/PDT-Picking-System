@@ -13,10 +13,16 @@ namespace PDTPickingSystem.Views
     public partial class MainMenuPage : ContentPage
     {
         private IDispatcherTimer _wifiSignalTimer;
+        public string VersionText { get; set; }
 
         public MainMenuPage()
         {
             InitializeComponent();
+
+            VersionText = $"PDT Picking System v{AppInfo.VersionString} • {DateTime.Now:yyyy}";
+
+            BindingContext = this;
+
             Appearing += MainMenuPage_Appearing;
             Disappearing += MainMenuPage_Disappearing;
             NavigationPage.SetHasNavigationBar(this, false);
@@ -387,9 +393,9 @@ namespace PDTPickingSystem.Views
                 message: "Enter SQL Server IP:",
                 accept: "Save",
                 cancel: "Cancel",
-                placeholder: "192.168.1.100",
+                placeholder: "",
                 initialValue: AppGlobal.sServer,
-                keyboard: Keyboard.Numeric
+                keyboard: Keyboard.Text
             );
 
             if (string.IsNullOrWhiteSpace(newServer))
@@ -401,7 +407,7 @@ namespace PDTPickingSystem.Views
             {
                 await AppGlobal.SaveServerConfigAsync();
                 UpdateServerStatusLabel();
-                await DisplayAlert("Saved!", $"Server updated to: {AppGlobal.sServer}", "OK");
+                await DisplayAlert("Server Updated!", $"Server updated to: {AppGlobal.sServer}", "OK");
                 await CheckDatabaseConnectionAsync();
             }
             catch (Exception ex)
@@ -434,7 +440,8 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // VERSION INFO (VB.NET pbLogo_Click)
+        // VERSION INFO (VB.NET
+        // _Click)
         // ====================================================================
         private async void ImgLogo_Tapped(object sender, EventArgs e)
         {

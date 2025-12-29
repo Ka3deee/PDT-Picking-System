@@ -28,7 +28,7 @@ namespace PDTPickingSystem
             builder.Services.AddSingleton<IWifiService, PDTPickingSystem.Helpers.WifiService_Default>();
 #endif
 
-            // ✅ ADD THIS - Register Audio Service for Idle Alarm
+            // Register Audio Service for Idle Alarm
             builder.Services.AddSingleton(AudioManager.Current);
 
 #if DEBUG
