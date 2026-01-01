@@ -318,8 +318,7 @@ namespace PDTPickingSystem.Views
             string pickSetup = await AppGlobal._GetPickNo();
             if (string.IsNullOrEmpty(pickSetup))
             {
-                await DisplayAlert("No Picking!",
-                    "No Picking Reference Set! Please ask to set reference #", "OK");
+                await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
                 return;
             }
 
@@ -366,6 +365,21 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
+            // User ID required (implied by isChecker check, but add for safety)
+            if (string.IsNullOrEmpty(AppGlobal.sEENo))
+            {
+                await DisplayAlert("No User ID!", "Please set a User ID first!", "OK");
+                return;
+            }
+
+            // Pick reference required
+            string pickSetup = await AppGlobal._GetPickNo();
+            if (string.IsNullOrEmpty(pickSetup))
+            {
+                await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
+                return;
+            }
+
             if (!AppGlobal.IsChecker)
             {
                 await DisplayAlert("System Says", "Only Checker can use this option!", "OK");

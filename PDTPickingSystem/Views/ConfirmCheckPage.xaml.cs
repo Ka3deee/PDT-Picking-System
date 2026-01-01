@@ -490,26 +490,25 @@ namespace PDTPickingSystem.Views
                 double dQty = (bum * caseQty) + each;
                 double totQty = 0;
 
-                // ✅ FIXED: UPC update logic
+                // ✅ FIXED: Update PickHdr WITHOUT UPC (matching VB original)
+                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
+                                     "SET cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
+                sqlCmd.Parameters.Clear();
+                sqlCmd.Parameters.AddWithValue("@cnfrmDate", await AppGlobal._GetDateTime(true));
+                sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                // ✅ FIXED: UPC logic (currently unused in VB, kept for compatibility)
                 string sUPC = "";
                 if (!pbScanned.IsVisible && !string.IsNullOrWhiteSpace(txtBarcode.Text))
                 {
-                    sUPC = "UPC=@UPC,";
+                    sUPC = $"UPC={txtBarcode.Text.Trim()},";
                 }
                 if (each == 0 && caseQty == 0)
                 {
                     sUPC = "";
                 }
-
-                // ✅ FIXED: Update PickHdr with UPC
-                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
-                                     $"SET {sUPC}cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
-                sqlCmd.Parameters.Clear();
-                if (!string.IsNullOrEmpty(sUPC))
-                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
-                sqlCmd.Parameters.AddWithValue("@cnfrmDate", await AppGlobal._GetDateTime(true));
-                sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
-                await sqlCmd.ExecuteNonQueryAsync();
+                // NOTE: sUPC is calculated but NOT used in any UPDATE statements (matching VB behavior)
 
                 // Get PickDtl data with parameterized query
                 var dsData = new DataSet();
@@ -533,27 +532,22 @@ namespace PDTPickingSystem.Views
 
                     if (i == rows.Count - 1) // Last item
                     {
+                        // ✅ FIXED: NO UPC in PickDtl updates
                         if (string.IsNullOrEmpty(trfNo))
                         {
-                            // ✅ FIXED: Added UPC to UPDATE
                             sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                 "WHERE ID=@ID";
                             sqlCmd.Parameters.Clear();
-                            if (!string.IsNullOrEmpty(sUPC))
-                                sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                             sqlCmd.Parameters.AddWithValue("@qty", dQty);
                             sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                         }
                         else
                         {
-                            // ✅ FIXED: Added UPC to UPDATE
                             sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                 "WHERE tranNo=@tranNo AND sku=@sku";
                             sqlCmd.Parameters.Clear();
-                            if (!string.IsNullOrEmpty(sUPC))
-                                sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                             sqlCmd.Parameters.AddWithValue("@qty", dQty);
                             sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                             sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
@@ -568,26 +562,21 @@ namespace PDTPickingSystem.Views
                     {
                         if (dQty >= dNeedQty)
                         {
+                            // ✅ FIXED: NO UPC in PickDtl updates
                             if (string.IsNullOrEmpty(trfNo))
                             {
-                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
                                     "WHERE ID=@ID";
                                 sqlCmd.Parameters.Clear();
-                                if (!string.IsNullOrEmpty(sUPC))
-                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                             }
                             else
                             {
-                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=Qty, sortQty=Qty, cSortQty=Qty, isUpdate=1 " +
                                     "WHERE tranNo=@tranNo AND sku=@sku";
                                 sqlCmd.Parameters.Clear();
-                                if (!string.IsNullOrEmpty(sUPC))
-                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                                 sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
                             }
@@ -600,27 +589,22 @@ namespace PDTPickingSystem.Views
                         }
                         else
                         {
+                            // ✅ FIXED: NO UPC in PickDtl updates
                             if (string.IsNullOrEmpty(trfNo))
                             {
-                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                     "WHERE ID=@ID";
                                 sqlCmd.Parameters.Clear();
-                                if (!string.IsNullOrEmpty(sUPC))
-                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@qty", dQty);
                                 sqlCmd.Parameters.AddWithValue("@ID", row["ID"]);
                             }
                             else
                             {
-                                // ✅ FIXED: Added UPC to UPDATE
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                    $"{sUPC}isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
+                                    "isCnfrmSorted=1, cnfrmSortQty=@qty, sortQty=@qty, cSortQty=@qty, isUpdate=1 " +
                                     "WHERE tranNo=@tranNo AND sku=@sku";
                                 sqlCmd.Parameters.Clear();
-                                if (!string.IsNullOrEmpty(sUPC))
-                                    sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text.Trim());
                                 sqlCmd.Parameters.AddWithValue("@qty", dQty);
                                 sqlCmd.Parameters.AddWithValue("@tranNo", trfNo);
                                 sqlCmd.Parameters.AddWithValue("@sku", txtSKU.Text.Trim());
@@ -637,7 +621,7 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // Update PickQty with parameterized query
+                // Update PickQty
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty " +
                     "SET isConfirmed=1, cnfrmQty=@totQty " +
                     "WHERE ID_sumhdr=@SumHdr AND sku=@sku";
@@ -656,8 +640,6 @@ namespace PDTPickingSystem.Views
                 });
 
                 await DisplayAlert("System Says", "Pick Qty Updated!", "OK");
-
-                // ✅ FIXED: Add success vibration
                 _VibrateDevice(200);
 
                 dsData.Tables.Clear();
