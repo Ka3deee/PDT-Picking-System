@@ -153,7 +153,7 @@ namespace PDTPickingSystem.Views
                 UpdateCurrentUserLabel();
 
                 // Show success (VB.NET Line 66)
-                await DisplayAlert("OK", "User accepted!", "OK");
+                await DisplayAlert("Welcome!", $"User accepted: {AppGlobal.sUserName}", "OK");
 
                 // Go back (VB.NET Line 67: Me.Close())
                 await Shell.Current.GoToAsync("..");

@@ -270,7 +270,7 @@ namespace PDTPickingSystem.Views
             }
 
             // Validation: Pick reference required
-            string pickSetup = await AppGlobal._GetPickNo();
+            /*string pickSetup = await AppGlobal._GetPickNo();
             if (string.IsNullOrEmpty(pickSetup))
             {
                 await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
@@ -281,7 +281,7 @@ namespace PDTPickingSystem.Views
             if (pickSetup == "Per Transfer")
             {
                 AppGlobal.isSummary = 2;
-            }
+            } */
 
             // Validation: Checker cannot pick
             if (AppGlobal.IsChecker)

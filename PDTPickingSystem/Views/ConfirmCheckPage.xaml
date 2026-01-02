@@ -64,11 +64,12 @@
                     <Label Text="CASE:" 
                            Grid.Column="0" 
                            VerticalOptions="Center"
+                           FontSize="Small"
                            FontAttributes="Bold"
                            TextColor="Red"/>
                     <Entry x:Name="txtCase" 
                            Grid.Column="1"
-                           Text="0"
+                           Text=""
                            Keyboard="Numeric"
                            HeightRequest="40"/>
 
@@ -79,7 +80,7 @@
                            TextColor="Purple"/>
                     <Entry x:Name="txtEach" 
                            Grid.Column="4"
-                           Text="0"
+                           Text=""
                            Keyboard="Numeric"
                            HeightRequest="40"/>
                 </Grid>
@@ -92,7 +93,7 @@
                            FontAttributes="Bold"/>
                     <Entry x:Name="txtBum" 
                            Grid.Column="1"
-                           Text="0"
+                           Text=""
                            IsReadOnly="True"
                            BackgroundColor="LightGray"/>
                 </Grid>

@@ -911,7 +911,6 @@ namespace PDTPickingSystem.Views
                 firstEntry.Focus();
             }
         }
-
         private void LlblSlot_Tapped(object sender, EventArgs e)
         {
             if (txtpSlot.Text == "<< Multiple Slots >>" && !string.IsNullOrEmpty(txtpSlot_Value))
@@ -960,6 +959,24 @@ namespace PDTPickingSystem.Views
         {
             btnFinished.IsVisible = false;
             pbReq.IsVisible = true;
+
+            // ✅✅✅ ADD THESE LINES ✅✅✅
+            string pickSetup = await AppGlobal._GetPickNo();
+
+            if (string.IsNullOrEmpty(pickSetup))
+            {
+                await DisplayAlert("No Picking!",
+                    "No Picking Reference Set! Please ask to set reference #", "OK");
+                await Navigation.PopModalAsync();
+                return;
+            }
+
+            if (pickSetup == "Per Transfer")
+            {
+                AppGlobal.isSummary = 2;
+                isSummary = 2;
+            }
+            // ✅✅✅ END OF NEW LINES ✅✅✅
 
             int hasUnfinishedTrf = 0;
             string sUserPNo = "";
