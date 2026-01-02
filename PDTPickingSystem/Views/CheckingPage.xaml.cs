@@ -195,6 +195,8 @@ namespace PDTPickingSystem.Views
             lblPicker.Loaded += LblPicker_Loaded;
             lblTrf.Loaded += LblTrf_Loaded;
             lblDeptStore.Loaded += LblDeptStore_Loaded;
+            lblConfirmTitle.Loaded += LblConfirmTitle_Loaded;
+            lblInput.Loaded += LblInput_Loaded;
 
             // ===== CollectionView selection =====
             lvSKU.SelectionChanged += LvSKU_SelectionChanged;
@@ -489,7 +491,7 @@ namespace PDTPickingSystem.Views
             txtBarcode.Focus();
 
             pnlItems.IsVisible = false;
-            pnlitems2.IsVisible = false;
+            pnlItems2.IsVisible = false;
             pbReq.IsVisible = true;
 
             isBarcode = true;
@@ -779,7 +781,7 @@ namespace PDTPickingSystem.Views
 
         private void BtnConso_Clicked(object sender, EventArgs e)
         {
-            pnlitems2.IsVisible = true;
+            pnlItems2.IsVisible = true;
             lblCnt2.Text = $"Count: {SKUList2.Count}";
         }
 
@@ -791,7 +793,7 @@ namespace PDTPickingSystem.Views
 
         private void BtnCloseItems2_Clicked(object sender, EventArgs e)
         {
-            pnlitems2.IsVisible = false;
+            pnlItems2.IsVisible = false;
             txtBarcode.Focus();
         }
 
@@ -852,6 +854,8 @@ namespace PDTPickingSystem.Views
         private void LblPicker_Loaded(object sender, EventArgs e) { }
         private void LblTrf_Loaded(object sender, EventArgs e) { }
         private void LblDeptStore_Loaded(object sender, EventArgs e) { }
+        private void LblConfirmTitle_Loaded(object sender, EventArgs e) { }
+        private void LblInput_Loaded(object sender, EventArgs e) { }
 
         // ================== CORE BUSINESS LOGIC ==================
 

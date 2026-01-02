@@ -159,11 +159,11 @@
                     </Grid>
 
                     <!-- Buttons Row -->
-                    <Grid ColumnDefinitions="*,*" 
+                        <Grid ColumnDefinitions="*,*" 
                               ColumnSpacing="10" 
                               Margin="0,0,0,0">
 
-                        <Button x:Name="btnViewItems" 
+                            <Button x:Name="btnViewItems" 
                                 Grid.Column="0" 
                                 Text="View Items" 
                                 FontAttributes="Bold" 
@@ -172,7 +172,7 @@
                                 BackgroundColor="Blue"
                                 Clicked="BtnViewItems_Clicked"/>
 
-                        <Button x:Name="btnAccept" 
+                            <Button x:Name="btnAccept" 
                                 Grid.Column="1" 
                                 Text="Accept" 
                                 FontAttributes="Bold" 
@@ -181,8 +181,8 @@
                                 BackgroundColor="Blue"
                                 Clicked="BtnAccept_Clicked"/>
 
-                        <!-- HIDDEN - Kept for future use, overlaps btnAccept -->
-                        <Button x:Name="btnConso" 
+                            <!-- HIDDEN - Kept for future use, overlaps btnAccept -->
+                            <Button x:Name="btnConso" 
                                 Grid.Column="1" 
                                 Text="Conso" 
                                 FontAttributes="Bold" 
@@ -191,21 +191,7 @@
                                 Clicked="BtnConso_Clicked"
                                 IsVisible="False"
                                 IsEnabled="False"/>
-                    </Grid>
-
-                    <!-- Add before closing </Grid> tag -->
-                    <Button x:Name="btnTestViewItems"
-        Text="🔧 TEST VIEW ITEMS"
-        BackgroundColor="Purple"
-        TextColor="White"
-        FontAttributes="Bold"
-        HeightRequest="50"
-        WidthRequest="200"
-        Clicked="BtnTestViewItems_Clicked"
-        VerticalOptions="End"
-        HorizontalOptions="End"
-        Margin="10"
-        ZIndex="9999"/>
+                        </Grid>
                 </VerticalStackLayout>
             </Frame>
 
@@ -312,7 +298,7 @@
 
 
                 <!-- Second Items Panel (OUTSIDE pnlInput) -->
-                <Grid x:Name="pnlItems"
+                <Grid x:Name="pnlItems2"
 IsVisible="False"
 Margin="0,10,0,0"
 VerticalOptions="FillAndExpand"
@@ -336,7 +322,7 @@ RowDefinitions="Auto,*,Auto,Auto">
 
                     <!-- COLLECTION VIEW -->
                     <CollectionView Grid.Row="1"
-              x:Name="lvSKU"
+              x:Name="lvSKU2"
               SelectionMode="Single"
               VerticalOptions="FillAndExpand">
                         <CollectionView.ItemTemplate>
@@ -366,7 +352,7 @@ RowDefinitions="Auto,*,Auto,Auto">
 
                     <!-- COUNT LABEL -->
                     <Label Grid.Row="2"
-     x:Name="lblCnt"
+     x:Name="lblCnt2"
      Text="Count: 0"
      FontAttributes="Bold"
      FontSize="14"
@@ -375,7 +361,7 @@ RowDefinitions="Auto,*,Auto,Auto">
 
                     <!-- CLOSE BUTTON -->
                     <Button Grid.Row="3"
-      x:Name="btnCloseItems"
+      x:Name="btnCloseItems2"
       Text="Close"
       FontAttributes="Bold"
       BackgroundColor="Red"
@@ -384,7 +370,7 @@ RowDefinitions="Auto,*,Auto,Auto">
       WidthRequest="150"
       HorizontalOptions="Center"
       Margin="0,0,5,5"
-      Clicked="BtnCloseItems_Clicked"/>
+      Clicked="BtnCloseItems2_Clicked"/>
                 </Grid>
 
                 <!-- Request Button (OUTSIDE pnlInput) -->
