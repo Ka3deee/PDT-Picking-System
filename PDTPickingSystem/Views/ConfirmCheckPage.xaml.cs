@@ -13,6 +13,7 @@ namespace PDTPickingSystem.Views
 
     public class SKUItem
     {
+        public string FromSlot { get; set; }
         public string ID { get; set; }           // lv.Text
         public string TransferNo { get; set; }   // lv.Tag
         public string ID2 { get; set; }
@@ -20,6 +21,9 @@ namespace PDTPickingSystem.Views
         public string SKU { get; set; }
         public string Descr { get; set; }
         public string Qty { get; set; }
+        public int Picked { get; set; }
+        public string UPC { get; set; }
+        public int ChkQty { get; set; }
         public string SortQty { get; set; }
         public string CSortQty { get; set; }
         public string IsSorted { get; set; }
@@ -95,6 +99,13 @@ namespace PDTPickingSystem.Views
             // Bind CollectionViews
             lvSKU.ItemsSource = lvSKUCollection;
             lvSKU2.ItemsSource = lvSKU2Collection;
+
+            // Sample data
+            /* lvSKU.ItemsSource = new[]
+            {
+            new { FromSlot="A1", SKU="SKU001", Descr="Item 1", Qty=10, Picked=5, UPC="12345", chkQty=5, isSorted="Yes", isCsorted="No", pickBy="John", checkBy="Jane", isConfirmed="No" },
+            new { FromSlot="B2", SKU="SKU002", Descr="Item 2", Qty=20, Picked=10, UPC="67890", chkQty=10, isSorted="No", isCsorted="Yes", pickBy="Alice", checkBy="Bob", isConfirmed="Yes" }
+            }; */
         }
 
         // ================== PAGE LIFECYCLE ==================

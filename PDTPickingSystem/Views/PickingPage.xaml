@@ -280,7 +280,7 @@
                             Unfocused="Entry_LostFocus"/>
                     </Grid>
 
-                    <Grid ColumnDefinitions="Auto,10,Auto,*" VerticalOptions="Center" Margin="0,-20,0,0">
+                    <Grid ColumnDefinitions="50,10,Auto,*" VerticalOptions="Center" Margin="0,-20,0,0">
                         <!-- ➤ Image Check -->
                         <ImageButton x:Name="pbScanned"
                             Source="scanned_icon.png"

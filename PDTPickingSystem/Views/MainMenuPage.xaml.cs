@@ -19,7 +19,7 @@ namespace PDTPickingSystem.Views
         {
             InitializeComponent();
 
-            VersionText = $"PDT Picking System v{AppInfo.VersionString} • {DateTime.Now:yyyy}";
+            VersionText = $"PDT Picking System v{AppInfo.VersionString} • 2025 - {DateTime.Now:yyyy}";
 
             BindingContext = this;
 

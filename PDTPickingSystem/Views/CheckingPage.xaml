@@ -7,8 +7,7 @@
 
     <!-- ROOT LAYER -->
     <Grid>
-        <ScrollView>
-            <VerticalStackLayout Padding="5" Spacing="5">
+        <VerticalStackLayout Padding="5" Spacing="5">
 
             <!-- Store / Department - AT THE TOP -->
             <Grid ColumnDefinitions="120,*"
@@ -60,8 +59,8 @@
                            TextChanged="TxtDesc_TextChanged"/>
 
                     <!-- Scanner + SKU -->
-                    <Grid ColumnDefinitions="Auto,10,Auto,*"
-                          Margin="70,0,0,10">
+                    <Grid ColumnDefinitions="50,10,Auto,*"
+                          Margin="0,0,0,10">
                         <ImageButton x:Name="pbScanned"
                                      Grid.Column="0"
                                      Source="scanned_icon2.png"
@@ -159,11 +158,11 @@
                     </Grid>
 
                     <!-- Buttons Row -->
-                        <Grid ColumnDefinitions="*,*" 
+                    <Grid ColumnDefinitions="*,*" 
                               ColumnSpacing="10" 
                               Margin="0,0,0,0">
 
-                            <Button x:Name="btnViewItems" 
+                        <Button x:Name="btnViewItems" 
                                 Grid.Column="0" 
                                 Text="View Items" 
                                 FontAttributes="Bold" 
@@ -172,7 +171,7 @@
                                 BackgroundColor="Blue"
                                 Clicked="BtnViewItems_Clicked"/>
 
-                            <Button x:Name="btnAccept" 
+                        <Button x:Name="btnAccept" 
                                 Grid.Column="1" 
                                 Text="Accept" 
                                 FontAttributes="Bold" 
@@ -181,8 +180,8 @@
                                 BackgroundColor="Blue"
                                 Clicked="BtnAccept_Clicked"/>
 
-                            <!-- HIDDEN - Kept for future use, overlaps btnAccept -->
-                            <Button x:Name="btnConso" 
+                        <!-- HIDDEN - Kept for future use, overlaps btnAccept -->
+                        <Button x:Name="btnConso" 
                                 Grid.Column="1" 
                                 Text="Conso" 
                                 FontAttributes="Bold" 
@@ -191,7 +190,7 @@
                                 Clicked="BtnConso_Clicked"
                                 IsVisible="False"
                                 IsEnabled="False"/>
-                        </Grid>
+                    </Grid>
                 </VerticalStackLayout>
             </Frame>
 
@@ -220,61 +219,61 @@
                 FontSize="14"
                 Loaded="LblTrf_Loaded"/>
 
-                <!-- Items panel (OUTSIDE pnlInput) -->
-                <Grid x:Name="pnlItems"
+            <!-- Items panel (OUTSIDE pnlInput) -->
+            <Grid x:Name="pnlItems"
       IsVisible="False"
       Margin="0,10,0,0"
       VerticalOptions="FillAndExpand"
                       HorizontalOptions="FillAndExpand"
       RowDefinitions="Auto,*,Auto,Auto">
 
-                    <!-- COLUMN HEADERS -->
-                    <Grid Grid.Row="0"
+                <!-- COLUMN HEADERS -->
+                <Grid Grid.Row="0"
           ColumnDefinitions="20,30,*,20,50,40,*,30"
           Padding="5"
           BackgroundColor="Blue">
-                        <Label Text="ID" Grid.Column="0" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="SKU" Grid.Column="1" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Descr" Grid.Column="2" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Qty" Grid.Column="3" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Picked" Grid.Column="4" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="chkQty" Grid.Column="5" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="BUM" Grid.Column="6" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Slot" Grid.Column="7" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                    </Grid>
+                    <Label Text="ID" Grid.Column="0" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="SKU" Grid.Column="1" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Descr" Grid.Column="2" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Qty" Grid.Column="3" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Picked" Grid.Column="4" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="chkQty" Grid.Column="5" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="BUM" Grid.Column="6" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Slot" Grid.Column="7" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                </Grid>
 
-                    <!-- COLLECTION VIEW -->
-                    <CollectionView Grid.Row="1"
+                <!-- COLLECTION VIEW -->
+                <CollectionView Grid.Row="1"
                     x:Name="lvSKU"
                     SelectionMode="Single"
                     VerticalOptions="FillAndExpand">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="20,30,*,20,50,40,*,30"
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="20,30,*,20,50,40,*,30"
                       Padding="5"
                       Margin="0,5,0,5"
                       BackgroundColor="White">
-                                    <Label Text="{Binding ID}" Grid.Column="0" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
-                                    <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12" LineBreakMode="TailTruncation"/>
-                                    <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding ID}" Grid.Column="0" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
+                                <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12" HorizontalTextAlignment="Center"/>
 
-                                    <!-- Separator line -->
-                                    <BoxView Grid.ColumnSpan="8"
+                                <!-- Separator line -->
+                                <BoxView Grid.ColumnSpan="8"
                              HeightRequest="1"
                              Color="LightGray"
                              VerticalOptions="End"/>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-                    <!-- COUNT LABEL -->
-                    <Label Grid.Row="2"
+                <!-- COUNT LABEL -->
+                <Label Grid.Row="2"
            x:Name="lblCnt"
            Text="Count: 0"
            FontAttributes="Bold"
@@ -282,8 +281,8 @@
            Margin="5,10,0,10"
            HorizontalOptions="Start"/>
 
-                    <!-- CLOSE BUTTON -->
-                    <Button Grid.Row="3"
+                <!-- CLOSE BUTTON -->
+                <Button Grid.Row="3"
             x:Name="btnCloseItems"
             Text="Close"
             FontAttributes="Bold"
@@ -294,64 +293,64 @@
             HorizontalOptions="Center"
             Margin="0,0,5,5"
             Clicked="BtnCloseItems_Clicked"/>
-                </Grid>
+            </Grid>
 
 
-                <!-- Second Items Panel (OUTSIDE pnlInput) -->
-                <Grid x:Name="pnlItems2"
+            <!-- Second Items Panel (OUTSIDE pnlInput) -->
+            <Grid x:Name="pnlItems2"
 IsVisible="False"
 Margin="0,10,0,0"
 VerticalOptions="FillAndExpand"
                 HorizontalOptions="FillAndExpand"
 RowDefinitions="Auto,*,Auto,Auto">
 
-                    <!-- COLUMN HEADERS -->
-                    <Grid Grid.Row="0"
+                <!-- COLUMN HEADERS -->
+                <Grid Grid.Row="0"
     ColumnDefinitions="20,30,*,20,50,40,*,30"
     Padding="5"
     BackgroundColor="Blue">
-                        <Label Text="ID" Grid.Column="0" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="SKU" Grid.Column="1" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Descr" Grid.Column="2" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Qty" Grid.Column="3" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Picked" Grid.Column="4" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="chkQty" Grid.Column="5" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="BUM" Grid.Column="6" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                        <Label Text="Slot" Grid.Column="7" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
-                    </Grid>
+                    <Label Text="ID" Grid.Column="0" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="SKU" Grid.Column="1" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Descr" Grid.Column="2" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Qty" Grid.Column="3" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Picked" Grid.Column="4" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="chkQty" Grid.Column="5" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="BUM" Grid.Column="6" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                    <Label Text="Slot" Grid.Column="7" FontSize="12" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                </Grid>
 
-                    <!-- COLLECTION VIEW -->
-                    <CollectionView Grid.Row="1"
+                <!-- COLLECTION VIEW -->
+                <CollectionView Grid.Row="1"
               x:Name="lvSKU2"
               SelectionMode="Single"
               VerticalOptions="FillAndExpand">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="20,30,*,20,50,40,*,30"
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="20,30,*,20,50,40,*,30"
                 Padding="5"
                 Margin="0,5,0,5"
                 BackgroundColor="White">
-                                    <Label Text="{Binding ID}" Grid.Column="0" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
-                                    <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12" LineBreakMode="TailTruncation"/>
-                                    <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12" HorizontalTextAlignment="Center"/>
-                                    <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding ID}" Grid.Column="0" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding SKU}" Grid.Column="1" FontSize="12"/>
+                                <Label Text="{Binding Descr}" Grid.Column="2" FontSize="12" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding Qty}" Grid.Column="3" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding PickQty}" Grid.Column="4" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding ChkQty}" Grid.Column="5" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding BUM}" Grid.Column="6" FontSize="12" HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding Slot}" Grid.Column="7" FontSize="12" HorizontalTextAlignment="Center"/>
 
-                                    <!-- Separator line -->
-                                    <BoxView Grid.ColumnSpan="8"
+                                <!-- Separator line -->
+                                <BoxView Grid.ColumnSpan="8"
                        HeightRequest="1"
                        Color="LightGray"
                        VerticalOptions="End"/>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-                    <!-- COUNT LABEL -->
-                    <Label Grid.Row="2"
+                <!-- COUNT LABEL -->
+                <Label Grid.Row="2"
      x:Name="lblCnt2"
      Text="Count: 0"
      FontAttributes="Bold"
@@ -359,8 +358,8 @@ RowDefinitions="Auto,*,Auto,Auto">
      Margin="5,10,0,10"
      HorizontalOptions="Start"/>
 
-                    <!-- CLOSE BUTTON -->
-                    <Button Grid.Row="3"
+                <!-- CLOSE BUTTON -->
+                <Button Grid.Row="3"
       x:Name="btnCloseItems2"
       Text="Close"
       FontAttributes="Bold"
@@ -371,9 +370,9 @@ RowDefinitions="Auto,*,Auto,Auto">
       HorizontalOptions="Center"
       Margin="0,0,5,5"
       Clicked="BtnCloseItems2_Clicked"/>
-                </Grid>
+            </Grid>
 
-                <!-- Request Button (OUTSIDE pnlInput) -->
+            <!-- Request Button (OUTSIDE pnlInput) -->
             <ImageButton x:Name="pbReq"
                          Source="your_image.png"
                          HeightRequest="50"
@@ -382,7 +381,7 @@ RowDefinitions="Auto,*,Auto,Auto">
                          IsVisible="False"/>
 
             <!-- Confirmation Panel (OUTSIDE pnlInput) -->
-                <Frame x:Name="pnlConfirm" 
+            <Frame x:Name="pnlConfirm" 
     IsVisible="False" 
     Padding="20" 
     BackgroundColor="White" 
@@ -396,8 +395,8 @@ RowDefinitions="Auto,*,Auto,Auto">
     HeightRequest="350"
     InputTransparent="False"
     ZIndex="100">
-                    <VerticalStackLayout Spacing="10">
-                        <Label x:Name="lblConfirmTitle"
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="lblConfirmTitle"
             Text="Confirm Zero Qty from a Stocker"
             FontAttributes="Bold"
             FontSize="25"
@@ -405,7 +404,7 @@ RowDefinitions="Auto,*,Auto,Auto">
             HorizontalOptions="Center"
             HorizontalTextAlignment="Center"
             Loaded="LblConfirmTitle_Loaded"/>
-                        <Label x:Name="lblInput"
+                    <Label x:Name="lblInput"
             Text="Stocker ID:"
             FontAttributes="Bold"
             FontSize="16" 
@@ -413,7 +412,7 @@ RowDefinitions="Auto,*,Auto,Auto">
             HorizontalOptions="Center"
             Margin="0,10,0,0"
             Loaded="LblInput_Loaded"/>
-                        <Entry x:Name="txtStocker"
+                    <Entry x:Name="txtStocker"
             Placeholder="Enter Stocker ID"
             Keyboard="Numeric"
             WidthRequest="150"
@@ -422,10 +421,8 @@ RowDefinitions="Auto,*,Auto,Auto">
             TextChanged="TxtStocker_TextChanged"
             StyleId="txtStocker"
             HorizontalTextAlignment="Center"
-            Focused="Entry_GotFocus"
-            Unfocused="Entry_LostFocus"
             Margin="0,5,0,10"/>
-                        <Button x:Name="btnConfirm"
+                    <Button x:Name="btnConfirm"
             Text="Confirm"
             FontSize="Medium"
             FontAttributes="Bold"
@@ -433,7 +430,7 @@ RowDefinitions="Auto,*,Auto,Auto">
             WidthRequest="150"
             HeightRequest="50"
             Clicked="BtnConfirm_Clicked" />
-                        <Button x:Name="btnCancel"
+                    <Button x:Name="btnCancel"
             Text="Cancel"
             FontSize="Medium"
             FontAttributes="Bold"
@@ -442,10 +439,10 @@ RowDefinitions="Auto,*,Auto,Auto">
             WidthRequest="150"
             HeightRequest="50"
             Clicked="BtnCancel_Clicked"/>
-                    </VerticalStackLayout>
-                </Frame>
+                </VerticalStackLayout>
+            </Frame>
 
-                <!-- Navigation Panel (OUTSIDE pnlInput) -->
+            <!-- Navigation Panel (OUTSIDE pnlInput) -->
             <StackLayout x:Name="pnlNavigate" 
                          IsVisible="False" 
                          Orientation="Horizontal" 
@@ -461,8 +458,7 @@ RowDefinitions="Auto,*,Auto,Auto">
             <Label x:Name="txtpSKU" IsVisible="False"/>
             <Label x:Name="txtpSlot" IsVisible="False"/>
 
-            </VerticalStackLayout>
-        </ScrollView>
+        </VerticalStackLayout>
 
         <!-- FLOATING FINISHED BUTTON - Above txtBarcode -->
             <Button x:Name="btnFinished"
