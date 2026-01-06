@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PDTPickingSystem.Helpers.Interfaces;
-using Plugin.Maui.Audio; // ✅ ADD THIS
-
+using Plugin.Maui.Audio;
 #if ANDROID
 using PDTPickingSystem.Platforms.Android;
 #endif
@@ -30,6 +29,15 @@ namespace PDTPickingSystem
 
             // Register Audio Service for Idle Alarm
             builder.Services.AddSingleton(AudioManager.Current);
+
+            // REMOVE ENTRY UNDERLINE (Android)
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+            {
+#if ANDROID
+                handler.PlatformView.BackgroundTintList =
+                    Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Transparent);
+#endif
+            });
 
 #if DEBUG
             builder.Logging.AddDebug();
