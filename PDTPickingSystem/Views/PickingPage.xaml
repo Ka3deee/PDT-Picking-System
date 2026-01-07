@@ -311,7 +311,7 @@
 
             <!-- PANEL INPUT / pnlInput -->
             <Frame x:Name="pnlInput" 
-                   Padding="5" 
+                   Padding="5,5,5,0" 
                    Margin="0,-5,0,10" 
                    BackgroundColor="WhiteSmoke"
                    CornerRadius="10">
@@ -533,19 +533,19 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <Grid ColumnDefinitions="*,Auto" 
-                Margin="0,-14,0,10" 
-                VerticalOptions="Center" 
-                HorizontalOptions="FillAndExpand" 
-                ColumnSpacing="10">
+            <Grid Grid.Row="1"
+                  BackgroundColor="Blue"
+                  Padding="5"
+                  Margin="-5,-10,-5,0">
                 <Label x:Name="lblUser"
-                    Text="Please set USER ID!"
-                    TextColor="Black"
-                    FontAttributes="Italic"
-                    FontSize="14"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    Loaded="LblUser_Loaded"/>
+                        Text="Please set USER ID!"
+                        FontAttributes="Bold,Italic" 
+                        FontSize="14"
+                        TextColor="White"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        Loaded="LblUser_Loaded"
+                        Margin="0,-4,0,0"/>
             </Grid>
 
 

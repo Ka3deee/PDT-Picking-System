@@ -42,7 +42,7 @@
             <Frame Padding="10,10,10,15"
                     Margin="5,-15,5,0"
                     HasShadow="True"
-                   CornerRadius="5"
+                   CornerRadius="10"
                     BorderColor="LightGray">
                 <VerticalStackLayout x:Name="pnlInput"
                                      Spacing="5">
@@ -270,7 +270,7 @@
             <Frame Padding="10,10,10,10"
                     Margin="5,0,5,0"
                     HasShadow="True"
-                    CornerRadius="5"
+                    CornerRadius="10"
                     BorderColor="LightGray">
                 <VerticalStackLayout>
                     <!-- Transfer, Location, Picker, Transfer # Labels -->
