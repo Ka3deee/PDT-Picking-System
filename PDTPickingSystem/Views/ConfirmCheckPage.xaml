@@ -20,9 +20,9 @@
                Margin="10,10,10,10"
                HasShadow="True"
                BorderColor="LightGray"
-               CornerRadius="10">
+               CornerRadius="5">
             <VerticalStackLayout x:Name="pnlMain"
-                                 Padding="10"
+                                 Padding="5"
                                  Spacing="5"
                                  IsVisible="True">
 
@@ -30,41 +30,78 @@
                 <Label Text="Barcode:"
                        FontAttributes="Bold"
                        FontSize="16"/>
-                <Entry x:Name="txtBarcode"
-                       Placeholder="Scan or enter barcode"
-                       FontSize="16"
-                       HeightRequest="40"
-                       HorizontalTextAlignment="Center"/>
+                <Frame Grid.Column="1"
+                       Padding="5"
+                       CornerRadius="5"
+                       HasShadow="True"
+                       BorderColor="Gray"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"
+                       Margin="0,0,0,5">
+                    <Entry x:Name="txtBarcode"
+                           Placeholder="Scan or enter barcode"
+                           FontSize="16"
+                           HeightRequest="40"
+                           HorizontalTextAlignment="Center"/>
+                </Frame>
 
                 <!-- Description (Label, not Entry) -->
-                <Label x:Name="txtDesc"
-                       Text="Description"
-                       FontSize="14"
-                       TextColor="Gray"
-                       HorizontalOptions="Center"
-                       HorizontalTextAlignment="Center"
-                       Margin="0,5"/>
+                <Frame Grid.Column="1"
+                       Padding="0"
+                       CornerRadius="5"
+                       HasShadow="True"
+                       BorderColor="Gray"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"
+                       Margin="0,0,0,5">
+                    <Label x:Name="txtDesc"
+                           Text="Description"
+                           FontSize="16"
+                           TextColor="Gray"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,5"/>
+                </Frame>
 
                 <!-- Scanned Icon -->
-                <Image x:Name="pbScanned"
-                       Source="scanned_icon2.png"
-                       HeightRequest="40"
-                       WidthRequest="40"
-                       HorizontalOptions="Start"
-                       IsVisible="False"/>
-
-                <!-- SKU -->
-                <Grid ColumnDefinitions="Auto,*" Margin="0,5">
-                    <Label Text="SKU:" 
-                           Grid.Column="0" 
+                <Grid ColumnDefinitions="50,10,Auto,*"
+                      Margin="0,0,0,10"
+                      VerticalOptions="Center">
+                    <!-- ➤ Scan Image -->
+                    <Image x:Name="pbScanned"
+                           Grid.Column="0"
+                           Source="scanned_icon2.png"
+                           HeightRequest="40"
+                           WidthRequest="40"
+                           HorizontalOptions="Start"
+                           IsVisible="True"/>
+                    <!-- ➤ SKU Label -->
+                    <Label Grid.Column="2"
+                           Text="SKU:"
                            VerticalOptions="Center"
                            FontAttributes="Bold"
-                           FontSize="16"/>
-                    <Entry x:Name="txtSKU" 
-                           Grid.Column="1"
-                           IsReadOnly="True"
-                           BackgroundColor="White"/>
+                           FontSize="16"
+                           Margin="0,0,10,0"/>
+                    <!-- ➤ SKU Entry with Frame -->
+                    <Frame Grid.Column="3"
+                           Padding="0"
+                           HeightRequest="40"
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="0,0,0,0">
+                        <Entry x:Name="txtSKU"
+                               IsReadOnly="True"
+                               BackgroundColor="White"
+                               FontSize="16"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"/>
+                    </Frame>
                 </Grid>
+
 
                 <!-- CASE / EACH -->
                 <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,5">
@@ -73,26 +110,46 @@
                            VerticalOptions="Center"
                            FontSize="16"
                            FontAttributes="Bold"/>
-                    <Entry x:Name="txtCase" 
-                           Grid.Column="1"
-                           Text=""
-                           FontSize="16"
-                           Keyboard="Numeric"
+                    <Frame Grid.Column="1"
+                           Padding="0"
                            HeightRequest="40"
-                           HorizontalTextAlignment="Center"/>
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="5,0,0,0">
+                        <Entry x:Name="txtCase" 
+                               Grid.Column="1"
+                               Text=""
+                               FontSize="16"
+                               Keyboard="Numeric"
+                               HeightRequest="40"
+                               HorizontalTextAlignment="Center"/>
+                    </Frame>
 
                     <Label Text="Each:" 
                            Grid.Column="3" 
                            VerticalOptions="Center"
                            FontSize="16"
                            FontAttributes="Bold"/>
-                    <Entry x:Name="txtEach" 
-                           Grid.Column="4"
-                           Text=""
-                           FontSize="16"
-                           Keyboard="Numeric"
+                    <Frame Grid.Column="4"
+                           Padding="0"
                            HeightRequest="40"
-                           HorizontalTextAlignment="Center"/>
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="5,0,0,0">
+                        <Entry x:Name="txtEach" 
+                               Grid.Column="4"
+                               Text=""
+                               FontSize="16"
+                               Keyboard="Numeric"
+                               HeightRequest="40"
+                               HorizontalTextAlignment="Center"/>
+                    </Frame>
                 </Grid>
 
                 <!-- BUM -->
@@ -102,13 +159,23 @@
                            VerticalOptions="Center"
                            FontAttributes="Bold"
                            FontSize="16"/>
-                    <Entry x:Name="txtBum" 
-                           Grid.Column="1"
-                           Text=""
-                           FontSize="16"
-                           IsReadOnly="True"
-                           BackgroundColor="White"
-                           HorizontalTextAlignment="Center"/>
+                    <Frame Grid.Column="1"
+                           Padding="0"
+                           HeightRequest="40"
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="5,0,0,0">
+                        <Entry x:Name="txtBum" 
+                               Grid.Column="2"
+                               Text=""
+                               FontSize="16"
+                               IsReadOnly="True"
+                               BackgroundColor="White"
+                               HorizontalTextAlignment="Center"/>
+                    </Frame>
                 </Grid>
 
                 <!-- Buttons -->
@@ -118,19 +185,21 @@
                     <Button x:Name="btnDetails"
                             Grid.Column="0"
                             Text="View Details"
+                            FontSize="16"
                             BackgroundColor="Blue"
                             TextColor="White"
                             FontAttributes="Bold"
-                            HeightRequest="40"
+                            HeightRequest="50"
                             Clicked="BtnDetails_Clicked"/>
 
                     <Button x:Name="btnAccept"
                             Grid.Column="1"
                             Text="Accept"
+                            FontSize="16"
                             BackgroundColor="Blue"
                             TextColor="White"
                             FontAttributes="Bold"
-                            HeightRequest="40"
+                            HeightRequest="50"
                             Clicked="BtnAccept_Clicked"/>
                 </Grid>
 
@@ -138,34 +207,34 @@
         </Frame>
 
         <!-- ========================================
-     PANEL 2: DETAILS VIEW (pnlDetails)
-     ======================================== -->
+         PANEL 2: DETAILS VIEW (pnlDetails)
+         ======================================== -->
         <Frame x:Name="pnlDetails"
-       Grid.Row="0"
-       IsVisible="False"
-       Padding="10"
-       Margin="10,10,10,10"
-       BackgroundColor="White"
-       BorderColor="Gray"
-       CornerRadius="10"
-       HasShadow="True">
+               Grid.Row="0"
+               IsVisible="False"
+               Padding="5"
+               Margin="10,10,10,10"
+               BackgroundColor="White"
+               BorderColor="Gray"
+               CornerRadius="10"
+               HasShadow="True">
 
-            <VerticalStackLayout Padding="10"
+            <VerticalStackLayout Padding="5"
                          Spacing="10"
                          BackgroundColor="White">
 
                 <Label Text="SKU Details"
-               FontSize="18"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               Margin="0,10"/>
+                       FontSize="25"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       Margin="0,10"/>
 
                 <!-- SKU CollectionView -->
                 <ScrollView Orientation="Horizontal">
                 <CollectionView x:Name="lvSKU"
                         SelectionMode="Single"
                         SelectionChanged="lvSKU_SelectionChanged"
-                        HeightRequest="450">
+                        HeightRequest="280">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Frame Padding="8"
@@ -269,12 +338,14 @@
 
                 <!-- Back Button -->
                 <Button x:Name="Button1"
-                Text="Back"
-                BackgroundColor="Blue"
-                TextColor="White"
-                FontAttributes="Bold"
-                HeightRequest="40"
-                Clicked="Button1_Click"/>
+                        Text="Back"
+                        BackgroundColor="Blue"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="16"
+                        WidthRequest="200"
+                        HeightRequest="40"
+                        Clicked="Button1_Click"/>
 
             </VerticalStackLayout>
         </Frame>
@@ -288,10 +359,10 @@
                              Padding="10"
                              Spacing="10"
                              BackgroundColor="White"
-                             IsVisible="False">
+                             IsVisible="True">
 
             <Label Text="Select Transfer"
-                   FontSize="18"
+                   FontSize="25"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    Margin="0,10"/>
@@ -342,14 +413,18 @@
         <!-- ========================================
              USER LABEL (Bottom)
              ======================================== -->
+        <Grid Grid.Row="1"
+              BackgroundColor="Blue"
+              Padding="5"
+              Margin="0,0,0,0">
         <Label x:Name="lblUser"
                Grid.Row="1"
                Text="User:"
-               BackgroundColor="SteelBlue"
                TextColor="White"
-               Padding="10"
+               Padding="0"
+               Margin="10,0,0,0"
                FontAttributes="Bold,Italic"
-               FontSize="12"/>
-
+               FontSize="14"/>
+        </Grid>
     </Grid>
 </ContentPage>

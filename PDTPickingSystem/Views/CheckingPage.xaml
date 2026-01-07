@@ -40,7 +40,7 @@
 
             <!-- Main Input Frame -->
             <Frame Padding="10,10,10,15"
-                    Margin="5,-15,5,5"
+                    Margin="5,-15,5,0"
                     HasShadow="True"
                    CornerRadius="5"
                     BorderColor="LightGray">
@@ -77,7 +77,7 @@
                            BorderColor="Gray"
                            VerticalOptions="Center"
                            HorizontalOptions="FillAndExpand"
-                           Margin="0,0,0,0">
+                           Margin="0,0,0,5">
                         <Entry x:Name="txtDesc"
                            Placeholder="Description"
                            FontSize="16"
@@ -95,7 +95,7 @@
                                      HeightRequest="40"
                                      WidthRequest="40"
                                      BackgroundColor="White"
-                                     IsVisible="True"/>
+                                     IsVisible="False"/>
                         <Label x:Name="lblSKU"
                                Grid.Column="2"
                                Text="SKU:"
@@ -286,12 +286,18 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <Label x:Name="lblTrf" 
-                Margin="10,-2,0,0"
-                Text="Transfer #:" 
-                FontAttributes="Italic"
-                FontSize="14"
-                Loaded="LblTrf_Loaded"/>
+            <Grid Grid.Row="1"
+                  BackgroundColor="Blue"
+                  Padding="10"
+                  Margin="-5,0,-5,0">
+                <Label x:Name="lblTrf" 
+                    Text="Transfer #:" 
+                    TextColor="White"
+                    FontAttributes="Bold,Italic"
+                    FontSize="14"
+                    Margin="5,-3,-5,0"
+                    Loaded="LblTrf_Loaded"/>
+            </Grid>
 
             <!-- Items panel (OUTSIDE pnlInput) -->
             <Grid x:Name="pnlItems"
