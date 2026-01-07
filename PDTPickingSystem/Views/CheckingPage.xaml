@@ -11,7 +11,7 @@
 
             <!-- Store / Department - AT THE TOP -->
             <Grid ColumnDefinitions="120,*"
-                  Margin="10,5,5,10"
+                  Margin="10,5,5,15"
                   VerticalOptions="Center">
                 <Label x:Name="lblDeptStore"
                        Text="Store No:"
@@ -19,20 +19,30 @@
                        FontSize="16"
                        Grid.Column="0"
                        VerticalOptions="Center"
-                       Loaded="LblDeptStore_Loaded"/>
-                <Entry x:Name="txtDeptStore"
+                       Loaded="LblDeptStore_Loaded"
+                       Margin="0,-10,0,0"/>
+                <Frame Grid.Column="1"
+                       Padding="-5"
+                       CornerRadius="5"
+                       HasShadow="True"
+                       BorderColor="Gray"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"
+                       Margin="0,0,0,5">
+                    <Entry x:Name="txtDeptStore"
                        Grid.Column="1"
-                       HeightRequest="40"
                        BackgroundColor="WhiteSmoke"
                        IsReadOnly="True"
                        HorizontalTextAlignment="Center"
                        TextChanged="TxtDeptStore_TextChanged"/>
+                </Frame>
             </Grid>
 
             <!-- Main Input Frame -->
-            <Frame Padding="10"
-                    Margin="5,-15,5,0"
+            <Frame Padding="10,10,10,15"
+                    Margin="5,-15,5,5"
                     HasShadow="True"
+                   CornerRadius="5"
                     BorderColor="LightGray">
                 <VerticalStackLayout x:Name="pnlInput"
                                      Spacing="5">
@@ -43,20 +53,38 @@
                            FontAttributes="Bold"
                            FontSize="16"
                            Loaded="LblBarcode_Loaded"/>
-                    <Entry x:Name="txtBarcode"
+                    <Frame Grid.Column="1"
+                           Padding="0"
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="0,0,0,5">
+                        <Entry x:Name="txtBarcode"
                            Placeholder="Barcode"
                            FontSize="16"
                            Completed="Entry_Completed"
                            HorizontalTextAlignment="Center"
                            TextChanged="Entry_TextChanged"/>
+                    </Frame>
 
                     <!-- Description -->
-                    <Entry x:Name="txtDesc"
+                    <Frame Grid.Column="1"
+                           Padding="-5"
+                           CornerRadius="5"
+                           HasShadow="True"
+                           BorderColor="Gray"
+                           VerticalOptions="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="0,0,0,0">
+                        <Entry x:Name="txtDesc"
                            Placeholder="Description"
                            FontSize="16"
                            IsReadOnly="True"
                            HorizontalTextAlignment="Center"
                            TextChanged="TxtDesc_TextChanged"/>
+                    </Frame>
 
                     <!-- Scanner + SKU -->
                     <Grid ColumnDefinitions="50,10,Auto,*"
@@ -75,12 +103,21 @@
                                FontSize="16"
                                VerticalOptions="Center"
                                Loaded="LblSKU_Loaded"/>
-                        <Entry x:Name="txtSKU"
-                               Grid.Column="3"
-                               Placeholder=""
-                               IsReadOnly="True"
-                               HorizontalTextAlignment="Center"
-                               TextChanged="TxtSKU_TextChanged"/>
+                        <Frame Grid.Column="3"
+                               Padding="-5"
+                               CornerRadius="5"
+                               HasShadow="True"
+                               BorderColor="Gray"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"
+                               Margin="5,0,0,0">
+                                <Entry x:Name="txtSKU"
+                                       Grid.Column="3"
+                                       Placeholder=""
+                                       IsReadOnly="True"
+                                       HorizontalTextAlignment="Center"
+                                       TextChanged="TxtSKU_TextChanged"/>
+                        </Frame>
                     </Grid>
 
                     <!-- Case / Each -->
@@ -93,14 +130,23 @@
                                Grid.Column="0" 
                                VerticalOptions="Center" 
                                Loaded="LblCase_Loaded"/>
-                        <Entry x:Name="txtCase" 
-                               Grid.Column="1" 
-                               HeightRequest="40"
-                               FontAttributes="Bold"
-                               FontSize="16"
-                               Completed="Entry_Completed" 
-                               HorizontalTextAlignment="Center"
-                               TextChanged="Entry_TextChanged"/>
+                        <Frame Grid.Column="1"
+                               Padding="-5"
+                               CornerRadius="5"
+                               HasShadow="True"
+                               BorderColor="Gray"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"
+                               Margin="5,0,0,0">
+                            <Entry x:Name="txtCase" 
+                                   Grid.Column="1" 
+                                   HeightRequest="40"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   Completed="Entry_Completed" 
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="Entry_TextChanged"/>
+                        </Frame>
                         <BoxView Grid.Column="2" 
                                  WidthRequest="20"/>
                         <Label x:Name="lblEach" 
@@ -110,14 +156,23 @@
                                Grid.Column="3" 
                                VerticalOptions="Center" 
                                Loaded="LblEach_Loaded"/>
-                        <Entry x:Name="txtEach"
-                               FontAttributes="Bold"
-                               FontSize="16"
-                               Grid.Column="4"
-                               HeightRequest="40" 
-                               Completed="Entry_Completed" 
-                               HorizontalTextAlignment="Center"
-                               TextChanged="Entry_TextChanged"/>
+                        <Frame Grid.Column="4"
+                               Padding="-5"
+                               CornerRadius="5"
+                               HasShadow="True"
+                               BorderColor="Gray"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"
+                               Margin="5,0,0,0">
+                            <Entry x:Name="txtEach"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   Grid.Column="4"
+                                   HeightRequest="40" 
+                                   Completed="Entry_Completed" 
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="Entry_TextChanged"/>
+                        </Frame>
                     </Grid>
 
                     <!-- BUM / Done -->
@@ -130,14 +185,23 @@
                                Grid.Column="0" 
                                VerticalOptions="Center" 
                                Loaded="LblBUM_Loaded"/>
-                        <Entry x:Name="txtBum"
-                               FontAttributes="Bold"
-                               FontSize="16"
-                               Grid.Column="1" 
-                               HeightRequest="40" 
-                               IsReadOnly="True"
-                               HorizontalTextAlignment="Center"
-                               TextChanged="TxtBum_TextChanged"/>
+                        <Frame Grid.Column="1"
+                               Padding="-5"
+                               CornerRadius="5"
+                               HasShadow="True"
+                               BorderColor="Gray"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"
+                               Margin="5,0,0,0">
+                            <Entry x:Name="txtBum"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   Grid.Column="1" 
+                                   HeightRequest="40" 
+                                   IsReadOnly="True"
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="TxtBum_TextChanged"/>
+                        </Frame>
                         <BoxView Grid.Column="2" 
                                  WidthRequest="20"/>
                         <Label x:Name="lblDone" 
@@ -147,14 +211,23 @@
                                Grid.Column="3" 
                                VerticalOptions="Center" 
                                Loaded="LblDone_Loaded"/>
-                        <Entry x:Name="txtDone"
-                               FontAttributes="Bold"
-                               FontSize="16"
-                               Grid.Column="4" 
-                               HeightRequest="40" 
-                               IsReadOnly="True"
-                               HorizontalTextAlignment="Center"
-                               TextChanged="TxtDone_TextChanged"/>
+                        <Frame Grid.Column="4"
+                               Padding="-5"
+                               CornerRadius="5"
+                               HasShadow="True"
+                               BorderColor="Gray"
+                               VerticalOptions="Center"
+                               HorizontalOptions="FillAndExpand"
+                               Margin="5,0,0,0">
+                            <Entry x:Name="txtDone"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   Grid.Column="4" 
+                                   HeightRequest="40" 
+                                   IsReadOnly="True"
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="TxtDone_TextChanged"/>
+                        </Frame>
                     </Grid>
 
                     <!-- Buttons Row -->
@@ -194,9 +267,10 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <Frame Padding="8"
+            <Frame Padding="10,10,10,10"
                     Margin="5,0,5,0"
                     HasShadow="True"
+                    CornerRadius="5"
                     BorderColor="LightGray">
                 <VerticalStackLayout>
                     <!-- Transfer, Location, Picker, Transfer # Labels -->
