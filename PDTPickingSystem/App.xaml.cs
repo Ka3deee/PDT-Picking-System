@@ -1,4 +1,6 @@
-﻿namespace PDTPickingSystem
+﻿using PDTPickingSystem.Views;
+
+namespace PDTPickingSystem
 {
     public partial class App : Application
     {

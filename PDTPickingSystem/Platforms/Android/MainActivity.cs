@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
+using AndroidX.Core.View;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
 using System.Linq;
@@ -26,6 +27,8 @@ namespace PDTPickingSystem
 
             // Switch to main app theme after splash screen
             SetTheme(Resource.Style.MainTheme);
+
+            WindowCompat.SetDecorFitsSystemWindows(Window, false);
         }
 
         // ✅ Keep existing DispatchKeyEvent method

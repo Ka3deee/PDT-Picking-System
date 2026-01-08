@@ -142,7 +142,7 @@ namespace PDTPickingSystem.Views
                 bool connected = conn != null;
 
                 lblStatus.Text = connected
-                    ? $"✅ Connected to {AppGlobal.sServer}"
+                    ? $"✅ Connected to Server: {AppGlobal.sServer}"
                     : $"❌ Cannot connect to {AppGlobal.sServer}";
             }
             catch (Exception ex)

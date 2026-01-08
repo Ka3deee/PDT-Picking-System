@@ -20,6 +20,7 @@
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\Images\appicon.png" />
+		<MauiImage Include="Resources\Images\lcclogo2.png" />
 
 		<!-- Cross-platform Images -->
 		<MauiImage Include="Resources\Images\pblogo.png" />
@@ -34,6 +35,14 @@
 
 		<!-- Raw Assets -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidResource Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
 	</ItemGroup>
 
 	<!-- ✅ Android Platform Resources (Splash Screen Files) -->

@@ -1,12 +1,42 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PDTPickingSystem.App">
     <Application.Resources>
-        <Style TargetType="Shell">
-            <Setter Property="BackgroundColor" Value="Blue" />
-            <Setter Property="TitleColor" Value="White" />
-            <Setter Property="ForegroundColor" Value="White" />
-        </Style>
+        <ResourceDictionary>
+
+            <!-- ───── Shell Styling ───── -->
+            <Style TargetType="Shell">
+                <Setter Property="BackgroundColor" Value="DarkBlue"/>
+                <Setter Property="TitleColor" Value="White"/>
+                <Setter Property="ForegroundColor" Value="White"/>
+            </Style>
+
+            <!-- ───── Global Font Styling ───── -->
+
+            <!-- Labels: Regular -->
+            <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="MontserratRegular"/>
+            </Style>
+
+            <!-- Buttons: Semi-Bold (named style for reliability) -->
+            <Style x:Key="AppButton" TargetType="Button">
+                <Setter Property="FontFamily" Value="MontserratSemiBold"/>
+            </Style>
+
+            <!-- Entries / Editor / Picker -->
+            <Style TargetType="Entry">
+                <Setter Property="FontFamily" Value="MontserratRegular"/>
+            </Style>
+
+            <Style TargetType="Editor">
+                <Setter Property="FontFamily" Value="MontserratRegular"/>
+            </Style>
+
+            <Style TargetType="Picker">
+                <Setter Property="FontFamily" Value="MontserratRegular"/>
+            </Style>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

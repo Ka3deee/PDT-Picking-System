@@ -4,12 +4,38 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:PDTPickingSystem.Views"
-
+    Shell.NavBarHasShadow="False"
+    BackgroundColor="DarkBlue"
     Title="PDTPickingSystem">
 
-    <ShellContent
-    Title="Menu"
-    ContentTemplate="{DataTemplate local:MainMenuPage}" />
+    <!-- 🔹 Custom Navbar -->
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="Auto,10,*"
+              Padding="10"
+              BackgroundColor="DarkBlue"
+              VerticalOptions="Center">
 
+            <!-- App Logo -->
+            <Image Source="lcclogo.png"
+                   HeightRequest="28"
+                   WidthRequest="28"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"/>
+
+            <!-- App Title -->
+            <Label Grid.Column="2"
+                   Text="PDT Picking System"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"/>
+        </Grid>
+    </Shell.TitleView>
+
+    <!-- 🔹 Main Page -->
+    <ShellContent
+        Title=""
+        ContentTemplate="{DataTemplate local:MainMenuPage}" />
 
 </Shell>

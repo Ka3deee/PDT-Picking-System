@@ -17,16 +17,18 @@
 
         <!-- Page Title -->
         <Label Text="Set Picking Reference"
-                   FontSize="28"
-                   TextColor="#0D6EFE"
+                   FontSize="24"
+                   TextColor="Blue"
                    HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
                    FontAttributes="Bold"
-                   Margin="0,-10,0,0"/>
+                   LineBreakMode="NoWrap"
+                   Margin="0,0,0,0"/>
 
         <!-- Input Reference Label for OnParentSet -->
         <Label x:Name="lblInputPickRef"
                    Text="Input Picking Reference #"
-                   FontSize="16"
+                   FontSize="14"
                    TextColor="Black"
                    HorizontalOptions="Center"
                    Margin="0,0,0,0"/>
@@ -42,7 +44,7 @@
                Margin="0,-5,0,0">
             <Entry x:Name="txtRefNo"
                    Placeholder="Enter Reference Number"
-                   FontSize="18"
+                   FontSize="16"
                    BackgroundColor="Transparent"
                    TextColor="Black"
                    Keyboard="Numeric"
@@ -56,14 +58,14 @@
         <ActivityIndicator x:Name="actLoading"
                    IsRunning="False"
                    IsVisible="False"
-                   Color="#0D6EFE"
+                   Color="Blue"
                    HeightRequest="30"
                    HorizontalOptions="Center"/>
 
         <!-- Display Reference -->
         <Label x:Name="lblRefDisplay"
                    Text="(Reference #)"
-                   FontSize="15"
+                   FontSize="16"
                    TextColor="Black"
                    HorizontalOptions="Center"
                    Margin="0,-10,0,0"/>
@@ -72,29 +74,33 @@
         <Button x:Name="btnApply"
                     Text="Set Reference"
                     Clicked="btnApply_Clicked"
-                    BackgroundColor="#0D6EFE"
+                    Style="{StaticResource AppButton}"
+                    BackgroundColor="Blue"
                     TextColor="White"
                     Padding="0"
                     WidthRequest="220"
                     HeightRequest="50"
-                    FontSize="18"
+                    FontSize="16"
                     CornerRadius="10"
                     FontAttributes="Bold"
-                    HorizontalOptions="Center"/>
+                    HorizontalOptions="Center"
+                    FontFamily="MontserratRegular"/>
 
         <!-- Cancel / Back Button -->
         <Button x:Name="btnBack"
                     Text="Back to Menu"
                     Clicked="btnBack_Clicked"
-                    BackgroundColor="#D83B01"
+                    Style="{StaticResource AppButton}"
+                    BackgroundColor="Red"
                     TextColor="White"
                     Padding="0"
                     WidthRequest="220"
                     HeightRequest="50"
-                    FontSize="18"
+                    FontSize="16"
                     CornerRadius="10"
                     FontAttributes="Bold"
                     HorizontalOptions="Center"
+                    FontFamily="MontserratRegular"
                     Margin="0,0,0,0"/>
 
     </VerticalStackLayout>
