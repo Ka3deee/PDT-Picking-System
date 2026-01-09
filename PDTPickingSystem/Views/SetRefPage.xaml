@@ -5,15 +5,42 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="White">
 
+    <ContentPage.Resources>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardFrame" TargetType="Frame">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
     <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
 
-        <!-- App Logo -->
-        <Image Source="pblogo.png"
+        <Frame Style="{StaticResource CardFrame}" 
+               Margin="10,0,10,0"
+               Padding="0"
+               BackgroundColor="Blue"
+               CornerRadius="10"
+               HasShadow="True"
+               HeightRequest="100">
+            <!-- App Logo -->
+            <Image Source="pblogo.png"
                    HorizontalOptions="Center"
-                   HeightRequest="100"
+                   HeightRequest="130"
                    WidthRequest="320"
                    Aspect="AspectFit"
-                   Margin="0,-5,0,0"/>
+                   Margin="0,0,0,0"/>
+        </Frame>
 
         <!-- Page Title -->
         <Label Text="Set Picking Reference"
@@ -34,13 +61,15 @@
                    Margin="0,0,0,0"/>
 
         <!-- Reference Number Entry -->
-        <Frame Padding="0"
+        <Frame Style="{StaticResource CardFrame}"
+               Padding="0"
                BackgroundColor="White"
                BorderColor="Gray"
                CornerRadius="5"
                HasShadow="True"
                HorizontalOptions="Center"
                WidthRequest="220"
+               HeightRequest="60"
                Margin="0,-5,0,0">
             <Entry x:Name="txtRefNo"
                    Placeholder="Enter Reference Number"
@@ -74,14 +103,14 @@
         <Button x:Name="btnApply"
                     Text="Set Reference"
                     Clicked="btnApply_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     Padding="0"
                     WidthRequest="220"
-                    HeightRequest="50"
+                    HeightRequest="60"
                     FontSize="16"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     HorizontalOptions="Center"
                     FontFamily="MontserratRegular"/>
@@ -90,14 +119,14 @@
         <Button x:Name="btnBack"
                     Text="Back to Menu"
                     Clicked="btnBack_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Red"
                     TextColor="White"
                     Padding="0"
                     WidthRequest="220"
-                    HeightRequest="50"
+                    HeightRequest="60"
                     FontSize="16"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     HorizontalOptions="Center"
                     FontFamily="MontserratRegular"

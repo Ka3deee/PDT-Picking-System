@@ -5,6 +5,26 @@
              BackgroundColor="White"
              Shell.NavBarIsVisible="False">
 
+    <ContentPage.Resources>
+        
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="CardFrame" TargetType="Frame">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+
     <Grid RowDefinitions="Auto,*">
         <!-- 🔹 HEADER -->
         <Grid Row="0"
@@ -18,60 +38,69 @@
             <Image Source="lcclogo2.png"
                    HeightRequest="40"
                    WidthRequest="40"
-                   VerticalOptions="Center"/>
+                   VerticalOptions="Center"
+                   Margin="0,-5,0,0"/>
 
             <!-- Title -->
             <Label Grid.Column="2"
                    Text="PDT Picking System"
-                   FontSize="18"
+                   FontSize="16"
                    FontAttributes="Bold"
                    TextColor="White"
                    VerticalOptions="Center"
-                   Margin="0,0,0,0"/>
+                   Margin="-5,0,0,0"/>
         </Grid>
 
 
-    <VerticalStackLayout Padding="0" Spacing="5">
+    <VerticalStackLayout Padding="-10" Spacing="5">
 
         <!-- App Logo with Tap Gesture for Version Info -->
-        <Image x:Name="imgLogo"
-               Source="pblogo.png"
-               HorizontalOptions="Fill"
-               VerticalOptions="Start"
-               HeightRequest="100"
-               WidthRequest="320"
-               Aspect="AspectFit"
-               Margin="0,60,0,0">
-            <Image.GestureRecognizers>
-                <TapGestureRecognizer Tapped="ImgLogo_Tapped"/>
-            </Image.GestureRecognizers>
-        </Image>
+        <Frame Style="{StaticResource CardFrame}"
+               Margin="30,70,30,0"
+               Padding="0"
+               BackgroundColor="Blue"
+               CornerRadius="18"
+               HasShadow="True"
+               HeightRequest="100">
+            <Image x:Name="imgLogo"
+                   Source="pblogo.png"
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Start"
+                   HeightRequest="150"
+                   WidthRequest="500"
+                   Aspect="AspectFit"
+                   Margin="0,-23,0,0">
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="ImgLogo_Tapped"/>
+                </Image.GestureRecognizers>
+            </Image>
+        </Frame>
 
-        <!-- First row -->
+            <!-- First row -->
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
             <Button Text="Start Picking"
                     Clicked="BtnOpt1_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="10"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
             <Button Text="Start Checking"
                     Clicked="BtnOpt2_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
         </HorizontalStackLayout>
@@ -80,27 +109,27 @@
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
             <Button Text="Set User ID"
                     Clicked="BtnOpt3_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
             <Button Text="Confirm Check"
                     Clicked="BtnOpt4_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
         </HorizontalStackLayout>
@@ -109,14 +138,14 @@
         <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
             <Button Text="Server Settings"
                     Clicked="BtnOpt5_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="285"
                     HeightRequest="60"
                     FontSize="18"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
         </HorizontalStackLayout>
@@ -125,27 +154,27 @@
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
             <Button Text="Set Pick Ref"
                     Clicked="BtnOpt6_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Blue"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
             <Button Text="Exit"
                     Clicked="BtnOpt7_Clicked"
-                    Style="{StaticResource AppButton}"
+                    Style="{StaticResource PrimaryButton}"
                     BackgroundColor="#D83B01"
                     TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
                     FontSize="16"
                     Padding="5"
-                    CornerRadius="10"
+                    CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
         </HorizontalStackLayout>
