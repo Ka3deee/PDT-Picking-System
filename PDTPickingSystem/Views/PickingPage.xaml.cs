@@ -722,8 +722,8 @@ namespace PDTPickingSystem.Views
 
                     if (acceptZero)
                     {
-                        pnlNavigate.IsVisible = false;
-                        pnlInput.IsVisible = false;
+                        pnlNavigate.IsVisible = true;
+                        pnlInput.IsVisible = true;
                         txtStocker.Text = "";
                         txtStockerTag = "";
                         txtStocker.IsReadOnly = await AppGlobal._CheckOption_StockerAsync();

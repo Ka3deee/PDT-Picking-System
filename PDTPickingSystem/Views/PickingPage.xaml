@@ -6,6 +6,25 @@
              BackgroundColor="White"
              Shell.NavBarIsVisible="False">
 
+    <ContentPage.Resources>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardFrame" TargetType="Frame">
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="Black" Offset="3,5" Radius="5" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
     <!-- ROOT LAYER -->
     <Grid>
         <!-- ================= MAIN PAGE CONTENT ================= -->
@@ -283,6 +302,7 @@
                             FontAttributes="Bold"
                             BackgroundColor="Blue"
                             FontSize="16"
+                            CornerRadius="10"
                             Clicked="BtnNavigate_Clicked"
                             HeightRequest="40"
                             WidthRequest="90"
@@ -295,6 +315,7 @@
                             FontAttributes="Bold"
                             BackgroundColor="Blue"
                             FontSize="16"
+                            CornerRadius="10"
                             Clicked="BtnNavigate_Clicked"
                             HeightRequest="40"
                             WidthRequest="90"
@@ -307,6 +328,7 @@
                             FontAttributes="Bold"
                             BackgroundColor="Blue"
                             FontSize="16"
+                            CornerRadius="10"
                             Clicked="BtnNavigate_Clicked"
                             HeightRequest="40"
                             WidthRequest="90"
@@ -364,16 +386,20 @@
 
                     <Grid ColumnDefinitions="50,10,Auto,*" 
                           VerticalOptions="Center" 
-                          Margin="0,-10,0,0">
+                          Margin="0,-8,0,0">
 
-                        <!-- ➤ Image Check -->
-                        <ImageButton x:Name="pbScanned"
+                        <Grid Grid.Column="0"
+                              WidthRequest="50"
+                 HeightRequest="40">
+                            <!-- ➤ Image Check -->
+                            <ImageButton x:Name="pbScanned"
                                      Source="scanned_icon.png"
                                      WidthRequest="40"
                                      HeightRequest="40"
                                      HorizontalOptions="Start"
-                                     IsVisible="True"
+                                     IsVisible="False"
                                      Clicked="PbScanned_Clicked"/>
+                        </Grid>
 
                         <!-- ➤ SKU Label -->
                         <Label x:Name="lblSKU"
@@ -385,7 +411,7 @@
                                VerticalOptions="Center"
                                HorizontalOptions="End"
                                Loaded="LblSKU_Loaded"
-                               Margin="0,0,5,0"/>
+                               Margin="0,5,5,0"/>
 
                         <!-- ➤ SKU Entry with Frame -->
                         <Frame Grid.Column="3"
@@ -412,7 +438,7 @@
 
                     <!-- ➤ Case2 & Each2 -->
                     <Grid ColumnDefinitions="Auto,*,20,Auto,*" 
-                          Margin="0,-5,0,10" 
+                          Margin="0,-3,0,8" 
                           VerticalOptions="Center">
                         <Label x:Name="lblCase2" 
                                Text="Case:"
@@ -422,7 +448,7 @@
                                Grid.Column="0" 
                                VerticalOptions="Center"
                                Loaded="LblCase2_Loaded"
-                               Margin="0,0,5,0"/>
+                               Margin="0,4,5,0"/>
                         <Frame Grid.Column="1"
                                Padding="-5"
                                CornerRadius="5"
@@ -453,7 +479,7 @@
                                Grid.Column="3" 
                                VerticalOptions="Center"
                                Loaded="LblEach2_Loaded"
-                               Margin="0,0,5,0"/>
+                               Margin="0,4,5,0"/>
                         <Frame Grid.Column="4"
                                Padding="-5"
                                CornerRadius="5"
@@ -494,7 +520,9 @@
                             WidthRequest="150"
                             Padding="0"
                             Clicked="BtnAccept_Clicked"
-                            FontFamily="MontserratRegular"/>
+                            FontFamily="MontserratRegular"
+                            CornerRadius="10"
+                            Style="{StaticResource PrimaryButton}"/>
 
                         <!-- ➤ Done -->
                         <Grid Grid.Column="1"  
@@ -518,7 +546,7 @@
                                    BorderColor="Gray"
                                    VerticalOptions="Center"
                                    HorizontalOptions="FillAndExpand"
-                                   Margin="0,0,0,0">
+                                   Margin="0,3,0,0">
                                 <Entry x:Name="txtDone"
                                         Grid.Column="1"
                                         VerticalOptions="Center"
@@ -552,7 +580,7 @@
                         HorizontalOptions="Center"
                         VerticalOptions="Center"
                         Loaded="LblUser_Loaded"
-                        Margin="0,-2,0,0"/>
+                        Margin="0,-3,0,0"/>
             </Grid>
 
 
@@ -568,7 +596,7 @@
                 FontSize="18"
                 HeightRequest="50"
                 WidthRequest="200"
-                CornerRadius="27"
+                CornerRadius="10"
                 Clicked="BtnFinished_Clicked"
                 FontFamily="MontserratRegular"
                 VerticalOptions="Start"
@@ -639,7 +667,7 @@
                         BackgroundColor="Blue"
                         WidthRequest="150"
                         HeightRequest="40"
-                        CornerRadius="5"
+                        CornerRadius="10"
                         Clicked="BtnConfirm_Clicked"
                         FontFamily="MontserratRegular"/>
                 <Button x:Name="btnCancel"
@@ -650,7 +678,7 @@
                         TextColor="White"
                         WidthRequest="150"
                         HeightRequest="40"
-                        CornerRadius="5"
+                        CornerRadius="10"
                         Clicked="BtnCancel_Clicked"
                         FontFamily="MontserratRegular"/>
             </VerticalStackLayout>
@@ -734,6 +762,7 @@
                         FontSize="16"
                         FontAttributes="Bold"
                         HeightRequest="40"
+                        CornerRadius="10"
                         BackgroundColor="Blue"
                         WidthRequest="150"
                         HorizontalOptions="Center"
@@ -745,6 +774,7 @@
                         FontSize="16"
                         FontAttributes="Bold"
                         HeightRequest="40"
+                        CornerRadius="10"
                         BackgroundColor="Blue"
                         WidthRequest="150"
                         HorizontalOptions="Center"
@@ -756,6 +786,7 @@
                         FontSize="16"
                         FontAttributes="Bold"
                         HeightRequest="40"
+                        CornerRadius="10"
                         BackgroundColor="Blue"
                         WidthRequest="150"
                         HorizontalOptions="Center"
@@ -793,6 +824,7 @@
                         WidthRequest="150"
                         HorizontalOptions="Center"
                         HeightRequest="40"
+                        CornerRadius="10"
                         BackgroundColor="Red"
                         TextColor="White" 
                         Clicked="BtnCloseGoto_Clicked"
@@ -844,6 +876,7 @@
                     Text="Close"
                     WidthRequest="150"
                     HeightRequest="40"
+                    CornerRadius="10"
                     BackgroundColor="Red"
                     TextColor="White"
                     FontAttributes="Bold"

@@ -17,7 +17,7 @@ namespace PDTPickingSystem
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("Montserrat-Regular.ttf", "MontserratRegular");
-                    fonts.AddFont("Montserrat-Semibold.ttf", "MontserratSemiBold");
+                    fonts.AddFont("Montserrat-Semibold.ttf", "MontserratSemibold");
                 });
 
             // Register WiFi Service

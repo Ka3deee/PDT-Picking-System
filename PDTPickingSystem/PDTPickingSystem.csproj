@@ -12,40 +12,41 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiImage Include="Resources\Images\lcclogo2.png" />
 		<MauiImage Include="Resources\Images\pblogo.png" />
-
 		<!-- Cross-platform Images -->
 		<MauiImage Include="Resources\Images\scanned_icon.png" />
 		<MauiImage Include="Resources\Images\scanned_icon2.png" />
-
 		<!-- Splash Screen (default MAUI splash - can keep or remove) -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
-
-		<!-- Fonts -->
-		<MauiFont Include="Resources\Fonts\**" />
-
 		<!-- Raw Assets -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!-- ✅ Fonts - Explicit declarations -->
 	<ItemGroup>
-	  <AndroidResource Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
+		<MauiFont Include="Resources\Fonts\Montserrat-Regular.ttf" />
+		<MauiFont Include="Resources\Fonts\Montserrat-Semibold.ttf" />
+		<!-- Add other Montserrat weights here if needed:
+		<MauiFont Include="Resources\Fonts\Montserrat-Bold.ttf" />
+		<MauiFont Include="Resources\Fonts\Montserrat-Light.ttf" />
+		<MauiFont Include="Resources\Fonts\Montserrat-Medium.ttf" />
+		-->
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
-	  <None Remove="Resources\Images\appicon.png" />
-	  <None Remove="Resources\Images\pblogo.png" />
+		<AndroidResource Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
 	</ItemGroup>
-
+	<ItemGroup>
+		<None Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
+		<None Remove="Resources\Images\appicon.png" />
+		<None Remove="Resources\Images\pblogo.png" />
+	</ItemGroup>
 	<!-- ✅ Android Platform Resources (Splash Screen Files) -->
 	<ItemGroup>
 		<AndroidResource Include="Platforms\Android\Resources\drawable\lcclogo.png" />
@@ -53,7 +54,6 @@
 		<AndroidResource Include="Platforms\Android\Resources\values\styles.xml" />
 		<AndroidResource Include="Platforms\Android\Resources\values\colors.xml" />
 	</ItemGroup>
-
 	<!-- NuGet Packages -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.111" />
@@ -63,7 +63,6 @@
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
 	</ItemGroup>
-
 	<!-- XAML Pages -->
 	<ItemGroup>
 		<MauiXaml Update="Views\CheckingPage.xaml">
@@ -82,7 +81,6 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 	</ItemGroup>
-
 	<!-- Empty Folders -->
 	<ItemGroup>
 		<Folder Include="Platforms\Android\Services\" />
@@ -90,11 +88,11 @@
 		<Folder Include="ViewModels\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <MauiIcon Include="Resources\Images\appicon.png" />
+		<MauiIcon Include="Resources\Images\appicon.png" />
 	</ItemGroup>
 	<ItemGroup>
-	  <MauiAsset Update="Resources\Raw\alarm_sound.mp3">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </MauiAsset>
+		<MauiAsset Update="Resources\Raw\alarm_sound.mp3">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</MauiAsset>
 	</ItemGroup>
 </Project>
