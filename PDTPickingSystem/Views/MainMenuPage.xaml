@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PDTPickingSystem.Views.MainMenuPage"
              Title="LCC Picking System"
-             BackgroundColor="Yellow"
+             BackgroundColor="White"
              Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
@@ -29,7 +29,7 @@
         <!-- 🔹 HEADER -->
         <Grid Row="0"
               ColumnDefinitions="Auto,10,*"
-              BackgroundColor="Black"
+              BackgroundColor="Blue"
               HeightRequest="50"
               VerticalOptions="Start"
               Padding="15,0,0,0">
@@ -46,7 +46,7 @@
                    Text="PDT Picking System"
                    FontSize="16"
                    FontAttributes="Bold"
-                   TextColor="Yellow"
+                   TextColor="White"
                    VerticalOptions="Center"
                    Margin="-5,0,0,0"/>
         </Grid>
@@ -58,7 +58,7 @@
         <Frame Style="{StaticResource CardFrame}"
                Margin="33,70,33,0"
                Padding="0"
-               BackgroundColor="Black"
+               BackgroundColor="Blue"
                CornerRadius="18"
                HasShadow="True"
                HeightRequest="100">
@@ -78,27 +78,27 @@
 
             <!-- First row -->
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-            <Button Text="Start Picking"
+                <Button Text="📦 Start Picking"
                     Clicked="BtnOpt1_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
+                    FontSize="14"
                     Padding="10"
                     CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
-            <Button Text="Start Checking"
+                <Button Text="✅ Start Checking"
                     Clicked="BtnOpt2_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
+                    FontSize="14"
                     Padding="5"
                     CornerRadius="18"
                     FontAttributes="Bold"
@@ -107,27 +107,27 @@
 
         <!-- Second row -->
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-            <Button Text="Set User ID"
+                <Button Text="🧑 Set User ID"
                     Clicked="BtnOpt3_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
+                    FontSize="14"
                     Padding="5"
                     CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
-            <Button Text="Confirm Check"
+                <Button Text="📝 Confirm Check"
                     Clicked="BtnOpt4_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
+                    FontSize="14"
                     Padding="5"
                     CornerRadius="18"
                     FontAttributes="Bold"
@@ -136,14 +136,14 @@
 
         <!-- Third row -->
         <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-            <Button Text="Server Settings"
+                <Button Text="⚙️ Server Settings"
                     Clicked="BtnOpt5_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="285"
                     HeightRequest="60"
-                    FontSize="18"
+                    FontSize="16"
                     Padding="5"
                     CornerRadius="18"
                     FontAttributes="Bold"
@@ -152,28 +152,28 @@
 
         <!-- Fourth row -->
         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-            <Button Text="Set Pick Ref"
+                <Button Text="🏷️ Set Pick Ref"
                     Clicked="BtnOpt6_Clicked"
                     Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Black"
-                    TextColor="Yellow"
+                    BackgroundColor="Blue"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
+                    FontSize="14"
                     Padding="5"
                     CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
 
-            <Button Text="Exit"
+                <Button Text="⏏️ Exit"
                     Clicked="BtnOpt7_Clicked"
                     Style="{StaticResource PrimaryButton}"
                     BackgroundColor="Red"
-                    TextColor="Yellow"
+                    TextColor="White"
                     WidthRequest="140"
                     HeightRequest="60"
-                    FontSize="16"
-                    Padding="5"
+                    FontSize="14"
+                    Padding="-10,0,0,0"
                     CornerRadius="18"
                     FontAttributes="Bold"
                     FontFamily="MontserratRegular"/>
@@ -201,12 +201,12 @@
 
         <!-- App Version -->
         <Grid Grid.Row="1"
-              BackgroundColor="Black"
+              BackgroundColor="Blue"
               Padding="10"
               Margin="-30,-10,-30,0">
             <Label Text="{Binding VersionText}"
                    FontSize="12"
-                   TextColor="Yellow"
+                   TextColor="White"
                    FontAttributes="None"
                    HorizontalOptions="Center"
                    VerticalOptions="End"
