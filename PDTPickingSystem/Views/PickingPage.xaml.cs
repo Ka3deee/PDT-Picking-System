@@ -94,6 +94,28 @@ namespace PDTPickingSystem.Views
         /// </summary>
         private bool _isPickingActive = false;
 
+        // ================== 🚚 LOADING ANIMATION FIELDS ==================
+
+        /// <summary>
+        /// Timer for truck animation
+        /// </summary>
+        private IDispatcherTimer _truckAnimationTimer;
+
+        /// <summary>
+        /// Current truck position (0 to 240)
+        /// </summary>
+        private double _truckPosition = 0;
+
+        /// <summary>
+        /// Timer for loading dots animation
+        /// </summary>
+        private IDispatcherTimer _dotsAnimationTimer;
+
+        /// <summary>
+        /// Current dot animation step (0-3)
+        /// </summary>
+        private int _dotAnimationStep = 0;
+
         // ================== CONSTRUCTOR ==================
 
         public PickingPage()
@@ -119,6 +141,9 @@ namespace PDTPickingSystem.Views
 
             // ✅ NEW: Initialize idle monitoring
             _InitializeIdleMonitoring();
+
+            // ✅ NEW: Initialize loading animations
+            _InitializeLoadingAnimations();
 
             // Page events
             Appearing += PickingPage_Appearing;
@@ -509,6 +534,104 @@ namespace PDTPickingSystem.Views
             }
         }
 
+        // ================== 🚚 LOADING ANIMATION METHODS ==================
+
+        /// <summary>
+        /// Initialize loading screen animations
+        /// </summary>
+        private void _InitializeLoadingAnimations()
+        {
+            // Truck moving animation
+            _truckAnimationTimer = Dispatcher.CreateTimer();
+            _truckAnimationTimer.Interval = TimeSpan.FromMilliseconds(30);
+            _truckAnimationTimer.Tick += TruckAnimationTimer_Tick;
+
+            // Loading dots animation
+            _dotsAnimationTimer = Dispatcher.CreateTimer();
+            _dotsAnimationTimer.Interval = TimeSpan.FromMilliseconds(400);
+            _dotsAnimationTimer.Tick += DotsAnimationTimer_Tick;
+        }
+
+        /// <summary>
+        /// Truck animation tick - moves truck across screen
+        /// </summary>
+        private void TruckAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            _truckPosition += 3; // Move 3 pixels per tick
+
+            // Reset position when truck reaches end
+            if (_truckPosition > 240)
+            {
+                _truckPosition = -80; // Start from left edge (off-screen)
+            }
+
+            // Update truck position
+            truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// Loading dots animation tick - animates three dots
+        /// </summary>
+        private void DotsAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            _dotAnimationStep = (_dotAnimationStep + 1) % 4;
+
+            // Animate dots based on current step
+            switch (_dotAnimationStep)
+            {
+                case 0:
+                    dot1.Opacity = 1;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 0.3;
+                    break;
+                case 1:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 1;
+                    dot3.Opacity = 0.3;
+                    break;
+                case 2:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 1;
+                    break;
+                case 3:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 0.3;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Show loading overlay with truck animation
+        /// </summary>
+        private void _ShowLoading(string message = "Loading...")
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                loadingText.Text = message;
+                pbReq.IsVisible = true;
+                _truckPosition = -80; // Start from left
+                truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
+
+                _truckAnimationTimer.Start();
+                _dotsAnimationTimer.Start();
+            });
+        }
+
+        /// <summary>
+        /// Hide loading overlay
+        /// </summary>
+        private void _HideLoading()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                pbReq.IsVisible = false;
+                _truckAnimationTimer?.Stop();
+                _dotsAnimationTimer?.Stop();
+            });
+        }
+
         // ================== PAGE LIFECYCLE ==================
 
         private async void PickingPage_Appearing(object sender, EventArgs e)
@@ -536,6 +659,9 @@ namespace PDTPickingSystem.Views
 
             // ✅ NEW: Stop idle monitoring and alarm
             _StopIdleMonitoring();
+
+            // ✅ NEW: Stop loading animations
+            _HideLoading();
         }
 
         // ================== FOCUS MANAGEMENT ==================
@@ -958,9 +1084,7 @@ namespace PDTPickingSystem.Views
         private async Task _GetSetPickNoAsync()
         {
             btnFinished.IsVisible = false;
-            pbReq.IsVisible = true;
 
-            // ✅✅✅ ADD THESE LINES ✅✅✅
             string pickSetup = await AppGlobal._GetPickNo();
 
             if (string.IsNullOrEmpty(pickSetup))
@@ -976,7 +1100,6 @@ namespace PDTPickingSystem.Views
                 AppGlobal.isSummary = 2;
                 isSummary = 2;
             }
-            // ✅✅✅ END OF NEW LINES ✅✅✅
 
             int hasUnfinishedTrf = 0;
             string sUserPNo = "";
@@ -1032,6 +1155,12 @@ namespace PDTPickingSystem.Views
 
                     if (requestFromServer)
                     {
+                        // ✅ SHOW LOADING OVERLAY WITH ANIMATION
+                        _ShowLoading("Requesting ...");
+
+                        // 🔑 LET MAUI RENDER THE UI
+                        await Task.Yield(); // critical
+
                         using var updateCmd = new SqlCommand(
                             "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickRef WHERE ID=@UserID",
                             conn);
@@ -1053,10 +1182,7 @@ namespace PDTPickingSystem.Views
                 await DisplayAlert("Error", ex.Message, "OK");
                 await Navigation.PopAsync();
             }
-            finally
-            {
-                pbReq.IsVisible = false;
-            }
+            finally { _requestAlreadyShown = false; }
         }
 
         private async Task _AddSKUtoListAsync()
@@ -1124,7 +1250,7 @@ namespace PDTPickingSystem.Views
                 sSKU = -1;
                 await _GetSKUtoPickAsync();
 
-                // ✅ ADD THIS LINE!
+                // ✅ START IDLE MONITORING
                 _StartIdleMonitoring();
             }
             catch (Exception ex)
@@ -1248,7 +1374,8 @@ namespace PDTPickingSystem.Views
                 }
             }
 
-            pbReq.IsVisible = false;
+            // ✅ HIDE LOADING WITH ANIMATION
+            _HideLoading();
         }
 
         private void _ClearScan(bool bWithBarcode = true)
@@ -1613,8 +1740,12 @@ namespace PDTPickingSystem.Views
                         resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
                         await resetCmd.ExecuteNonQueryAsync();
 
-                        await DisplayAlert("Unable to request!", "No Picking No. available!", "OK");
+                        await DisplayAlert("Unable to request!", "No Picking No. Available!", "OK");
                         await Navigation.PopAsync();
+                        await Task.Delay(500);
+
+                        // ✅ HIDE LOADING WITH ANIMATION
+                        _HideLoading();
                     }
                 }
                 else

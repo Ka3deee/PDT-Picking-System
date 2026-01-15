@@ -44,15 +44,6 @@
 
                 <VerticalStackLayout Spacing="10">
 
-                    <!-- Activity Indicator for server request -->
-                    <ActivityIndicator x:Name="pbReq"
-                        IsRunning="True"
-                        IsVisible="False"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center"
-                        WidthRequest="30"
-                        HeightRequest="30"/>
-
                     <!-- ➤ Store No -->
                     <Grid ColumnDefinitions="120,*"
                           Margin="0,0,0,5" 
@@ -362,8 +353,8 @@
                     </Grid>
 
                     <!-- Barcode Entry with Frame -->
-                        <Frame Grid.Column="1"
-                               Padding="0"
+                    <Frame Grid.Column="1"
+                               Padding="-5"
                                HeightRequest="40"
                                WidthRequest="300"
                                CornerRadius="5"
@@ -371,7 +362,7 @@
                                BorderColor="Gray"
                                VerticalOptions="Center"
                                HorizontalOptions="FillAndExpand">
-                            <Entry x:Name="txtBarcode"
+                        <Entry x:Name="txtBarcode"
                                    VerticalOptions="Center"
                                    HorizontalOptions="FillAndExpand"
                                    BackgroundColor="WhiteSmoke"
@@ -382,7 +373,7 @@
                                    StyleId="txtBarcode"
                                    Focused="Entry_GotFocus"
                                    Unfocused="Entry_LostFocus"/>
-                        </Frame>
+                    </Frame>
 
                     <Grid ColumnDefinitions="50,10,Auto,*" 
                           VerticalOptions="Center" 
@@ -561,7 +552,7 @@
                                         HorizontalTextAlignment="Center"
                                         Focused="Entry_GotFocus"
                                         Unfocused="Entry_LostFocus"
-                                        Margin="5,-2,5,-5"/>   
+                                        Margin="5,-2,5,-5"/>
                             </Frame>
                         </Grid>
                     </Grid>
@@ -887,6 +878,138 @@
                     FontFamily="MontserratRegular"/>
             </VerticalStackLayout>
         </Frame>
+
+        <!-- ================= 🚚 LOADING OVERLAY ================= -->
+        <Frame x:Name="pbReq"
+               IsVisible="False"
+               BackgroundColor="#CC000000"
+               Padding="0"
+               CornerRadius="0"
+               HasShadow="False"
+               BorderColor="Transparent"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               InputTransparent="False"
+               ZIndex="9999">
+
+            <!-- Loading Content -->
+            <Grid VerticalOptions="Fill" 
+                  HorizontalOptions="Fill">
+
+                <!-- White Card Background -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="10"
+                       HasShadow="True"
+                       Padding="20"
+                       WidthRequest="280"
+                       HeightRequest="350"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center">
+
+                    <VerticalStackLayout Spacing="30" 
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="Center">
+
+                        <!-- Animated Truck Container -->
+                        <Grid HeightRequest="110" 
+                              WidthRequest="240"
+                              HorizontalOptions="Center"
+                              Margin="0,-20,0,0">
+
+                            <!-- Road Line -->
+                            <BoxView BackgroundColor="LightGray"
+                                     HeightRequest="5"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Fill"
+                                     Margin="0,40,0,0"/>
+
+                            <!-- Dashed Road Lines -->
+                            <BoxView x:Name="roadDash1"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="20"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="20,40,0,0"/>
+
+                            <BoxView x:Name="roadDash2"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="20"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="70,40,0,0"/>
+
+                            <BoxView x:Name="roadDash3"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="20"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="120,40,0,0"/>
+
+                            <BoxView x:Name="roadDash4"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="20"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="170,40,0,0"/>
+
+                            <BoxView x:Name="roadDash5"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="20"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="220,40,0,0"/>
+
+                            <!-- Animated Truck Image -->
+                            <Image x:Name="truckIcon"
+                                   Source="truck_loading.png"
+                                   WidthRequest="120"
+                                   HeightRequest="120"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Start"
+                                   Aspect="AspectFit"/>
+
+
+                        </Grid>
+
+                        <!-- Loading Text -->
+                        <Label x:Name="loadingText"
+                               Text="Requesting..."
+                               FontFamily="MontserratSemibold"
+                               FontSize="20"
+                               TextColor="Blue"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center"
+                               Margin="0,-30,0,0"/>
+
+                        <!-- Loading Dots Animation -->
+                        <HorizontalStackLayout HorizontalOptions="Center"
+                                               Margin="0,0,0,0"
+                                               Spacing="8">
+                            <Ellipse x:Name="dot1"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                            <Ellipse x:Name="dot2"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                            <Ellipse x:Name="dot3"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                        </HorizontalStackLayout>
+
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+        </Frame>
+
     </Grid>
 
 </ContentPage>
