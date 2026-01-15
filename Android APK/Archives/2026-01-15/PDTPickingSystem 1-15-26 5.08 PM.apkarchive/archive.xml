@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Archive>
+  <Name>PDTPickingSystem</Name>
+  <PackageName>com.lcc.pdtpickingsystem</PackageName>
+  <PackageVersionCode>1</PackageVersionCode>
+  <PackageVersionName>1.0</PackageVersionName>
+  <PackageFormat>apk</PackageFormat>
+  <CreationDate>639040648904705811</CreationDate>
+  <SolutionName>PDTPickingSystem</SolutionName>
+  <SolutionPath>C:\Users\itis7.ta\source\repos\PDTPickingSystem\PDTPickingSystem.sln</SolutionPath>
+  <Status></Status>
+  <MinSdkVersion>21</MinSdkVersion>
+  <Configuration>
+    <DebugMode>false</DebugMode>
+  </Configuration>
+  <Comment />
+  <LastUsedKeystore>C:\Users\itis7.ta\AppData\Local\Xamarin\Mono for Android\Keystore\PDTPickingSystem\PDTPickingSystem.keystore</LastUsedKeystore>
+  <TimeStampingAuthority />
+  <LastInsightsUploadDate>0</LastInsightsUploadDate>
+</Archive>

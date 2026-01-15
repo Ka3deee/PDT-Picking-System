@@ -764,13 +764,26 @@ namespace PDTPickingSystem.Views
 
         private void BtnViewItems_Clicked(object sender, EventArgs e)
         {
+            // ✅ Reset idle timer
+            _ResetIdleTimer();
+
+            // 🔍 DEBUG: Check if we have items
+            System.Diagnostics.Debug.WriteLine($"📊 SKUList.Count = {SKUList.Count}");
+
+            if (SKUList.Count == 0)
+            {
+                DisplayAlert("SKU List Empty!", "SKU List is empty. No items to display.", "OK");
+                return;
+            }
+
             pnlItems.IsVisible = true;
             lblCnt.Text = $"Count: {SKUList.Count}";
-            lvSKU.Focus();
 
             if (!string.IsNullOrWhiteSpace(txtSKU.Text) && SKUList.Count > 0)
             {
                 int index = _getIndexLV();
+                System.Diagnostics.Debug.WriteLine($"📍 Current index = {index}");
+
                 if (index >= 0 && index < SKUList.Count)
                 {
                     lvSKU.ScrollTo(SKUList[index], position: ScrollToPosition.MakeVisible, animate: true);
@@ -905,7 +918,7 @@ namespace PDTPickingSystem.Views
 
                     if (Convert.ToInt32(reader["isChecker"]) != 1)
                     {
-                        await DisplayAlert("System Says", "Only Checker can access this Menu!", "OK");
+                        await DisplayAlert("System Says", "Only Checker can access this option!", "OK");
                         await Navigation.PopAsync();
                         return;
                     }

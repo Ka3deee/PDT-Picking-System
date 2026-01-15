@@ -1156,7 +1156,7 @@ namespace PDTPickingSystem.Views
                     if (requestFromServer)
                     {
                         // ✅ SHOW LOADING OVERLAY WITH ANIMATION
-                        _ShowLoading("Requesting ...");
+                        _ShowLoading("Requesting...");
 
                         // 🔑 LET MAUI RENDER THE UI
                         await Task.Yield(); // critical

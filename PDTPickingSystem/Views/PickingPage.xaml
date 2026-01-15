@@ -927,7 +927,7 @@
                             <BoxView x:Name="roadDash1"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
-                                     WidthRequest="20"
+                                     WidthRequest="25"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="20,40,0,0"/>
@@ -935,7 +935,7 @@
                             <BoxView x:Name="roadDash2"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
-                                     WidthRequest="20"
+                                     WidthRequest="25"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="70,40,0,0"/>
@@ -943,7 +943,7 @@
                             <BoxView x:Name="roadDash3"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
-                                     WidthRequest="20"
+                                     WidthRequest="25"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="120,40,0,0"/>
@@ -951,7 +951,7 @@
                             <BoxView x:Name="roadDash4"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
-                                     WidthRequest="20"
+                                     WidthRequest="25"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="170,40,0,0"/>
@@ -959,7 +959,7 @@
                             <BoxView x:Name="roadDash5"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
-                                     WidthRequest="20"
+                                     WidthRequest="25"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="220,40,0,0"/>
