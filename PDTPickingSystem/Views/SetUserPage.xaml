@@ -27,7 +27,7 @@
     <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
 
         <Frame Style="{StaticResource CardFrame}" 
-               Margin="30,10,30,0"
+               Margin="30,5,30,0"
                Padding="0"
                BackgroundColor="Blue"
                CornerRadius="10"
@@ -48,14 +48,14 @@
                    TextColor="Blue"
                    HorizontalOptions="Center"
                    FontAttributes="Bold"
-                   Margin="0,0,0,0"/>
+                   Margin="0,-10,0,0"/>
 
             <Label x:Name="lblInputUserID"
                    Text="Input User ID:"
                    FontSize="14"
                    TextColor="Black"
                    HorizontalOptions="Center"
-                   Margin="0,-10,0,0"/>
+                   Margin="0,-15,0,0"/>
 
             <!-- User ID Entry -->
         <Frame Style="{StaticResource CardFrame}" 
@@ -67,7 +67,7 @@
                HorizontalOptions="Center"
                WidthRequest="220"
                HeightRequest="60"
-               Margin="0,-5,0,0">
+               Margin="0,-10,0,0">
             <Entry x:Name="txtEENo"
                    Placeholder="Enter User ID"
                    FontSize="16"
@@ -94,6 +94,9 @@
                    FontSize="16"
                    TextColor="Black"
                    HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   VerticalTextAlignment="Center"
                    Margin="0,-10,0,0"/>
 
             <!-- Confirm / Apply Button -->
@@ -133,6 +136,9 @@
                    FontSize="16"
                    TextColor="Black"
                    HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   VerticalTextAlignment="Center"
                    Margin="0,-5,0,0"/>
 
         </VerticalStackLayout>

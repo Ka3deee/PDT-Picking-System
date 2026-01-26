@@ -32,33 +32,52 @@ namespace PDTPickingSystem.Views
         private async void btnApply_Clicked(object sender, EventArgs e)
         {
             string refNumber = txtRefNo.Text?.Trim();
+            System.Diagnostics.Debug.WriteLine($"========================================");
+            System.Diagnostics.Debug.WriteLine($"🔍 btnApply_Clicked START");
+            System.Diagnostics.Debug.WriteLine($"📝 User Input: '{refNumber}'");
+            System.Diagnostics.Debug.WriteLine($"📝 User ID: {AppGlobal.ID_User}");
+            System.Diagnostics.Debug.WriteLine($"📝 Server: {AppGlobal.sServer}");
+
             if (string.IsNullOrWhiteSpace(refNumber))
+            {
+                System.Diagnostics.Debug.WriteLine("❌ Input is empty");
                 return;
+            }
 
             if (!long.TryParse(refNumber, out long refLong))
             {
+                System.Diagnostics.Debug.WriteLine($"❌ Cannot parse '{refNumber}' as number");
                 await DisplayAlert("Error!", "Reference must be numeric.", "OK");
                 return;
             }
 
+            System.Diagnostics.Debug.WriteLine($"✅ Parsed as: {refLong}");
             btnApply.IsEnabled = false;
 
             bool success = await GetRefNumberAsync(refNumber, refLong);
 
-            if (success)
+            System.Diagnostics.Debug.WriteLine($"📊 GetRefNumberAsync returned: {success}");
+            System.Diagnostics.Debug.WriteLine($"📊 _currentRefNumber: '{_currentRefNumber}'");
+            System.Diagnostics.Debug.WriteLine($"📊 _lblNameTag: '{_lblNameTag}'");
+
+            // Match VB logic: check if _currentRefNumber is not empty
+            if (success && !string.IsNullOrEmpty(_currentRefNumber))
             {
-                AppGlobal.pPickNo = _currentRefNumber;         // Equivalent to pPickNo = txtRefNo.Tag
+                System.Diagnostics.Debug.WriteLine("✅ SUCCESS PATH");
+                AppGlobal.pPickNo = _currentRefNumber;
                 lblRefDisplay.Text = $"Reference #: {_currentRefNumber}";
-                await DisplayAlert("Success!", "Picking Reference # Set!", "OK");
-                await Shell.Current.GoToAsync("..");          // Equivalent to Me.Close()
+                await DisplayAlert("OK", "Ref Reference # Set!", "OK");
+                await Shell.Current.GoToAsync("..");
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine("❌ FAILURE PATH");
                 await DisplayAlert("Not Found!", "Picking Reference Number not found!", "OK");
                 MoveCursorToEntry();
             }
 
             btnApply.IsEnabled = true;
+            System.Diagnostics.Debug.WriteLine($"========================================");
         }
 
         // ------------------------------------
@@ -66,30 +85,45 @@ namespace PDTPickingSystem.Views
         // ------------------------------------
         private async Task<bool> GetRefNumberAsync(string refNumber, long refLong)
         {
+            System.Diagnostics.Debug.WriteLine($"🔍 GetRefNumberAsync START - refNumber: '{refNumber}', refLong: {refLong}");
+
+            _currentRefNumber = "";
+            _lblNameTag = "";
+
             SqlConnection conn = await AppGlobal._SQL_Connect();
-            if (conn == null) return false;
+            if (conn == null)
+            {
+                System.Diagnostics.Debug.WriteLine("❌ Connection FAILED");
+                return false;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"✅ Connection SUCCESS");
 
             try
             {
                 bool updateUser = false;
 
-                const string checkQuery = "SELECT SetRef FROM tblOptions WHERE SetRef = @Ref";
+                // Check if reference exists in tblOptions
+                const string checkQuery = "SELECT * FROM tblOptions WHERE SetRef = @Ref";
+
                 using (var cmd = new SqlCommand(checkQuery, conn))
                 {
                     cmd.Parameters.Add("@Ref", System.Data.SqlDbType.BigInt).Value = refLong;
-                    var result = await cmd.ExecuteScalarAsync();
-                    if (result != null && result != DBNull.Value)
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        updateUser = true;
-                        _currentRefNumber = result.ToString();   // txtRefNo.Tag equivalent
-                        _lblNameTag = refNumber;                 // lblName.Tag equivalent
-                        btnApply.Focus();
-                    }
-                    else
-                    {
-                        updateUser = false;
-                        MoveCursorToEntry();                     // sets focus + selects text
-                        return false;
+                        if (await reader.ReadAsync())
+                        {
+                            updateUser = true;
+                            _currentRefNumber = reader["SetRef"].ToString().Trim();
+                            _lblNameTag = refNumber;
+                            System.Diagnostics.Debug.WriteLine($"✅ Found! SetRef={_currentRefNumber}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("❌ No record found");
+                            return false;
+                        }
                     }
                 }
 
@@ -99,15 +133,18 @@ namespace PDTPickingSystem.Views
                     using (var cmd = new SqlCommand(updateQuery, conn))
                     {
                         cmd.Parameters.Add("@Ref", System.Data.SqlDbType.BigInt).Value = refLong;
-                        cmd.Parameters.Add("@UserID", System.Data.SqlDbType.Int).Value = Convert.ToInt32(AppGlobal.ID_User);
+                        cmd.Parameters.Add("@UserID", System.Data.SqlDbType.Int).Value = AppGlobal.ID_User;
                         await cmd.ExecuteNonQueryAsync();
+                        System.Diagnostics.Debug.WriteLine($"✅ User updated");
                     }
                 }
 
-                return true;
+                return updateUser;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ Exception: {ex.Message}");
+                _currentRefNumber = "";
                 return false;
             }
             finally
@@ -157,6 +194,7 @@ namespace PDTPickingSystem.Views
                 // Add logic when lblInputPickRef is added to a parent
             }
         }
+
         // ------------------------------------
         // TEXTCHANGED HANDLER (optional numeric validation)
         // ------------------------------------

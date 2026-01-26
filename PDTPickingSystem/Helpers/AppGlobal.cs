@@ -66,53 +66,78 @@ namespace PDTPickingSystem.Helpers
         public static string SqlPass { get; } = "sa";
 
         private static string BuildConnectionString(string server) =>
-            $"Server={server};Database=dbPicking3;User Id={SqlUser};Password={SqlPass};Encrypt=False;TrustServerCertificate=True;Connect Timeout=3;";
+            $"Server={server};Database=dbPicking3;User Id={SqlUser};Password={SqlPass};Encrypt=False;TrustServerCertificate=True;Connect Timeout=5;";
 
         // ------------------------------
         // SQL CONNECTION
         // ------------------------------
-        public static async Task<SqlConnection?> _SQL_Connect(string testServer = "")
+        // ------------------------------
+        // SQL CONNECTION (VB.NET: _SQL_Connect)
+        // ------------------------------
+        public static async Task<SqlConnection?> _SQL_Connect(string testServer = "", bool isShowError = true)
         {
             try
             {
-                string serverToUse =
-                    string.IsNullOrWhiteSpace(testServer)
-                        ? sServer
-                        : testServer;
+                string serverToUse = string.IsNullOrWhiteSpace(testServer) ? sServer : testServer;
+
+                if (string.IsNullOrEmpty(serverToUse))
+                {
+                    if (isShowError)
+                    {
+                        await Shell.Current.DisplayAlert(
+                            "Connection Error!",
+                            "Server address not configured!",
+                            "OK");
+                    }
+                    return null;
+                }
 
                 var con = new SqlConnection(BuildConnectionString(serverToUse));
 
-                // Connection timeout: 3s for SQL + 4s for Task.WhenAny = max 4 seconds total
-                var openTask = con.OpenAsync();
-                var completed = await Task.WhenAny(openTask, Task.Delay(4000));
+                // ✅ ADD: Log connection state before opening
+                Debug.WriteLine($"Connection state before open: {con.State}");
+                Debug.WriteLine($"Connection string: {con.ConnectionString}");
 
-                if (completed != openTask)
+                await con.OpenAsync();
+
+                // ✅ ADD: Verify it actually opened
+                Debug.WriteLine($"Connection state after open: {con.State}");
+
+                if (con.State != ConnectionState.Open)
                 {
-                    con.Dispose();
-                    return null;
+                    throw new Exception($"Connection failed to open. State: {con.State}");
                 }
 
                 return con;
             }
-            catch
+            catch (Exception ex)
             {
+                // ✅ ADD: More detailed error info
+                Debug.WriteLine($"Connection error: {ex.GetType().Name}: {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                if (isShowError)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Connection Error!",
+                        $"Please retry process and check connection...\n\nDetails: {ex.Message}",
+                        "OK");
+                }
+
                 return null;
             }
         }
 
         public static async Task<bool> _SQL_Connect_Exec(string testServer = "", bool isShowError = true)
         {
-            var con = await _SQL_Connect(testServer);
+            var con = await _SQL_Connect(testServer, isShowError);  // Pass isShowError to avoid double alerts
 
             if (con != null)
-                return true;
-
-            if (isShowError)
             {
-                await Shell.Current.DisplayAlert(
-                    "Connection Error!",
-                    "Please retry process and check connection...",
-                    "OK");
+                // ✅ CRITICAL: Close and dispose the connection
+                await con.CloseAsync();
+                con.Dispose();
+                return true;
             }
 
             return false;

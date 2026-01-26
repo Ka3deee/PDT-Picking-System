@@ -1,4 +1,5 @@
-﻿using Android.Media;
+﻿using Android.Content.Res;
+using Android.Media;
 using Android.OS;
 using Microsoft.Data.SqlClient;
 using Microsoft.Maui.Controls;
@@ -93,6 +94,9 @@ namespace PDTPickingSystem.Views
         /// Flag to track if picking is currently active
         /// </summary>
         private bool _isPickingActive = false;
+
+        // Add this field at the top with other fields
+        private bool _isConfirming = false;
 
         // ================== 🚚 LOADING ANIMATION FIELDS ==================
 
@@ -859,9 +863,19 @@ namespace PDTPickingSystem.Views
                 }
                 else if (txtSKU.Text.Trim() != "" && txtSKU.Text == txtpSKU.Text)
                 {
-                    bool acceptQty = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
-                    if (acceptQty)
+                    // ✅ FIX: Only show confirmation if triggered by button click (sender is not null)
+                    // If sender is null, it means it was called from Entry_BarcodeAndQty_Completed
+                    if (sender != null)
                     {
+                        bool acceptQty = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
+                        if (acceptQty)
+                        {
+                            await _AcceptItemAsync();
+                        }
+                    }
+                    else
+                    {
+                        // Called from pressing Enter - accept directly without confirmation
                         await _AcceptItemAsync();
                     }
                 }
@@ -870,14 +884,27 @@ namespace PDTPickingSystem.Views
 
         private async void BtnConfirm_Clicked(object sender, EventArgs e)
         {
+            // ✅ FIX: Prevent double execution
+            if (_isConfirming)
+                return;
+
             if (!string.IsNullOrEmpty(txtStockerTag))
             {
                 if (int.TryParse(txtStockerTag, out int stockerId))
                 {
-                    ID_Stocker = stockerId;
-                    await DisplayAlert("OK", "Item Confirmed!", "OK");
-                    BtnCancel_Clicked(null, null);
-                    await _AcceptItemAsync();
+                    _isConfirming = true;
+
+                    try
+                    {
+                        ID_Stocker = stockerId;
+                        await DisplayAlert("OK", "Item Confirmed!", "OK");
+                        BtnCancel_Clicked(null, null);
+                        await _AcceptItemAsync();
+                    }
+                    finally
+                    {
+                        _isConfirming = false;
+                    }
                 }
             }
         }
@@ -1187,8 +1214,20 @@ namespace PDTPickingSystem.Views
 
         private async Task _AddSKUtoListAsync()
         {
+            // ✅ UPDATE LOADING MESSAGE
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                loadingText.Text = "Loading picking data...";
+            });
+
             using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null) return;
+            if (conn == null)
+            {
+                // ✅ HIDE LOADING ON CONNECTION FAILURE
+                _HideLoading();
+                await DisplayAlert("Error", "Cannot connect to server!", "OK");
+                return;
+            }
 
             try
             {
@@ -1196,14 +1235,12 @@ namespace PDTPickingSystem.Views
                     $"SELECT * FROM tbl{pPickNo}PickHdr WHERE ID=@ID AND TimeEnd='0'", conn))
                 {
                     cmdHdr.Parameters.AddWithValue("@ID", ID_SumHdr);
-
                     using var readerHdr = await cmdHdr.ExecuteReaderAsync();
                     if (await readerHdr.ReadAsync())
                     {
                         isStarted = readerHdr["TimeStart"].ToString().Trim() != "0";
                         var deptId = Convert.ToInt32(readerHdr["iDept"]);
                         readerHdr.Close();
-
                         if (isSummary == 1)
                         {
                             lblDeptStore.Text = "Department:";
@@ -1223,12 +1260,22 @@ namespace PDTPickingSystem.Views
                     dsData,
                     "PickQty");
 
-                if (!querySuccess || dsData.Tables.Count == 0) return;
+                if (!querySuccess || dsData.Tables.Count == 0)
+                {
+                    // ✅ HIDE LOADING ON QUERY FAILURE
+                    _HideLoading();
+                    await DisplayAlert("Error", "Failed to load picking data!", "OK");
+                    return;
+                }
 
                 pickList.Clear();
 
                 foreach (DataRow dRow in dsData.Tables["PickQty"].Rows)
                 {
+                    // ✅ CHECK IF ITEM WAS ALREADY PICKED
+                    var isPicked = dRow["isPicked"].ToString().Trim() != "0";
+                    var pickedQty = isPicked ? Convert.ToDouble(dRow["PickQty"]) : 0;
+
                     var item = new PickQtyItem
                     {
                         ID = Convert.ToInt32(dRow["ID"]),
@@ -1239,11 +1286,13 @@ namespace PDTPickingSystem.Views
                         Qty = Convert.ToDouble(dRow["Qty"]),
                         UPC = dRow["UPC"].ToString().Trim(),
 
-                        PickedQty = dRow["isPicked"].ToString().Trim() == "0"
-                            ? 0
-                            : Convert.ToDouble(dRow["PickQty"])
-                    };
+                        // ✅ FIX: Only mark as picked if it has quantity > 0
+                        // Items with 0 quantity need stocker confirmation in current session
+                        IsPicked = isPicked && pickedQty > 0,
 
+                        // ✅ SET PickedQty
+                        PickedQty = pickedQty
+                    };
                     pickList.Add(item);
                 }
 
@@ -1255,8 +1304,11 @@ namespace PDTPickingSystem.Views
             }
             catch (Exception ex)
             {
+                // ✅ HIDE LOADING ON EXCEPTION
+                _HideLoading();
                 await DisplayAlert("Error", ex.Message, "OK");
             }
+            // ✅ NOTE: Loading will be hidden in _CountPicked() on successful completion
         }
 
         private async Task _GetSKUtoPickAsync()
@@ -1269,7 +1321,8 @@ namespace PDTPickingSystem.Views
             {
                 for (int i = 0; i < pickList.Count; i++)
                 {
-                    if (pickList[i].PickedQty == 0)
+                    // ✅ FIX: Find first unpicked item using IsPicked flag
+                    if (!pickList[i].IsPicked)
                     {
                         sSKU = i;
                         break;
@@ -1320,8 +1373,9 @@ namespace PDTPickingSystem.Views
                 txtpEach.Text = (eachQty % dSetQty).ToString("N2");
             }
 
-            pbScanned.IsVisible = currentItem.PickedQty > 0;
-            if (currentItem.PickedQty > 0)
+            // ✅ FIX: Use IsPicked flag instead of PickedQty > 0
+            pbScanned.IsVisible = currentItem.IsPicked;
+            if (currentItem.IsPicked)
             {
                 txtSKU.Text = txtpSKU.Text;
                 double pickedQty = currentItem.PickedQty;
@@ -1362,7 +1416,12 @@ namespace PDTPickingSystem.Views
             {
                 foreach (var item in pickList)
                 {
-                    if (item.PickedQty > 0)
+                    // ✅ FIX: Count items that have been picked (includes out-of-stock with 0 qty!)
+                    // This matches VB.NET: If lvI.SubItems(5).Text.Trim <> "" Then
+                    // Items with IsPicked=true include both:
+                    // - Items picked with quantity (e.g., PickedQty=10)
+                    // - Items confirmed as out-of-stock (e.g., PickedQty=0, but IsPicked=true)
+                    if (item.IsPicked)
                         iPicked++;
                 }
 
@@ -1420,7 +1479,9 @@ namespace PDTPickingSystem.Views
             if (sSKU < 0 || sSKU >= pickList.Count) return;
             var lvItem = pickList[sSKU];
 
+            // ✅ UPDATE: Set both PickedQty and IsPicked flag
             lvItem.PickedQty = dQty;
+            lvItem.IsPicked = true;
 
             if (!isStarted)
             {
@@ -1541,15 +1602,11 @@ namespace PDTPickingSystem.Views
             await sqlCmd.ExecuteNonQueryAsync();
 
             ID_Stocker = 0;
-            if (btnNext.IsEnabled)
-            {
-                BtnNavigate_Clicked(btnNext, null);
-            }
-            else
-            {
-                sSKU = -1;
-                await _GetSKUtoPickAsync();
-            }
+
+            // ✅ FIX: Always look for next unpicked item instead of just going to "Next"
+            // This ensures we skip already-picked items and find the next one that needs picking
+            sSKU = -1;
+            await _GetSKUtoPickAsync();
         }
 
         private async Task GetSKUDescrAsync()
@@ -1721,6 +1778,10 @@ namespace PDTPickingSystem.Views
                     {
                         tmrRequest.Stop();
                         AppGlobal.ID_SumHdr = Convert.ToInt32(reader["ID_SumHdr"]);
+
+                        // ✅ DON'T HIDE LOADING HERE - Let it show while data loads
+                        // The loading will be hidden in _CountPicked() after data is ready
+
                         await _AddSKUtoListAsync();
                         return;
                     }
@@ -1740,12 +1801,11 @@ namespace PDTPickingSystem.Views
                         resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
                         await resetCmd.ExecuteNonQueryAsync();
 
+                        // ✅ HIDE LOADING BEFORE SHOWING ERROR ALERT
+                        _HideLoading();
+
                         await DisplayAlert("Unable to request!", "No Picking No. Available!", "OK");
                         await Navigation.PopAsync();
-                        await Task.Delay(500);
-
-                        // ✅ HIDE LOADING WITH ANIMATION
-                        _HideLoading();
                     }
                 }
                 else
@@ -1755,6 +1815,8 @@ namespace PDTPickingSystem.Views
             }
             catch (Exception ex)
             {
+                // ✅ HIDE LOADING ON ERROR
+                _HideLoading();
                 await DisplayAlert("Error!", ex.Message, "OK");
             }
         }
@@ -1848,6 +1910,8 @@ namespace PDTPickingSystem.Views
             public string UPC { get; set; } = "";
             public double Qty { get; set; }
             public double PickedQty { get; set; }
+            //tracks if item was picked/processed
+            public bool IsPicked { get; set; }
 
             public string PickedQtyDisplay
             {

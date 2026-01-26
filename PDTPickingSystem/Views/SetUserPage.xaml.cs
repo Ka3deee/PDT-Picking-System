@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using PDTPickingSystem.Helpers;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace PDTPickingSystem.Views
@@ -56,6 +57,9 @@ namespace PDTPickingSystem.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            // ✅ DEBUG: Check server configuration
+            Debug.WriteLine($"[SetUserPage] OnAppearing - sServer: '{AppGlobal.sServer}'");
 
             // ✅ FIXED: Check if user input should be readonly (VB.NET Line 22)
             bool isReadOnly = await AppGlobal._CheckOption_User();
@@ -181,51 +185,83 @@ namespace PDTPickingSystem.Views
             if (string.IsNullOrWhiteSpace(txtEENo.Text))
                 return;
 
-            // Reference: AppGlobal._SQL_Connect pattern
-            using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null)
-            {
-                await DisplayAlert("Error", "Cannot connect to database!", "OK");
-                return;
-            }
+            Debug.WriteLine($"[GetUserNameAsync] Starting - EENo: {txtEENo.Text}");
+            Debug.WriteLine($"[GetUserNameAsync] Server configured: '{AppGlobal.sServer}'");
+
+            SqlConnection? conn = null;
 
             try
             {
-                // ✅ FIXED: Parameterized query (Reference: AppGlobal.LoadUserInfoAsync)
+                // Show loading indicator
+                actLoading.IsVisible = true;
+                actLoading.IsRunning = true;
+
+                // Get connection
+                Debug.WriteLine("[GetUserNameAsync] Calling _SQL_Connect...");
+                conn = await AppGlobal._SQL_Connect();
+                Debug.WriteLine($"[GetUserNameAsync] Connection returned: {(conn != null ? "SUCCESS" : "NULL")}");
+
+                if (conn == null)
+                {
+                    Debug.WriteLine("[GetUserNameAsync] ERROR: Connection is null");
+                    await DisplayAlert("Error", "Cannot connect to database!\n\nPlease check server configuration.", "OK");
+                    return;
+                }
+
+                // ✅ CRITICAL: Verify connection is actually open
+                Debug.WriteLine($"[GetUserNameAsync] Connection State: {conn.State}");
+
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    Debug.WriteLine($"[GetUserNameAsync] ERROR: Connection not open - State: {conn.State}");
+                    await DisplayAlert("Error",
+                        $"Connection not open.\n\nState: {conn.State}\nServer: {AppGlobal.sServer}",
+                        "OK");
+                    return;
+                }
+
+                Debug.WriteLine("[GetUserNameAsync] Connection verified as OPEN - Executing query...");
+
+                // ✅ Now safe to execute query
                 string sql = "SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName, " +
                             "ID_SumHdr, isStocker, isChecker " +
                             "FROM tblUsers WHERE isActive=1 AND EENo=@EENo";
 
                 using var cmd = new SqlCommand(sql, conn);
-
-                // ✅ Reference: AppGlobal parameter pattern
                 cmd.Parameters.AddWithValue("@EENo", txtEENo.Text.Trim());
 
+                Debug.WriteLine($"[GetUserNameAsync] Executing query for EENo: {txtEENo.Text.Trim()}");
                 using var reader = await cmd.ExecuteReaderAsync();
 
                 if (await reader.ReadAsync())
                 {
-                    // ✅ FIXED: Store ID temporarily (VB Line 79: txtEENo.Tag)
+                    Debug.WriteLine("[GetUserNameAsync] User found!");
+
+                    // ✅ Store ID temporarily
                     _storedUserID = Convert.ToInt32(reader["ID"]);
 
-                    // VB Lines 80-81
-                    lblName.Text = $"( {reader["FullName"].ToString().Trim()} )";
-                    lblNameTag = txtEENo.Text.Trim();  // VB: lblName.Tag = txtEENo.Text
+                    // Set display
+                    lblName.Text = $"( {reader["FullName"].ToString()?.Trim()} )";
+                    lblNameTag = txtEENo.Text.Trim();
 
-                    // ✅ Reference: AppGlobal.isStocker/isChecker pattern (VB Lines 82-83)
+                    // Set stocker/checker flags
                     AppGlobal.isStocker = Convert.ToInt32(reader["isStocker"]);
                     AppGlobal.isChecker = Convert.ToInt32(reader["isChecker"]);
 
-                    // VB Line 84: Focus on Apply button
+                    Debug.WriteLine($"[GetUserNameAsync] User details - ID: {_storedUserID}, Name: {lblName.Text}");
+
+                    // Focus on Apply button
                     Dispatcher.Dispatch(() => btnApply.Focus());
                 }
                 else
                 {
-                    // VB Lines 86-90
+                    Debug.WriteLine("[GetUserNameAsync] User NOT found in database");
+
+                    // User not found
                     await DisplayAlert("Not Found!", "User ID not found!", "OK");
                     lblName.Text = "( Name )";
                     lblNameTag = "";
-                    _storedUserID = 0;  // ✅ ADDED: Reset stored ID
+                    _storedUserID = 0;
 
                     Dispatcher.Dispatch(() =>
                     {
@@ -235,17 +271,56 @@ namespace PDTPickingSystem.Views
                     });
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                Debug.WriteLine($"[GetUserNameAsync] SQL ERROR: {sqlEx.Message}");
+                Debug.WriteLine($"[GetUserNameAsync] SQL ERROR Number: {sqlEx.Number}");
+                Debug.WriteLine($"[GetUserNameAsync] SQL ERROR State: {sqlEx.State}");
+                Debug.WriteLine($"[GetUserNameAsync] Stack Trace: {sqlEx.StackTrace}");
+
+                await DisplayAlert("Database Error",
+                    $"Failed to get user info.\n\n" +
+                    $"SQL Error: {sqlEx.Message}\n" +
+                    $"Error Number: {sqlEx.Number}",
+                    "OK");
+            }
             catch (Exception ex)
             {
-                // Reference: AppGlobal error handling pattern
-                await DisplayAlert("Error", $"Failed to get user info.\n{ex.Message}", "OK");
-                System.Diagnostics.Debug.WriteLine($"GetUserNameAsync error: {ex}");
+                Debug.WriteLine($"[GetUserNameAsync] GENERAL ERROR: {ex.GetType().Name}");
+                Debug.WriteLine($"[GetUserNameAsync] Message: {ex.Message}");
+                Debug.WriteLine($"[GetUserNameAsync] Stack Trace: {ex.StackTrace}");
+
+                await DisplayAlert("Error",
+                    $"Failed to get user info.\n\n" +
+                    $"Error: {ex.Message}\n" +
+                    $"Type: {ex.GetType().Name}",
+                    "OK");
             }
             finally
             {
-                // Reference: AppGlobal connection closing pattern
-                if (conn?.State == System.Data.ConnectionState.Open)
-                    await conn.CloseAsync();
+                // Hide loading indicator
+                actLoading.IsRunning = false;
+                actLoading.IsVisible = false;
+
+                // ✅ CRITICAL: Properly close and dispose connection
+                if (conn != null)
+                {
+                    Debug.WriteLine($"[GetUserNameAsync] Finally block - Connection State: {conn.State}");
+
+                    if (conn.State == System.Data.ConnectionState.Open)
+                    {
+                        Debug.WriteLine("[GetUserNameAsync] Closing connection...");
+                        await conn.CloseAsync();
+                    }
+
+                    Debug.WriteLine("[GetUserNameAsync] Disposing connection...");
+                    conn.Dispose();
+                    Debug.WriteLine("[GetUserNameAsync] Connection disposed");
+                }
+                else
+                {
+                    Debug.WriteLine("[GetUserNameAsync] Finally block - Connection was null");
+                }
             }
         }
 
