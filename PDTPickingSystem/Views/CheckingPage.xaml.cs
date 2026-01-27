@@ -669,7 +669,7 @@ namespace PDTPickingSystem.Views
             // ✅ ADDED: Stop idle monitoring when finishing
             _StopIdleMonitoring();
 
-            bool answer = await DisplayAlert("System Says", "Done Checking? Please Verify", "Yes", "No");
+            bool answer = await DisplayAlert("System Says", "Done Checking? Please Verify.", "Yes", "No");
             if (!answer)
             {
                 // ✅ ADDED: Restart monitoring if user cancels
@@ -1000,7 +1000,7 @@ namespace PDTPickingSystem.Views
                     }
                     else
                     {
-                        txtDeptStore.Text = await _GetStoreNoAsync();
+                        txtDeptStore.Text = await AppGlobal._GetStoreNo();
                     }
 
                     lblPicker.Text = " Picker : " + await AppGlobal._GetUserName(reader["User_ID"].ToString());
@@ -1020,10 +1020,10 @@ namespace PDTPickingSystem.Views
                 // Load PickQty data
                 var dsData = new DataSet();
                 string cmdData = $@"
-                    SELECT a.*, b.toLoc, b.Tranno 
+                    SELECT a.*, b.ToLoc, b.TranNo 
                     FROM tbl{AppGlobal.pPickNo}PickQty a 
                     LEFT JOIN (
-                        SELECT DISTINCT id_sumhdr, toLoc, Tranno 
+                        SELECT DISTINCT id_sumhdr, ToLoc, TranNo 
                         FROM tbl{AppGlobal.pPickNo}PickDtl
                     ) b ON a.id_sumhdr = b.id_sumhdr 
                     WHERE a.ID_SumHdr=@SumHdr 
@@ -1078,8 +1078,8 @@ namespace PDTPickingSystem.Views
                 if (dsData.Tables[0].Rows.Count > 0)
                 {
                     var firstRow = dsData.Tables[0].Rows[0];
-                    lblLoc.Text = "Location: " + firstRow["toLoc"].ToString();
-                    lblTrf.Text = "Transfer # : " + firstRow["Tranno"].ToString();
+                    lblLoc.Text = "Location: " + firstRow["ToLoc"].ToString();
+                    lblTrf.Text = "Transfer # : " + firstRow["TranNo"].ToString();
                 }
 
                 dsData.Tables.Clear();
@@ -1144,10 +1144,14 @@ namespace PDTPickingSystem.Views
             int iPicked = SKUList.Count(item => !string.IsNullOrWhiteSpace(item.ChkQty));
             txtDone.Text = $"{iPicked}/{SKUList.Count}";
 
-            // Always show finish button if any items are checked or if list has items
-            if (iPicked > 0 || iPicked == 0)
+            // ✅ Show button only when all items are checked
+            if (iPicked == SKUList.Count && SKUList.Count > 0)
             {
                 btnFinished.IsVisible = true;
+            }
+            else
+            {
+                btnFinished.IsVisible = false;
             }
 
             pbReq.IsVisible = false;
@@ -1580,28 +1584,6 @@ namespace PDTPickingSystem.Views
                 }
             }
             return -1;
-        }
-
-        /// <summary>
-        /// Get store number
-        /// </summary>
-        private async Task<string> _GetStoreNoAsync()
-        {
-            string storeNo = "";
-
-            using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null)
-                return storeNo;
-
-            string query = $"SELECT ToLoc FROM tbl{AppGlobal.pPickNo}PickHdr WHERE ID=@SumHdr";
-            using var cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
-
-            using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-                storeNo = reader["ToLoc"].ToString().Trim();
-
-            return storeNo;
         }
 
         /// <summary>

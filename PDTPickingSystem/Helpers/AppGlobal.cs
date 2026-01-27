@@ -348,22 +348,25 @@ namespace PDTPickingSystem.Helpers
         // ------------------------------
         public static async Task<string> _GetStoreNo()
         {
-            using var con = await _SQL_Connect();
+            using var con = await _SQL_Connect(isShowError: false);
             if (con != null)
             {
                 try
                 {
-                    string sql = $"SELECT DISTINCT ToLoc FROM tbl{pPickNo}PickDtl WHERE ID_SumHdr={ID_SumHdr}";
+                    // ✅ CORRECT: ToLoc (capital 'L') - matches database
+                    string sql = $"SELECT DISTINCT ToLoc FROM tbl{pPickNo}PickDtl WHERE ID_SumHdr=@ID_SumHdr";
 
                     using var cmd = new SqlCommand(sql, con);
+                    cmd.Parameters.AddWithValue("@ID_SumHdr", ID_SumHdr);
+
                     using var reader = await cmd.ExecuteReaderAsync();
 
                     if (await reader.ReadAsync())
-                        return reader[0]?.ToString() ?? "";
+                        return reader["ToLoc"]?.ToString()?.Trim() ?? ""; // ✅ ToLoc
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore
+                    Debug.WriteLine($"_GetStoreNo error: {ex.Message}");
                 }
             }
             return "";
@@ -601,6 +604,10 @@ namespace PDTPickingSystem.Helpers
 
             return false;
         }
+        /// <summary>
+        /// Get user's full name by ID
+        /// VB.NET Reference: modPubs._GetUserName() Line 309-320
+        /// </summary>
         public static async Task<string> _GetUserName(string ee)
         {
             using var con = await _SQL_Connect();
@@ -609,20 +616,39 @@ namespace PDTPickingSystem.Helpers
 
             try
             {
-                string sql = $"SELECT ID, (LName + ', ' + FName + ' ' + MI) AS FullName " +
-                             $"FROM tblUsers WHERE isActive=1 AND ID = {Convert.ToInt32(ee)}";
+                // ✅ VB.NET Line 312: Parse string to int, handle invalid values
+                int userId = 0;
+                if (!int.TryParse(ee, out userId) || userId == 0)
+                {
+                    Debug.WriteLine($"❌ Invalid user ID: {ee}");
+                    return "";
+                }
+
+                // ✅ VB.NET Line 313: Get user's full name
+                string sql = "SELECT ID, (LName + ', ' + FName + ' ' + MI) as FullName " +
+                             "FROM tblUsers WHERE isActive=1 AND id=@UserID";
 
                 using var cmd = new SqlCommand(sql, con);
-                using var reader = await cmd.ExecuteReaderAsync();
+                cmd.Parameters.AddWithValue("@UserID", userId);
 
+                using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return reader["FullName"]?.ToString()?.Trim() ?? "";
+                    string fullName = reader["FullName"] != DBNull.Value
+                        ? reader["FullName"].ToString().Trim()
+                        : "";
+
+                    Debug.WriteLine($"✅ User ID {userId} = {fullName}");
+                    return fullName;
+                }
+                else
+                {
+                    Debug.WriteLine($"❌ User ID {userId} not found in database");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // optionally log exception
+                Debug.WriteLine($"❌ _GetUserName error: {ex.Message}");
             }
 
             return "";
