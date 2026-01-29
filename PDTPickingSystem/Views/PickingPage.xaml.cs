@@ -53,6 +53,9 @@ namespace PDTPickingSystem.Views
         private bool _requestAlreadyShown = false;
         private bool _requestFailedShown = false;
 
+        // Add this field
+        private bool _isAccepting = false;
+
         // ================== ✅ NEW: IDLE MONITORING FIELDS ==================
 
         /// <summary>
@@ -837,48 +840,44 @@ namespace PDTPickingSystem.Views
 
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
-            // ✅ ADDED: Reset idle timer on button click
+            if (_isAccepting)
+                return;
+
+            _isAccepting = true;
             _ResetIdleTimer();
 
-            if (!string.IsNullOrEmpty(txtEach.Text) && !string.IsNullOrEmpty(txtCase.Text) &&
-                double.TryParse(txtEach.Text, out double eachQty) && eachQty >= 0 &&
-                double.TryParse(txtCase.Text, out double caseQty) && caseQty >= 0)
+            try
             {
-                if (eachQty == 0 && caseQty == 0)
+                if (!string.IsNullOrEmpty(txtEach.Text) && !string.IsNullOrEmpty(txtCase.Text) &&
+                    double.TryParse(txtEach.Text, out double eachQty) && eachQty >= 0 &&
+                    double.TryParse(txtCase.Text, out double caseQty) && caseQty >= 0)
                 {
-                    bool acceptZero = await DisplayAlert("Accept?",
-                        "You have entered 0 in quantity.\nMeaning, the item is not available.\n\nAccept 0 quantity?",
-                        "Yes", "No");
+                    if (eachQty == 0 && caseQty == 0)
+                    {
+                        bool acceptZero = await DisplayAlert("Accept?",
+                            "You have entered 0 in quantity.\nMeaning, the item is not available.\n\nAccept 0 quantity?",
+                            "Yes", "No");
 
-                    if (acceptZero)
-                    {
-                        pnlNavigate.IsVisible = true;
-                        pnlInput.IsVisible = true;
-                        txtStocker.Text = "";
-                        txtStockerTag = "";
-                        txtStocker.IsReadOnly = await AppGlobal._CheckOption_StockerAsync();
-                        pnlConfirm.IsVisible = true;
-                        txtStocker.Focus();
-                    }
-                }
-                else if (txtSKU.Text.Trim() != "" && txtSKU.Text == txtpSKU.Text)
-                {
-                    // ✅ FIX: Only show confirmation if triggered by button click (sender is not null)
-                    // If sender is null, it means it was called from Entry_BarcodeAndQty_Completed
-                    if (sender != null)
-                    {
-                        bool acceptQty = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
-                        if (acceptQty)
+                        if (acceptZero)
                         {
-                            await _AcceptItemAsync();
+                            pnlNavigate.IsVisible = true;
+                            pnlInput.IsVisible = true;
+                            txtStocker.Text = "";
+                            txtStockerTag = "";
+                            txtStocker.IsReadOnly = await AppGlobal._CheckOption_StockerAsync();
+                            pnlConfirm.IsVisible = true;
+                            txtStocker.Focus();
                         }
                     }
-                    else
+                    else if (txtSKU.Text.Trim() != "" && txtSKU.Text == txtpSKU.Text)
                     {
-                        // Called from pressing Enter - accept directly without confirmation
                         await _AcceptItemAsync();
                     }
                 }
+            }
+            finally
+            {
+                _isAccepting = false;
             }
         }
 
@@ -888,23 +887,27 @@ namespace PDTPickingSystem.Views
             if (_isConfirming)
                 return;
 
-            if (!string.IsNullOrEmpty(txtStockerTag))
+            // ✅ FIX: Check if stocker data is validated FIRST
+            if (string.IsNullOrEmpty(txtStockerTag))
             {
-                if (int.TryParse(txtStockerTag, out int stockerId))
-                {
-                    _isConfirming = true;
+                await DisplayAlert("Error", "Please enter and validate Stocker ID first!", "OK");
+                txtStocker.Focus();
+                return;
+            }
 
-                    try
-                    {
-                        ID_Stocker = stockerId;
-                        await DisplayAlert("OK", "Item Confirmed!", "OK");
-                        BtnCancel_Clicked(null, null);
-                        await _AcceptItemAsync();
-                    }
-                    finally
-                    {
-                        _isConfirming = false;
-                    }
+            if (int.TryParse(txtStockerTag, out int stockerId))
+            {
+                _isConfirming = true;
+                try
+                {
+                    ID_Stocker = stockerId;
+                    await DisplayAlert("OK", "Item Confirmed!", "OK");
+                    BtnCancel_Clicked(null, null);
+                    await _AcceptItemAsync();
+                }
+                finally
+                {
+                    _isConfirming = false;
                 }
             }
         }
@@ -1743,12 +1746,20 @@ namespace PDTPickingSystem.Views
                     ID_Stocker = Convert.ToInt32(reader["ID"]);
                     txtStockerTag = reader["ID"].ToString().Trim();
 
+                    // ✅ FIX: Don't auto-click, just show name and let user click Confirm button
                     await DisplayAlert("Stocker Name:", reader["FullName"].ToString().Trim(), "OK");
-                    btnConfirm.Focus();
+
+                    // ✅ Make the confirm button more visible/enabled
+                    btnConfirm.IsEnabled = true;
+                    btnConfirm.Opacity = 1.0;
                 }
                 else
                 {
                     txtStockerTag = "";
+                    ID_Stocker = 0;
+                    btnConfirm.IsEnabled = false;  // ✅ Disable if invalid
+                    btnConfirm.Opacity = 0.5;      // ✅ Make it look disabled
+
                     await DisplayAlert("Not Found!", "Stocker ID not found!", "OK");
                     txtStocker.Focus();
                     txtStocker.CursorPosition = 0;

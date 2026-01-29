@@ -59,7 +59,7 @@ namespace PDTPickingSystem.Views
         private MainMenuPage _mainMenu;
 
         // Summary mode
-        private int isSummary = 0;
+        private int isSummary = 2;
 
         // ================== ✅ NEW: IDLE MONITORING FIELDS ==================
 
@@ -950,7 +950,7 @@ namespace PDTPickingSystem.Views
                             WHERE ID=@UserID";
 
                         using var updateSqlCmd = new SqlCommand(updateCmd, conn);
-                        updateSqlCmd.Parameters.AddWithValue("@Summary", isSummary);
+                        updateSqlCmd.Parameters.AddWithValue("@Summary", 2);
                         updateSqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
                         updateSqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
                         await updateSqlCmd.ExecuteNonQueryAsync();
