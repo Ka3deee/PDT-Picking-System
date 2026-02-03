@@ -1131,7 +1131,6 @@ namespace PDTPickingSystem.Views
                 isSummary = 2;
             }
 
-            int hasUnfinishedTrf = 0;
             string sUserPNo = "";
 
             using var conn = await AppGlobal._SQL_Connect();
@@ -1145,6 +1144,7 @@ namespace PDTPickingSystem.Views
 
             try
             {
+                // ✅ FIX: Read user's picking session info
                 using (var sqlCmd = new SqlCommand(
                     "SELECT ID_SumHdr, PickRef FROM tblUsers WHERE ID=@UserID", conn))
                 {
@@ -1153,66 +1153,78 @@ namespace PDTPickingSystem.Views
                     using var reader = await sqlCmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
-                        AppGlobal.ID_SumHdr = reader["ID_SumHdr"] != DBNull.Value
-                            ? Convert.ToInt32(reader["ID_SumHdr"])
+                        // ✅ CRITICAL: Update BOTH variables
+                        long dbSumHdr = reader["ID_SumHdr"] != DBNull.Value
+                            ? Convert.ToInt64(reader["ID_SumHdr"])
                             : 0;
+
+                        AppGlobal.ID_SumHdr = dbSumHdr;
+                        ID_SumHdr = dbSumHdr;  // ← SYNC LOCAL VARIABLE
+
+                        // ✅ DEBUG LOG
+                        System.Diagnostics.Debug.WriteLine($"📊 Read from DB - ID_SumHdr: {ID_SumHdr}");
 
                         if (reader["PickRef"] != DBNull.Value)
                         {
-                            if (Convert.ToInt64(reader["PickRef"]) != 0)
+                            long pickRefValue = Convert.ToInt64(reader["PickRef"]);
+                            if (pickRefValue != 0)
                             {
-                                sUserPNo = reader["PickRef"].ToString().Trim();
+                                sUserPNo = pickRefValue.ToString().Trim();
+                                System.Diagnostics.Debug.WriteLine($"📊 PickRef: {sUserPNo}, pPickNo: {AppGlobal.pPickNo}");
                             }
                         }
                     }
                 }
 
-                if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
+                // ✅ CRITICAL: Check if user has active picking session
+                if (ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
+                    System.Diagnostics.Debug.WriteLine("✅ Found existing picking session - loading data...");
+
+                    // ✅ Show loading immediately
+                    _ShowLoading("Loading existing picking session...");
+                    await Task.Yield();
+
+                    // ✅ Load data directly
                     await _AddSKUtoListAsync();
                     return;
                 }
 
-                if (!_requestAlreadyShown)
+                System.Diagnostics.Debug.WriteLine($"❌ No existing session - requesting new one. ID_SumHdr={ID_SumHdr}, sUserPNo={sUserPNo}");
+
+                // ✅ No active session - request from server
+                bool requestFromServer = await DisplayAlert(
+                    "Requesting...",
+                    "Request from server?",
+                    "Yes",
+                    "No");
+
+                if (requestFromServer)
                 {
-                    _requestAlreadyShown = true;
+                    _ShowLoading("Requesting...");
+                    await Task.Yield();
 
-                    bool requestFromServer = await DisplayAlert(
-                        "Requesting...",
-                        "Request from server?",
-                        "Yes",
-                        "No");
+                    using var updateCmd = new SqlCommand(
+                        "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickRef WHERE ID=@UserID",
+                        conn);
+                    updateCmd.Parameters.AddWithValue("@Summary", AppGlobal.isSummary);
+                    updateCmd.Parameters.AddWithValue("@PickRef", AppGlobal.pPickNo);
+                    updateCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                    await updateCmd.ExecuteNonQueryAsync();
 
-                    if (requestFromServer)
-                    {
-                        // ✅ SHOW LOADING OVERLAY WITH ANIMATION
-                        _ShowLoading("Requesting...");
-
-                        // 🔑 LET MAUI RENDER THE UI
-                        await Task.Yield(); // critical
-
-                        using var updateCmd = new SqlCommand(
-                            "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickRef WHERE ID=@UserID",
-                            conn);
-                        updateCmd.Parameters.AddWithValue("@Summary", AppGlobal.isSummary);
-                        updateCmd.Parameters.AddWithValue("@PickRef", AppGlobal.pPickNo);
-                        updateCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                        await updateCmd.ExecuteNonQueryAsync();
-
-                        tmrRequest.Start();
-                    }
-                    else
-                    {
-                        await Navigation.PopAsync();
-                    }
+                    tmrRequest.Start();
+                }
+                else
+                {
+                    await Navigation.PopAsync();
                 }
             }
             catch (Exception ex)
             {
+                _HideLoading();
                 await DisplayAlert("Error", ex.Message, "OK");
                 await Navigation.PopAsync();
             }
-            finally { _requestAlreadyShown = false; }
         }
 
         private async Task _AddSKUtoListAsync()
@@ -1780,7 +1792,7 @@ namespace PDTPickingSystem.Views
                 if (conn == null) return;
 
                 using (var cmd = new SqlCommand(
-                    "SELECT * FROM tblUsers WHERE ID=@ID AND ID_SumHdr<>0", conn))
+                    "SELECT ID_SumHdr FROM tblUsers WHERE ID=@ID AND ID_SumHdr<>0", conn))
                 {
                     cmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
 
@@ -1788,10 +1800,13 @@ namespace PDTPickingSystem.Views
                     if (await reader.ReadAsync())
                     {
                         tmrRequest.Stop();
-                        AppGlobal.ID_SumHdr = Convert.ToInt32(reader["ID_SumHdr"]);
 
-                        // ✅ DON'T HIDE LOADING HERE - Let it show while data loads
-                        // The loading will be hidden in _CountPicked() after data is ready
+                        // ✅ FIX: Update BOTH variables
+                        long dbSumHdr = Convert.ToInt64(reader["ID_SumHdr"]);
+                        AppGlobal.ID_SumHdr = dbSumHdr;
+                        ID_SumHdr = dbSumHdr;  // ← SYNC LOCAL
+
+                        System.Diagnostics.Debug.WriteLine($"✅ Server assigned ID_SumHdr: {ID_SumHdr}");
 
                         await _AddSKUtoListAsync();
                         return;
@@ -1812,7 +1827,6 @@ namespace PDTPickingSystem.Views
                         resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
                         await resetCmd.ExecuteNonQueryAsync();
 
-                        // ✅ HIDE LOADING BEFORE SHOWING ERROR ALERT
                         _HideLoading();
 
                         await DisplayAlert("Unable to request!", "No Picking No. Available!", "OK");
@@ -1826,7 +1840,6 @@ namespace PDTPickingSystem.Views
             }
             catch (Exception ex)
             {
-                // ✅ HIDE LOADING ON ERROR
                 _HideLoading();
                 await DisplayAlert("Error!", ex.Message, "OK");
             }
