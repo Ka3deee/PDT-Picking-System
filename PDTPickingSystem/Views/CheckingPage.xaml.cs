@@ -1,16 +1,18 @@
 ﻿using Android.Media.TV;
 using Android.OS;
+using Microsoft.Data.SqlClient;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 using PDTPickingSystem.Helpers;
+using Plugin.Maui.Audio; // ✅ NEW: For alarm sound
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using System.Collections.ObjectModel;
-using Microsoft.Maui.Dispatching;
-using Plugin.Maui.Audio; // ✅ NEW: For alarm sound
 
 namespace PDTPickingSystem.Views
 {
@@ -102,6 +104,12 @@ namespace PDTPickingSystem.Views
         /// Flag to track if checking is currently active
         /// </summary>
         private bool _isCheckingActive = false;
+        // Add this field at the top with other fields
+        private bool _isAccepting = false;
+        // Add this field at the top with other fields
+        private bool _isFinishing = false;
+        // Add this with other private fields
+        private bool _isShowingAlert = false;
 
         // ================== CONSTRUCTOR ==================
 
@@ -560,43 +568,67 @@ namespace PDTPickingSystem.Views
 
         private async void Entry_Completed(object sender, EventArgs e)
         {
-            // ✅ ADDED: Reset idle timer on entry completion
-            _ResetIdleTimer();
-
-            var entry = sender as Entry;
-            if (entry == null) return;
-
-            if (entry.Text != null && entry.Text.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
-            {
-                entry.Text = "";
+            // ✅ FIX: Prevent multiple simultaneous executions
+            if (_isShowingAlert)
                 return;
-            }
 
-            pbScanned.IsVisible = false;
-            txtDesc.Text = string.Empty;
+            _isShowingAlert = true;
 
-            if (entry == txtBarcode)
+            try
             {
-                txtBarcode.Text = double.TryParse(txtBarcode.Text.Trim(), out double val)
-                    ? val.ToString()
-                    : txtBarcode.Text;
+                // ✅ ADDED: Reset idle timer on entry completion
+                _ResetIdleTimer();
 
-                if (!_isUPCFound(txtBarcode.Text.Trim()))
+                var entry = sender as Entry;
+                if (entry == null) return;
+
+                if (entry.Text != null && entry.Text.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
                 {
-                    await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
-                    _ClearScan();
+                    entry.Text = "";
+                    return;
+                }
+
+                pbScanned.IsVisible = false;
+                txtDesc.Text = string.Empty;
+
+                if (entry == txtBarcode)
+                {
+                    txtBarcode.Text = double.TryParse(txtBarcode.Text.Trim(), out double val)
+                        ? val.ToString()
+                        : txtBarcode.Text;
+
+                    var result = await _isUPCFound(txtBarcode.Text.Trim());
+
+                    // ✅ Only show "Mismatch" if barcode was NOT found (false)
+                    // Don't show if already checked (null) or found successfully (true)
+                    if (result == false)
+                    {
+                        await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
+                        _ClearScan();
+                    }
+                    else if (result == null)
+                    {
+                        // Already checked - alert already shown in _isUPCFound
+                        _ClearScan();
+                    }
+                    // else result == true, item loaded successfully, do nothing
+                }
+                else if (entry == txtCase)
+                {
+                    txtCase.SelectionLength = 0;
+                    txtEach.Focus();
+                    txtEach.CursorPosition = 0;
+                    txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
+                }
+                else if (entry == txtEach)
+                {
+                    BtnAccept_Clicked(null, null);
                 }
             }
-            else if (entry == txtCase)
+            finally
             {
-                txtCase.SelectionLength = 0;
-                txtEach.Focus();
-                txtEach.CursorPosition = 0;
-                txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
-            }
-            else if (entry == txtEach)
-            {
-                BtnAccept_Clicked(null, null);
+                // ✅ Reset flag after completion
+                _isShowingAlert = false;
             }
         }
 
@@ -645,120 +677,148 @@ namespace PDTPickingSystem.Views
 
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
-            // ✅ ADDED: Reset idle timer on button click
-            _ResetIdleTimer();
-
-            if (string.IsNullOrWhiteSpace(txtSKU.Text))
+            // ✅ FIX: Prevent double-clicking
+            if (_isAccepting)
                 return;
 
-            if (!string.IsNullOrWhiteSpace(txtEach.Text) &&
-                !string.IsNullOrWhiteSpace(txtCase.Text) &&
-                double.TryParse(txtEach.Text, out double eachVal) && eachVal >= 0 &&
-                double.TryParse(txtCase.Text, out double caseVal) && caseVal >= 0)
+            _isAccepting = true;
+
+            try
             {
-                bool answer = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
-                if (answer)
+                // ✅ Reset idle timer on button click
+                _ResetIdleTimer();
+
+                if (string.IsNullOrWhiteSpace(txtSKU.Text))
+                    return;
+
+                if (!string.IsNullOrWhiteSpace(txtEach.Text) &&
+                    !string.IsNullOrWhiteSpace(txtCase.Text) &&
+                    double.TryParse(txtEach.Text, out double eachVal) && eachVal >= 0 &&
+                    double.TryParse(txtCase.Text, out double caseVal) && caseVal >= 0)
                 {
-                    await _AcceptItemAsync();
+                    bool answer = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
+                    if (answer)
+                    {
+                        await _AcceptItemAsync();
+                    }
                 }
+            }
+            finally
+            {
+                // ✅ Reset the flag when done
+                _isAccepting = false;
             }
         }
 
         private async void BtnFinished_Clicked(object sender, EventArgs e)
         {
-            // ✅ ADDED: Stop idle monitoring when finishing
-            _StopIdleMonitoring();
-
-            bool answer = await DisplayAlert("System Says", "Done Checking? Please Verify.", "Yes", "No");
-            if (!answer)
-            {
-                // ✅ ADDED: Restart monitoring if user cancels
-                _StartIdleMonitoring();
+            // ✅ FIX: Prevent double-clicking
+            if (_isFinishing)
                 return;
-            }
 
-            answer = await DisplayAlert("Finish?", "Finish Checking?", "Yes", "No");
-            if (!answer)
-            {
-                // ✅ ADDED: Restart monitoring if user cancels
-                _StartIdleMonitoring();
-                return;
-            }
-
-            using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null)
-            {
-                await DisplayAlert("No Connection!", "Cannot connect to server!", "OK");
-                _StartIdleMonitoring(); // ✅ ADDED: Restart monitoring
-                return;
-            }
+            _isFinishing = true;
 
             try
             {
-                using var sqlCmd = conn.CreateCommand();
+                // ✅ Stop idle monitoring when finishing
+                _StopIdleMonitoring();
 
-                // Update items with zero checked quantity
-                foreach (var skuItem in SKUList)
+                bool answer = await DisplayAlert("Done Checking?", "Done Checking? Please Verify.", "Yes", "No");
+                if (!answer)
                 {
-                    if (string.IsNullOrEmpty(skuItem.ChkQty) ||
-                        (double.TryParse(skuItem.ChkQty, out double chkQtyVal) && chkQtyVal == 0))
-                    {
-                        sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                             "isUpdate=1, checkTime='00:00:00', isCSorted=1, CheckBy=@UserID " +
-                                             "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
-                        sqlCmd.Parameters.Clear();
-                        sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                        sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
-                        sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
-                        await sqlCmd.ExecuteNonQueryAsync();
-                    }
-
-                    // Update items with multiple slots
-                    if (!string.IsNullOrEmpty(skuItem.Slot) && skuItem.Slot.Split(',').Length > 1)
-                    {
-                        sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                             "isCSorted=1, CheckBy=@UserID " +
-                                             "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
-                        sqlCmd.Parameters.Clear();
-                        sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                        sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
-                        sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
-                        await sqlCmd.ExecuteNonQueryAsync();
-                    }
+                    // ✅ Restart monitoring if user cancels
+                    _StartIdleMonitoring();
+                    return;
                 }
 
-                // Update PickQty table
-                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty SET isChecked=1 WHERE id_sumhdr=@ID_SumHdr";
-                sqlCmd.Parameters.Clear();
-                sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
-                await sqlCmd.ExecuteNonQueryAsync();
+                answer = await DisplayAlert("Finished?", "Finish Checking?", "Yes", "No");
+                if (!answer)
+                {
+                    // ✅ Restart monitoring if user cancels
+                    _StartIdleMonitoring();
+                    return;
+                }
 
-                // Update PickHdr table
-                string updateChkStart = scanCount < 1 ? "chkStart=@chkStart," : "";
-                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr SET " +
-                                     $"{updateChkStart}isUpdate=1, chkEnd=@chkEnd, chkDateDone=@chkDateDone " +
-                                     "WHERE ID=@ID_SumHdr";
-                sqlCmd.Parameters.Clear();
-                if (scanCount < 1)
-                    sqlCmd.Parameters.AddWithValue("@chkStart", await AppGlobal._GetDateTime());
-                sqlCmd.Parameters.AddWithValue("@chkEnd", await AppGlobal._GetDateTime());
-                sqlCmd.Parameters.AddWithValue("@chkDateDone", await AppGlobal._GetDateTime(true));
-                sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
-                await sqlCmd.ExecuteNonQueryAsync();
+                using var conn = await AppGlobal._SQL_Connect();
+                if (conn == null)
+                {
+                    await DisplayAlert("No Connection!", "Cannot connect to server!", "OK");
+                    _StartIdleMonitoring(); // ✅ Restart monitoring
+                    return;
+                }
 
-                // Reset user sum header
-                sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
-                sqlCmd.Parameters.Clear();
-                sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                await sqlCmd.ExecuteNonQueryAsync();
+                try
+                {
+                    using var sqlCmd = conn.CreateCommand();
 
-                scanCount = 0;
-                await _GetSetPickNoAsync();
+                    // Update items with zero checked quantity
+                    foreach (var skuItem in SKUList)
+                    {
+                        if (string.IsNullOrEmpty(skuItem.ChkQty) ||
+                            (double.TryParse(skuItem.ChkQty, out double chkQtyVal) && chkQtyVal == 0))
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                                 "isUpdate=1, checkTime='00:00:00', isCSorted=1, CheckBy=@UserID " +
+                                                 "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
+                            sqlCmd.Parameters.Clear();
+                            sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                            sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
+                            sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                            await sqlCmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Update items with multiple slots
+                        if (!string.IsNullOrEmpty(skuItem.Slot) && skuItem.Slot.Split(',').Length > 1)
+                        {
+                            sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                                 "isCSorted=1, CheckBy=@UserID " +
+                                                 "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
+                            sqlCmd.Parameters.Clear();
+                            sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                            sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
+                            sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                            await sqlCmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    // Update PickQty table
+                    sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty SET isChecked=1 WHERE id_sumhdr=@ID_SumHdr";
+                    sqlCmd.Parameters.Clear();
+                    sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                    await sqlCmd.ExecuteNonQueryAsync();
+
+                    // Update PickHdr table
+                    string updateChkStart = scanCount < 1 ? "chkStart=@chkStart," : "";
+                    sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr SET " +
+                                         $"{updateChkStart}isUpdate=1, chkEnd=@chkEnd, chkDateDone=@chkDateDone " +
+                                         "WHERE ID=@ID_SumHdr";
+                    sqlCmd.Parameters.Clear();
+                    if (scanCount < 1)
+                        sqlCmd.Parameters.AddWithValue("@chkStart", await AppGlobal._GetDateTime());
+                    sqlCmd.Parameters.AddWithValue("@chkEnd", await AppGlobal._GetDateTime());
+                    sqlCmd.Parameters.AddWithValue("@chkDateDone", await AppGlobal._GetDateTime(true));
+                    sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                    await sqlCmd.ExecuteNonQueryAsync();
+
+                    // Reset user sum header
+                    sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
+                    sqlCmd.Parameters.Clear();
+                    sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                    await sqlCmd.ExecuteNonQueryAsync();
+
+                    scanCount = 0;
+                    await _GetSetPickNoAsync();
+                }
+                catch (SqlException ex)
+                {
+                    await DisplayAlert("Error!", ex.Message, "OK");
+                    _StartIdleMonitoring(); // ✅ Restart monitoring on error
+                }
             }
-            catch (SqlException ex)
+            finally
             {
-                await DisplayAlert("Error!", ex.Message, "OK");
-                _StartIdleMonitoring(); // ✅ ADDED: Restart monitoring on error
+                // ✅ Reset the flag when done
+                _isFinishing = false;
             }
         }
 
@@ -1468,18 +1528,24 @@ namespace PDTPickingSystem.Views
 
         /// <summary>
         /// Check if UPC is found in SKU list
+        /// Returns: true = found and loaded, false = not found, null = found but already checked
         /// </summary>
-        private bool _isUPCFound(string upc)
+        private async Task<bool?> _isUPCFound(string upc)
         {
             foreach (var item in SKUList)
             {
                 if (!string.IsNullOrWhiteSpace(item.UPC) && item.UPC.Contains("-" + upc.Trim() + ","))
                 {
-                    // Check if already checked
+                    // 🔍 DEBUG: Log what we found
+                    System.Diagnostics.Debug.WriteLine($"🔍 Found UPC match:");
+                    System.Diagnostics.Debug.WriteLine($"   SKU: {item.SKU}");
+                    System.Diagnostics.Debug.WriteLine($"   ChkQty: {item.ChkQty}");
+
+                    // ✅ Check if already checked - show alert and return null
                     if (double.TryParse(item.ChkQty, out double chkQty) && chkQty > 0)
                     {
-                        _ = DisplayAlert("Checked!", $"SKU: {item.SKU} Checked already", "OK");
-                        break;
+                        await DisplayAlert("Checked!", $"SKU: {item.SKU} Checked already", "OK");
+                        return null; // ✅ Return null = found but already checked
                     }
 
                     // Check if quantity matches
@@ -1496,17 +1562,28 @@ namespace PDTPickingSystem.Views
                     // Get duplicate SKU indices
                     _getDuplicateSKUIndex(item.SKU.Trim());
 
-                    // Load details
                     double bumVal = double.TryParse(item.BUM, out double b) ? b : 0;
-                    double qtyVal = double.TryParse(item.Qty, out double q) ? q : 0;
+
+                    // Try PickQty first, fallback to Qty if PickQty is empty/zero
+                    double qtyVal = 0;
+                    if (!string.IsNullOrWhiteSpace(item.PickQty) && double.TryParse(item.PickQty, out double pq) && pq > 0)
+                    {
+                        qtyVal = pq;
+                        System.Diagnostics.Debug.WriteLine($"✅ Using PickQty: {qtyVal}");
+                    }
+                    else if (double.TryParse(item.Qty, out double q))
+                    {
+                        qtyVal = q;
+                        System.Diagnostics.Debug.WriteLine($"⚠️ PickQty empty, using Qty: {qtyVal}");
+                    }
 
                     _loadDetails(item.SKU, bumVal, qtyVal, item.Descr);
 
-                    return true;
+                    return true; // ✅ Found and loaded successfully
                 }
             }
 
-            return false;
+            return false; // ✅ Not found at all
         }
 
         /// <summary>
@@ -1534,29 +1611,63 @@ namespace PDTPickingSystem.Views
         /// </summary>
         private void _loadDetails(string sku, double cse, double qty, string skuDesc)
         {
+            System.Diagnostics.Debug.WriteLine($"📝 _loadDetails called:");
+            System.Diagnostics.Debug.WriteLine($"   SKU: {sku}");
+            System.Diagnostics.Debug.WriteLine($"   BUM (cse): {cse}");
+            System.Diagnostics.Debug.WriteLine($"   Qty: {qty}");
+            System.Diagnostics.Debug.WriteLine($"   Descr: {skuDesc}");
+
             txtCase.IsEnabled = cse != 1;
+
+            double caseValue = 0;
+            double eachValue = 0;
 
             if (cse == 1 || qty < cse)
             {
-                txtCase.Text = "0";
-                txtEach.Text = qty.ToString("N2");
+                caseValue = 0;
+                eachValue = qty;
             }
             else
             {
-                txtCase.Text = Math.Floor(qty / cse).ToString("N2");
-                txtEach.Text = (qty % cse).ToString("N2");
+                caseValue = Math.Floor(qty / cse);
+                eachValue = qty % cse;
             }
 
-            txtEachVal = txtEach.Text;
-            txtEach.Text = "";
+            System.Diagnostics.Debug.WriteLine($"📊 Calculated:");
+            System.Diagnostics.Debug.WriteLine($"   Case: {caseValue}");
+            System.Diagnostics.Debug.WriteLine($"   Each: {eachValue}");
 
-            txtBum.Text = cse.ToString("N2");
-            txtSKU.Text = sku;
-            txtDesc.Text = skuDesc;
+            // Temporarily unhook TextChanged events
+            txtCase.TextChanged -= Entry_TextChanged;
+            txtEach.TextChanged -= Entry_TextChanged;
 
-            txtBarcode.SelectionLength = 0;
+            try
+            {
+                // ✅ FIX: Use whole numbers (no decimals) - decimal points trigger validation failure
+                txtCase.Text = ((int)caseValue).ToString();
+                txtEach.Text = ((int)eachValue).ToString();
 
-            if (double.TryParse(txtCase.Text, out var cv) && cv == 0)
+                txtBum.Text = cse.ToString("N2");
+                txtSKU.Text = sku;
+                txtDesc.Text = skuDesc;
+
+                txtBarcode.SelectionLength = 0;
+
+                System.Diagnostics.Debug.WriteLine($"✅ Fields populated:");
+                System.Diagnostics.Debug.WriteLine($"   txtCase.Text: '{txtCase.Text}'");
+                System.Diagnostics.Debug.WriteLine($"   txtEach.Text: '{txtEach.Text}'");
+                System.Diagnostics.Debug.WriteLine($"   txtBum.Text: '{txtBum.Text}'");
+                System.Diagnostics.Debug.WriteLine($"   txtSKU.Text: '{txtSKU.Text}'");
+            }
+            finally
+            {
+                // Re-hook TextChanged events
+                txtCase.TextChanged += Entry_TextChanged;
+                txtEach.TextChanged += Entry_TextChanged;
+            }
+
+            // Focus on appropriate field
+            if (caseValue == 0)
             {
                 txtEach.Focus();
                 txtEach.CursorPosition = 0;
@@ -1654,10 +1765,18 @@ namespace PDTPickingSystem.Views
             }
         }
 
+
         // ================== DATA CLASS ==================
 
-        public class SKUItem
+        public class SKUItem : INotifyPropertyChanged
         {
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+
             public string ID { get; set; }
             public string BUM { get; set; }
             public string Slot { get; set; }
@@ -1668,7 +1787,22 @@ namespace PDTPickingSystem.Views
             public string PickQty { get; set; }
             public string UPC { get; set; }
             public string isChecked { get; set; }
-            public string ChkQty { get; set; }
+
+            private string _chkQty;
+            public string ChkQty
+            {
+                get => _chkQty;
+                set
+                {
+                    if (_chkQty != value)
+                    {
+                        _chkQty = value;
+                        OnPropertyChanged();
+                        OnPropertyChanged(nameof(ChkQtyDisplay));
+                        OnPropertyChanged(nameof(ChkQtyColor));
+                    }
+                }
+            }
 
             // Display properties
             public string ChkQtyDisplay => !string.IsNullOrEmpty(ChkQty) ? ChkQty : "";

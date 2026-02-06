@@ -1,7 +1,10 @@
 ﻿using Android.Content.Res;
 using Android.Media;
 using Android.OS;
+using AndroidX.Annotations;
+using Java.Security;
 using Microsoft.Data.SqlClient;
+using Microsoft.Maui.Animations;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
 using PDTPickingSystem.Helpers;
@@ -53,8 +56,12 @@ namespace PDTPickingSystem.Views
         private bool _requestAlreadyShown = false;
         private bool _requestFailedShown = false;
 
+        // Add this field at the top with other fields
+        private bool _isRequesting = false;
         // Add this field
         private bool _isAccepting = false;
+        // Add this field at the top with other fields
+        private bool _isFinishing = false;
 
         // ================== ✅ NEW: IDLE MONITORING FIELDS ==================
 
@@ -922,57 +929,71 @@ namespace PDTPickingSystem.Views
 
         private async void BtnFinished_Clicked(object sender, EventArgs e)
         {
-            // ✅ ADDED: Stop idle monitoring when finishing
-            _StopIdleMonitoring();
-
-            bool confirm = await DisplayAlert("Finish?", "Finish Picking?", "Yes", "No");
-            if (!confirm)
-            {
-                // ✅ ADDED: Restart monitoring if user cancels
-                _StartIdleMonitoring();
+            // ✅ FIX: Prevent double-clicking
+            if (_isFinishing)
                 return;
-            }
 
-            using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null)
+            _isFinishing = true;
+
+            try
             {
-                await DisplayAlert("Error", "Cannot connect to server!", "OK");
-                _StartIdleMonitoring(); // ✅ ADDED: Restart monitoring
-                return;
-            }
+                // ✅ Stop idle monitoring when finishing
+                _StopIdleMonitoring();
 
-            using var sqlCmd = conn.CreateCommand();
-
-            foreach (var lvItem in pickList)
-            {
-                if (lvItem.PickedQty == 0)
+                bool confirm = await DisplayAlert("Finish?", "Finish Picking?", "Yes", "No");
+                if (!confirm)
                 {
-                    sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET " +
-                                         "SortQty=0, isSorted=1, isUpdate=1, " +
-                                         "pickTime='00:00:00', TSort_Start='00:00:00', TSort_End='00:00:00' " +
-                                         "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr";
-                    sqlCmd.Parameters.Clear();
-                    sqlCmd.Parameters.AddWithValue("@SKU", lvItem.SKU);
-                    sqlCmd.Parameters.AddWithValue("@SumHdr", ID_SumHdr);
-                    await sqlCmd.ExecuteNonQueryAsync();
+                    // ✅ Restart monitoring if user cancels
+                    _StartIdleMonitoring();
+                    return;
                 }
+
+                using var conn = await AppGlobal._SQL_Connect();
+                if (conn == null)
+                {
+                    await DisplayAlert("Error", "Cannot connect to server!", "OK");
+                    _StartIdleMonitoring(); // ✅ Restart monitoring
+                    return;
+                }
+
+                using var sqlCmd = conn.CreateCommand();
+
+                foreach (var lvItem in pickList)
+                {
+                    if (lvItem.PickedQty == 0)
+                    {
+                        sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickDtl SET " +
+                                             "SortQty=0, isSorted=1, isUpdate=1, " +
+                                             "pickTime='00:00:00', TSort_Start='00:00:00', TSort_End='00:00:00' " +
+                                             "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr";
+                        sqlCmd.Parameters.Clear();
+                        sqlCmd.Parameters.AddWithValue("@SKU", lvItem.SKU);
+                        sqlCmd.Parameters.AddWithValue("@SumHdr", ID_SumHdr);
+                        await sqlCmd.ExecuteNonQueryAsync();
+                    }
+                }
+
+                sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET " +
+                                     "isUpdate=1, TimeEnd=@TimeEnd, DateDone=@DateDone " +
+                                     "WHERE ID=@ID";
+                sqlCmd.Parameters.Clear();
+                sqlCmd.Parameters.AddWithValue("@TimeEnd", await AppGlobal._GetDateTime());
+                sqlCmd.Parameters.AddWithValue("@DateDone", await AppGlobal._GetDateTime(true));
+                sqlCmd.Parameters.AddWithValue("@ID", ID_SumHdr);
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
+                sqlCmd.Parameters.Clear();
+                sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                await sqlCmd.ExecuteNonQueryAsync();
+
+                await _GetSetPickNoAsync();
             }
-
-            sqlCmd.CommandText = $"UPDATE tbl{pPickNo}PickHdr SET " +
-                                 "isUpdate=1, TimeEnd=@TimeEnd, DateDone=@DateDone " +
-                                 "WHERE ID=@ID";
-            sqlCmd.Parameters.Clear();
-            sqlCmd.Parameters.AddWithValue("@TimeEnd", await AppGlobal._GetDateTime());
-            sqlCmd.Parameters.AddWithValue("@DateDone", await AppGlobal._GetDateTime(true));
-            sqlCmd.Parameters.AddWithValue("@ID", ID_SumHdr);
-            await sqlCmd.ExecuteNonQueryAsync();
-
-            sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
-            sqlCmd.Parameters.Clear();
-            sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-            await sqlCmd.ExecuteNonQueryAsync();
-
-            await _GetSetPickNoAsync();
+            finally
+            {
+                // ✅ Reset the flag when done
+                _isFinishing = false;
+            }
         }
 
         private void BtnCloseGoto_Clicked(object sender, EventArgs e)
@@ -1144,7 +1165,7 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                // ✅ FIX: Read user's picking session info
+                // ✅ Read user's picking session info
                 using (var sqlCmd = new SqlCommand(
                     "SELECT ID_SumHdr, PickRef FROM tblUsers WHERE ID=@UserID", conn))
                 {
@@ -1153,15 +1174,14 @@ namespace PDTPickingSystem.Views
                     using var reader = await sqlCmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
-                        // ✅ CRITICAL: Update BOTH variables
+                        // ✅ Update BOTH variables
                         long dbSumHdr = reader["ID_SumHdr"] != DBNull.Value
                             ? Convert.ToInt64(reader["ID_SumHdr"])
                             : 0;
 
                         AppGlobal.ID_SumHdr = dbSumHdr;
-                        ID_SumHdr = dbSumHdr;  // ← SYNC LOCAL VARIABLE
+                        ID_SumHdr = dbSumHdr;
 
-                        // ✅ DEBUG LOG
                         System.Diagnostics.Debug.WriteLine($"📊 Read from DB - ID_SumHdr: {ID_SumHdr}");
 
                         if (reader["PickRef"] != DBNull.Value)
@@ -1176,7 +1196,7 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // ✅ CRITICAL: Check if user has active picking session
+                // ✅ Check if user has active picking session
                 if (ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
                     System.Diagnostics.Debug.WriteLine("✅ Found existing picking session - loading data...");
@@ -1192,36 +1212,51 @@ namespace PDTPickingSystem.Views
 
                 System.Diagnostics.Debug.WriteLine($"❌ No existing session - requesting new one. ID_SumHdr={ID_SumHdr}, sUserPNo={sUserPNo}");
 
-                // ✅ No active session - request from server
-                bool requestFromServer = await DisplayAlert(
-                    "Requesting...",
-                    "Request from server?",
-                    "Yes",
-                    "No");
+                // ✅ FIX: Prevent double-clicking the request alert
+                if (_isRequesting)
+                    return;
 
-                if (requestFromServer)
+                _isRequesting = true;
+
+                try
                 {
-                    _ShowLoading("Requesting...");
-                    await Task.Yield();
+                    // ✅ No active session - request from server
+                    bool requestFromServer = await DisplayAlert(
+                        "Requesting...",
+                        "Request from server?",
+                        "Yes",
+                        "No");
 
-                    using var updateCmd = new SqlCommand(
-                        "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickRef WHERE ID=@UserID",
-                        conn);
-                    updateCmd.Parameters.AddWithValue("@Summary", AppGlobal.isSummary);
-                    updateCmd.Parameters.AddWithValue("@PickRef", AppGlobal.pPickNo);
-                    updateCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                    await updateCmd.ExecuteNonQueryAsync();
+                    if (requestFromServer)
+                    {
+                        _ShowLoading("Requesting...");
+                        await Task.Yield();
 
-                    tmrRequest.Start();
+                        using var updateCmd = new SqlCommand(
+                            "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickRef WHERE ID=@UserID",
+                            conn);
+                        updateCmd.Parameters.AddWithValue("@Summary", AppGlobal.isSummary);
+                        updateCmd.Parameters.AddWithValue("@PickRef", AppGlobal.pPickNo);
+                        updateCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                        await updateCmd.ExecuteNonQueryAsync();
+
+                        tmrRequest.Start();
+                    }
+                    else
+                    {
+                        await Navigation.PopAsync();
+                    }
                 }
-                else
+                finally
                 {
-                    await Navigation.PopAsync();
+                    // ✅ Reset the flag after alert is handled
+                    _isRequesting = false;
                 }
             }
             catch (Exception ex)
             {
                 _HideLoading();
+                _isRequesting = false; // ✅ Reset flag on error
                 await DisplayAlert("Error", ex.Message, "OK");
                 await Navigation.PopAsync();
             }

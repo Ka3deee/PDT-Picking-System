@@ -17,6 +17,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- App Icon -->
+		<MauiImage Include="Resources\Images\lcclogo.png" />
 		<MauiImage Include="Resources\Images\lcclogo2.png" />
 		<MauiImage Include="Resources\Images\pblogo.png" />
 		<!-- Cross-platform Images -->
@@ -46,12 +47,12 @@
 	<ItemGroup>
 		<None Remove="Platforms\Android\Resources\drawable\lcclogo2.png" />
 		<None Remove="Resources\Images\appicon.png" />
+		<None Remove="Resources\Images\lcclogo.png" />
 		<None Remove="Resources\Images\pblogo.png" />
 		<None Remove="Resources\Images\truck_loading.png" />
 	</ItemGroup>
 	<!-- ✅ Android Platform Resources (Splash Screen Files) -->
 	<ItemGroup>
-		<AndroidResource Include="Platforms\Android\Resources\drawable\lcclogo.png" />
 		<AndroidResource Include="Platforms\Android\Resources\drawable\splash_screen.xml" />
 		<AndroidResource Include="Platforms\Android\Resources\values\styles.xml" />
 		<AndroidResource Include="Platforms\Android\Resources\values\colors.xml" />

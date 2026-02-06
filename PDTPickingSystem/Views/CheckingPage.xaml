@@ -121,6 +121,7 @@
                                 <Entry x:Name="txtSKU"
                                            Grid.Column="3"
                                            Placeholder=""
+									       FontSize="16"
                                            IsReadOnly="True"
                                            HeightRequest="45"
                                            HorizontalTextAlignment="Center"
@@ -749,9 +750,9 @@
 
         <!-- LAYER 5: Finished Button (Topmost) -->
         <Button x:Name="btnFinished"
-                Text="✓ Finished"
+                Text="✓ Finish Checking?"
                 IsVisible="False"
-                BackgroundColor="Green"
+                BackgroundColor="#28a745"
                 TextColor="White"
                 FontAttributes="Bold"
                 FontSize="18"

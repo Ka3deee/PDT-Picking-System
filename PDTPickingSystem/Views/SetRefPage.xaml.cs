@@ -66,7 +66,7 @@ namespace PDTPickingSystem.Views
                 System.Diagnostics.Debug.WriteLine("✅ SUCCESS PATH");
                 AppGlobal.pPickNo = _currentRefNumber;
                 lblRefDisplay.Text = $"Reference #: {_currentRefNumber}";
-                await DisplayAlert("OK", "Ref Reference # Set!", "OK");
+                await DisplayAlert("Success!", "Picking Reference No. Set!", "OK");
                 await Shell.Current.GoToAsync("..");
             }
             else
