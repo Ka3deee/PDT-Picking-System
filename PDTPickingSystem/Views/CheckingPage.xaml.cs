@@ -400,7 +400,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// Show idle alert with alarm
+        /// Show idle alert with alarm (only Resume)
         /// </summary>
         private async Task _ShowIdleAlert()
         {
@@ -409,28 +409,18 @@ namespace PDTPickingSystem.Views
                 // Vibrate device strongly
                 _VibrateDevice(1000);
 
-                var result = await DisplayAlert(
+                // Only one button now: "Resume"
+                await DisplayAlert(
                     "🚨 IDLE ALERT! 🚨",
                     "You have been idle for 1 minute!\n\n" +
                     "Checking is still in progress.\n\n" +
-                    "Tap 'Resume' to continue checking.\n" +
-                    "Tap 'Finish' to complete checking.",
-                    "Resume",
-                    "Finish"
+                    "Tap 'Resume' to continue checking.",
+                    "Resume"
                 );
 
-                if (result)
-                {
-                    // User tapped Resume
-                    _ResetIdleTimer();
-                    txtBarcode.Focus();
-                }
-                else
-                {
-                    // User tapped Finish
-                    _StopAlarm();
-                    BtnFinished_Clicked(null, null);
-                }
+                // Reset timer and refocus barcode entry
+                _ResetIdleTimer();
+                txtBarcode.Focus();
             });
         }
 

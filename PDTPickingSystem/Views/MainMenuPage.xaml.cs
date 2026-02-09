@@ -329,7 +329,7 @@ namespace PDTPickingSystem.Views
                 string pickSetup = await AppGlobal._GetPickNo();
                 if (string.IsNullOrEmpty(pickSetup))
                 {
-                    await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
+                    await DisplayAlert("No Picking!", "No Picking Reference Set! Please Set Reference Number first", "OK");
                     return;
                 }
 
@@ -398,7 +398,7 @@ namespace PDTPickingSystem.Views
                 string pickSetup = await AppGlobal._GetPickNo();
                 if (string.IsNullOrEmpty(pickSetup))
                 {
-                    await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
+                    await DisplayAlert("No Picking!", "No Picking Reference Set! Please Set Reference Number first", "OK");
                     return;
                 }
 
@@ -513,7 +513,7 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void ImgLogo_Tapped(object sender, EventArgs e)
         {
-            await DisplayAlert("LCC Picking System", $"Version {AppGlobal.sysVersion}\n\nPDT Picking Application", "OK");
+            await DisplayAlert("LCC Picking System", $"Version {AppGlobal.sysVersion}\n\nPDT Picking Application\n\nDeveloper: Kirk Owen Jesalva", "OK");
         }
 
         // ====================================================================

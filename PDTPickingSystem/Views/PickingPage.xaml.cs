@@ -310,13 +310,13 @@ namespace PDTPickingSystem.Views
             btnAccept.Clicked += OnUserActivity;
             btnFinished.Clicked += OnUserActivity;
             btnConfirm.Clicked += OnUserActivity;
-            btnCancel.Clicked += OnUserActivity;
+            /*btnCancel.Clicked += OnUserActivity;
             btnGoto.Clicked += OnUserActivity;
             btnFirst.Clicked += OnUserActivity;
             btnPrev.Clicked += OnUserActivity;
             btnNext.Clicked += OnUserActivity;
             btnLast.Clicked += OnUserActivity;
-            btnUnpick.Clicked += OnUserActivity;
+            btnUnpick.Clicked += OnUserActivity; */
             btnCloseGoto.Clicked += OnUserActivity;
             btnCloseSlot.Clicked += OnUserActivity;
             btnClose.Clicked += OnUserActivity;
@@ -433,7 +433,7 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// Show idle alert with alarm
+        /// Show idle alert with alarm (only Resume)
         /// </summary>
         private async Task _ShowIdleAlert()
         {
@@ -442,28 +442,18 @@ namespace PDTPickingSystem.Views
                 // Vibrate device strongly
                 _VibrateDevice(1000);
 
-                var result = await DisplayAlert(
+                // Only one button now: "Resume"
+                await DisplayAlert(
                     "🚨 IDLE ALERT! 🚨",
                     "You have been idle for 3 minutes!\n\n" +
                     "Picking is still in progress.\n\n" +
-                    "Tap 'Resume' to continue picking.\n" +
-                    "Tap 'Finish' to complete picking.",
-                    "Resume",
-                    "Finish"
+                    "Tap 'Resume' to continue picking.",
+                    "Resume"
                 );
 
-                if (result)
-                {
-                    // User tapped Resume
-                    _ResetIdleTimer();
-                    txtBarcode.Focus();
-                }
-                else
-                {
-                    // User tapped Finish
-                    _StopAlarm();
-                    BtnFinished_Clicked(null, null);
-                }
+                // Reset timer and refocus barcode entry
+                _ResetIdleTimer();
+                txtBarcode.Focus();
             });
         }
 
@@ -1043,6 +1033,11 @@ namespace PDTPickingSystem.Views
         {
             if (sender is not Button btn) return;
 
+            // ✅ ADDED: Reset idle timer on button click
+            _ResetIdleTimer();
+
+            int oldSSKU = sSKU;
+
             switch (btn.StyleId)
             {
                 case "btnGoto":
@@ -1054,28 +1049,53 @@ namespace PDTPickingSystem.Views
                 case "btnFirst":
                     sSKU = 0;
                     pnlGoto.IsVisible = false;
+                    System.Diagnostics.Debug.WriteLine($"🔵 FIRST clicked: sSKU changed from {oldSSKU} to {sSKU}");
                     break;
 
                 case "btnPrev":
-                    sSKU = Math.Max(0, sSKU - 1);
+                    // ✅ FIX: Allow navigation to ALL previous items
+                    if (sSKU > 0)
+                    {
+                        sSKU--;
+                        System.Diagnostics.Debug.WriteLine($"🔵 PREV clicked: sSKU changed from {oldSSKU} to {sSKU}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔴 PREV blocked: Already at first item (sSKU={sSKU})");
+                    }
                     break;
 
                 case "btnNext":
-                    sSKU = Math.Min(pickList.Count - 1, sSKU + 1);
+                    // ✅ FIX: Allow navigation to ALL next items
+                    System.Diagnostics.Debug.WriteLine($"📊 NEXT clicked: sSKU={sSKU}, pickList.Count={pickList.Count}");
+                    if (sSKU < pickList.Count - 1)
+                    {
+                        sSKU++;
+                        System.Diagnostics.Debug.WriteLine($"🔵 NEXT: sSKU changed from {oldSSKU} to {sSKU}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔴 NEXT blocked: Already at last item (sSKU={sSKU}, Count={pickList.Count})");
+                    }
                     break;
 
                 case "btnLast":
                     sSKU = pickList.Count - 1;
                     pnlGoto.IsVisible = false;
+                    System.Diagnostics.Debug.WriteLine($"🔵 LAST clicked: sSKU changed from {oldSSKU} to {sSKU}");
                     break;
 
                 case "btnUnpick":
+                    // ✅ Find first unpicked item
                     sSKU = -1;
                     pnlGoto.IsVisible = false;
+                    System.Diagnostics.Debug.WriteLine($"🔵 UNPICK clicked: sSKU reset to -1");
                     break;
             }
 
+            System.Diagnostics.Debug.WriteLine($"📍 Before _GetSKUtoPickAsync: sSKU={sSKU}");
             await _GetSKUtoPickAsync();
+            System.Diagnostics.Debug.WriteLine($"📍 After _GetSKUtoPickAsync: sSKU={sSKU}");
         }
 
         // ================== TAP GESTURE HANDLERS ==================
@@ -1428,46 +1448,85 @@ namespace PDTPickingSystem.Views
 
         private async Task _GetSKUtoPickAsync()
         {
+            System.Diagnostics.Debug.WriteLine($"🟢 _GetSKUtoPickAsync START: sSKU={sSKU}, pickList.Count={pickList?.Count ?? 0}");
+
             _ClearScan();
 
-            if (pickList == null || pickList.Count == 0) return;
+            if (pickList == null || pickList.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔴 EXIT: pickList is null or empty");
+                return;
+            }
 
+            // ✅ FIX: Only auto-find unpicked item if sSKU is -1
+            // This happens when "Unpicked" button is clicked or after accepting an item
             if (sSKU == -1)
             {
+                System.Diagnostics.Debug.WriteLine($"🔍 Auto-finding first unpicked item...");
                 for (int i = 0; i < pickList.Count; i++)
                 {
-                    // ✅ FIX: Find first unpicked item using IsPicked flag
+                    // Find first unpicked item using IsPicked flag
                     if (!pickList[i].IsPicked)
                     {
                         sSKU = i;
+                        System.Diagnostics.Debug.WriteLine($"✅ Found unpicked item at index {i}");
                         break;
                     }
                 }
+
+                // ✅ If all items are picked, show first item
+                if (sSKU == -1)
+                {
+                    sSKU = 0;
+                    System.Diagnostics.Debug.WriteLine($"⚠️ All items picked, defaulting to first item (sSKU=0)");
+                }
             }
 
-            if (sSKU < 0 || sSKU >= pickList.Count) return;
+            // ✅ FIXED: Clamp sSKU to valid range instead of early return
+            // This allows Prev/Next navigation to work for ALL SKUs
+            int originalSSKU = sSKU;
+            if (sSKU < 0)
+            {
+                sSKU = 0;
+                System.Diagnostics.Debug.WriteLine($"⚠️ Clamped sSKU from {originalSSKU} to 0");
+            }
+            if (sSKU >= pickList.Count)
+            {
+                sSKU = pickList.Count - 1;
+                System.Diagnostics.Debug.WriteLine($"⚠️ Clamped sSKU from {originalSSKU} to {sSKU}");
+            }
+
+            System.Diagnostics.Debug.WriteLine($"📦 Loading SKU at index {sSKU}: {pickList[sSKU].SKU}");
 
             var currentItem = pickList[sSKU];
 
-            if (currentItem.Slot.Contains(","))
+            // ✅ FORCE UI UPDATE: Slot information
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                txtpSlot.Text = "<< Multiple Slots >>";
-                txtpSlotTag = currentItem.Slot;
-                txtpSlot_Value = currentItem.Slot;
-            }
-            else
+                if (currentItem.Slot.Contains(","))
+                {
+                    txtpSlot.Text = "<< Multiple Slots >>";
+                    txtpSlotTag = currentItem.Slot;
+                    txtpSlot_Value = currentItem.Slot;
+                }
+                else
+                {
+                    txtpSlot.Text = currentItem.Slot;
+                    txtpSlotTag = "";
+                    txtpSlot_Value = "";
+                }
+                llblSlot.Text = txtpSlot.Text;
+            });
+
+            // ✅ FORCE UI UPDATE: SKU and Description
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                txtpSlot.Text = currentItem.Slot;
-                txtpSlotTag = "";
-                txtpSlot_Value = "";
-            }
-            llblSlot.Text = txtpSlot.Text;
+                txtpSKU.Text = currentItem.SKU;
+                txtpSKU_UPC = currentItem.UPC;
 
-            txtpSKU.Text = currentItem.SKU;
-            txtpSKU_UPC = currentItem.UPC;
-
-            txtpDescr.Text = currentItem.Descr;
-            llblDescr.Text = txtpDescr.Text;
+                txtpDescr.Text = currentItem.Descr;
+                llblDescr.Text = txtpDescr.Text;
+            });
 
             txtpEachTag = currentItem.Qty;
             txtpCaseTag = currentItem.BUM;
@@ -1475,52 +1534,73 @@ namespace PDTPickingSystem.Views
             double dSetQty = Convert.ToDouble(txtpCaseTag ?? 0);
             double eachQty = Convert.ToDouble(txtpEachTag ?? 0);
 
-            txtCase.IsEnabled = dSetQty != 1;
-
-            if (dSetQty == 1 || eachQty < dSetQty)
+            // ✅ FORCE UI UPDATE: Case/Each quantities
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                txtpCase.Text = "0";
-                txtpEach.Text = eachQty.ToString("N2");
-            }
-            else
-            {
-                txtpCase.Text = Math.Floor(eachQty / dSetQty).ToString("N2");
-                txtpEach.Text = (eachQty % dSetQty).ToString("N2");
-            }
+                txtCase.IsEnabled = dSetQty != 1;
 
-            // ✅ FIX: Use IsPicked flag instead of PickedQty > 0
-            pbScanned.IsVisible = currentItem.IsPicked;
-            if (currentItem.IsPicked)
-            {
-                txtSKU.Text = txtpSKU.Text;
-                double pickedQty = currentItem.PickedQty;
-
-                if (dSetQty == 1 || pickedQty < dSetQty)
+                if (dSetQty == 1 || eachQty < dSetQty)
                 {
-                    txtCase.Text = "0";
-                    txtEach.Text = pickedQty.ToString("N2");
+                    txtpCase.Text = "0";
+                    txtpEach.Text = eachQty.ToString("N2");
                 }
                 else
                 {
-                    txtCase.Text = Math.Floor(pickedQty / dSetQty).ToString("N2");
-                    txtEach.Text = (pickedQty % dSetQty).ToString("N2");
+                    txtpCase.Text = Math.Floor(eachQty / dSetQty).ToString("N2");
+                    txtpEach.Text = (eachQty % dSetQty).ToString("N2");
                 }
-            }
+            });
 
-            btnFirst.IsEnabled = btnPrev.IsEnabled = btnNext.IsEnabled = btnLast.IsEnabled = false;
+            // ✅ FIX: Use IsPicked flag instead of PickedQty > 0
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                pbScanned.IsVisible = currentItem.IsPicked;
+                if (currentItem.IsPicked)
+                {
+                    txtSKU.Text = txtpSKU.Text;
+                    double pickedQty = currentItem.PickedQty;
 
-            if (sSKU > 0)
+                    if (dSetQty == 1 || pickedQty < dSetQty)
+                    {
+                        txtCase.Text = "0";
+                        txtEach.Text = pickedQty.ToString("N2");
+                    }
+                    else
+                    {
+                        txtCase.Text = Math.Floor(pickedQty / dSetQty).ToString("N2");
+                        txtEach.Text = (pickedQty % dSetQty).ToString("N2");
+                    }
+                }
+            });
+
+            // ✅ FIX: Always enable navigation buttons if there are items
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                btnPrev.IsEnabled = true;
-                btnFirst.IsEnabled = true;
-            }
-            if (sSKU < pickList.Count - 1)
-            {
-                btnNext.IsEnabled = true;
-                btnLast.IsEnabled = true;
-            }
+                if (pickList.Count > 0)
+                {
+                    // ✅ Enable First/Prev if not at beginning
+                    btnFirst.IsEnabled = sSKU > 0;
+                    btnPrev.IsEnabled = sSKU > 0;
+
+                    // ✅ Enable Next/Last if not at end
+                    btnNext.IsEnabled = sSKU < pickList.Count - 1;
+                    btnLast.IsEnabled = sSKU < pickList.Count - 1;
+
+                    System.Diagnostics.Debug.WriteLine($"🎮 Button states: First={btnFirst.IsEnabled}, Prev={btnPrev.IsEnabled}, Next={btnNext.IsEnabled}, Last={btnLast.IsEnabled}");
+                }
+                else
+                {
+                    // ✅ No items - disable all navigation
+                    btnFirst.IsEnabled = false;
+                    btnPrev.IsEnabled = false;
+                    btnNext.IsEnabled = false;
+                    btnLast.IsEnabled = false;
+                }
+            });
 
             _CountPicked();
+
+            System.Diagnostics.Debug.WriteLine($"🟢 _GetSKUtoPickAsync END: sSKU={sSKU}");
         }
 
         private void _CountPicked()
@@ -1718,10 +1798,28 @@ namespace PDTPickingSystem.Views
 
             ID_Stocker = 0;
 
-            // ✅ FIX: Always look for next unpicked item instead of just going to "Next"
-            // This ensures we skip already-picked items and find the next one that needs picking
-            sSKU = -1;
-            await _GetSKUtoPickAsync();
+            // ✅ Check if all items are picked BEFORE navigating
+            int pickedCount = pickList.Count(item => item.IsPicked);
+            bool allItemsPicked = pickedCount == pickList.Count && pickList.Count > 0;
+
+            if (allItemsPicked)
+            {
+                // ✅ All items picked - show finish button and update done counter
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    btnFinished.IsVisible = true;
+                    txtDone.Text = $"{pickedCount}/{pickList.Count}";
+                });
+
+                // ✅ Don't navigate - just clear the scan and refocus
+                _ClearScan();
+            }
+            else
+            {
+                // ✅ Still have unpicked items - find next one
+                sSKU = -1;
+                await _GetSKUtoPickAsync();
+            }
         }
 
         private async Task GetSKUDescrAsync()
@@ -1929,7 +2027,7 @@ namespace PDTPickingSystem.Views
 
                         _HideLoading();
 
-                        await DisplayAlert("Unable to request!", "No Picking No. Available!", "OK");
+                        await DisplayAlert("Unable to request!", "No Picking # Available!", "OK");
                         await Navigation.PopAsync();
                     }
                 }

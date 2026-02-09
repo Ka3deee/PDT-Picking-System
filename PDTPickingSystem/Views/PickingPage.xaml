@@ -785,12 +785,12 @@
                         FontFamily="MontserratRegular"/>
                 </VerticalStackLayout>
                 <Label x:Name="lblLineNo" 
-                        Text="Line Number:"
-                        FontAttributes="Bold"
-                        FontSize="16"
-                        TextColor="Black"
-                        HorizontalOptions="Center"
-                        Loaded="LblLineNo_Loaded"
+                       Text="Line Number:"
+                       FontAttributes="Bold"
+                       FontSize="16"
+                       TextColor="Black"
+                       HorizontalOptions="Center"
+                       Loaded="LblLineNo_Loaded"
                        Margin="0,0,0,0"/>
                 <Frame Padding="-5"
                        CornerRadius="5"
@@ -851,7 +851,7 @@
                 <!-- CollectionView for UPCs -->
                 <CollectionView x:Name="lvBarcodes"
                     SelectionMode="Single"
-                    HeightRequest="200">
+                    HeightRequest="150">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Grid Padding="5" ColumnDefinitions="*,*">

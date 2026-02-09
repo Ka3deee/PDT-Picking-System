@@ -231,6 +231,7 @@
                            VerticalOptions="Fill"
                            Padding="0"
                            Margin="0"
+                           CornerRadius="18"
                            HasShadow="False">
                         <ActivityIndicator IsRunning="True"
                                            Color="White"

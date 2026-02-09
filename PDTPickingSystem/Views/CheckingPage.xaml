@@ -8,7 +8,6 @@
     <!-- ROOT LAYER -->
     <Grid>
         <!-- LAYER 1: Main Content (Scrollable) -->
-        <ScrollView VerticalOptions="FillAndExpand">
             <VerticalStackLayout Padding="5" Spacing="5">
 
                 <!-- Store / Department - AT THE TOP -->
@@ -44,7 +43,7 @@
                 <Frame Padding="10,10,10,10"
                         Margin="5,-15,5,0"
                         HasShadow="True"
-                       CornerRadius="10"
+                        CornerRadius="10"
                         BorderColor="LightGray">
                     <VerticalStackLayout x:Name="pnlInput"
                                          Spacing="5">
@@ -353,158 +352,157 @@
                 <Label x:Name="txtpSlot" IsVisible="False"/>
 
             </VerticalStackLayout>
-        </ScrollView>
 
-        <!-- LAYER 2: Items Panel OVERLAY (Full Screen with Horizontal & Vertical Scroll) -->
+            <!-- LAYER 2: Items Panel OVERLAY (Full Screen with Horizontal & Vertical Scroll) -->
         <Grid x:Name="pnlItems"
-      IsVisible="False"
-      BackgroundColor="White" 
-      Padding="10"
-      ZIndex="500"
-      RowDefinitions="Auto,*,Auto,Auto">
+              IsVisible="False"
+              BackgroundColor="White" 
+              Padding="10"
+              ZIndex="500"
+              RowDefinitions="Auto,*,Auto,Auto">
 
             <!-- COUNT LABEL at Top -->
             <Label Grid.Row="0"
-           x:Name="lblCnt"
-           Text="Count: 0"
-           FontAttributes="Bold"
-           FontSize="16"
-           Margin="10,5,10,10"
-           HorizontalOptions="Start"/>
+                   x:Name="lblCnt"
+                   Text="Count: 0"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   Margin="10,5,10,10"
+                   HorizontalOptions="Start"/>
 
             <!-- SCROLLABLE AREA (Both Horizontal and Vertical) -->
             <ScrollView Grid.Row="1" 
-                Orientation="Both"
-                HorizontalScrollBarVisibility="Always"
-                VerticalScrollBarVisibility="Always">
+                        Orientation="Both"
+                        HorizontalScrollBarVisibility="Always"
+                        VerticalScrollBarVisibility="Always">
                 <Grid RowDefinitions="Auto,*">
 
                     <!-- COLUMN HEADERS (Fixed width for horizontal scroll) -->
                     <Grid Grid.Row="0"
-                  ColumnDefinitions="80,200,80,80,150,80,80,80"
-                  Padding="5"
-                  HeightRequest="45"
-                  BackgroundColor="Blue"
-                  WidthRequest="830">
+                          ColumnDefinitions="80,200,80,80,150,80,80,80"
+                          Padding="5"
+                          HeightRequest="45"
+                          BackgroundColor="Blue"
+                          WidthRequest="830">
                         <Label Text="SKU" 
-                       Grid.Column="0" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="0" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Description" 
-                       Grid.Column="1" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="1" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Qty" 
-                       Grid.Column="2" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="2" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Picked" 
-                       Grid.Column="3" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="3" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="UPC" 
-                       Grid.Column="4" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="4" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="ChkQty" 
-                       Grid.Column="5" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="5" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="BUM" 
-                       Grid.Column="6" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="6" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Slot" 
-                       Grid.Column="7" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="7" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                     </Grid>
 
                     <!-- COLLECTION VIEW (Fixed width to enable horizontal scroll) -->
                     <CollectionView Grid.Row="1"
-                            x:Name="lvSKU"
-                            SelectionMode="Single"
-                            WidthRequest="830">
+                                    x:Name="lvSKU"
+                                    SelectionMode="Single"
+                                    WidthRequest="830">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="80,200,80,80,150,80,80,80"
-                              Padding="5,15"
-                              BackgroundColor="White">
+                                      Padding="5,15"
+                                      BackgroundColor="White">
 
                                     <!-- Separator line -->
                                     <BoxView Grid.ColumnSpan="8" 
-                                     HeightRequest="1" 
-                                     Color="LightGray" 
-                                     VerticalOptions="End"/>
+                                             HeightRequest="1" 
+                                             Color="LightGray" 
+                                             VerticalOptions="End"/>
 
                                     <Label Text="{Binding SKU}" 
-                                   Grid.Column="0" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="0" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding Descr}" 
-                                   Grid.Column="1" 
-                                   FontSize="12" 
-                                   LineBreakMode="WordWrap" 
-                                   VerticalTextAlignment="Center"
-                                   Padding="5,0"/>
+                                           Grid.Column="1" 
+                                           FontSize="12" 
+                                           LineBreakMode="WordWrap" 
+                                           VerticalTextAlignment="Center"
+                                           Padding="5,0"/>
                                     <Label Text="{Binding Qty}" 
-                                   Grid.Column="2" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="2" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding PickQty}" 
-                                   Grid.Column="3" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="3" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding UPC}" 
-                                   Grid.Column="4" 
-                                   FontSize="11" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"
-                                   LineBreakMode="TailTruncation"/>
+                                           Grid.Column="4" 
+                                           FontSize="11" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"
+                                           LineBreakMode="TailTruncation"/>
                                     <Label Text="{Binding ChkQty}" 
-                                   Grid.Column="5" 
-                                   FontSize="13" 
-                                   FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center" 
-                                   TextColor="{Binding ChkQtyColor}"/>
+                                           Grid.Column="5" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold"
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center" 
+                                           TextColor="{Binding ChkQtyColor}"/>
                                     <Label Text="{Binding BUM}" 
-                                   Grid.Column="6" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="6" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding Slot}" 
-                                   Grid.Column="7" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="7" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -517,167 +515,168 @@
 
             <!-- Close Button at BOTTOM -->
             <Button Grid.Row="3"
-            x:Name="btnCloseItems"
-            Text="✕ Close Items"
-            FontAttributes="Bold"
-            BackgroundColor="Red"
-            TextColor="White"
-            HeightRequest="50"
-            CornerRadius="10"
-            Margin="0,5,0,10"
-            Clicked="BtnCloseItems_Clicked"/>
+                    x:Name="btnCloseItems"
+                    Text="✕ Close Items"
+                    FontAttributes="Bold"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Margin="0,5,0,10"
+                    Clicked="BtnCloseItems_Clicked"
+                    FontFamily="MontserratRegular"/>
         </Grid>
 
         <!-- LAYER 3: Items Panel 2 OVERLAY (Full Screen with Horizontal & Vertical Scroll) -->
         <Grid x:Name="pnlItems2"
-      IsVisible="False"
-      BackgroundColor="White" 
-      Padding="10"
-      ZIndex="500"
-      RowDefinitions="Auto,*,Auto,Auto">
+              IsVisible="False"
+              BackgroundColor="White" 
+              Padding="10"
+              ZIndex="500"
+              RowDefinitions="Auto,*,Auto,Auto">
 
             <!-- COUNT LABEL at Top -->
             <Label Grid.Row="0"
-           x:Name="lblCnt2"
-           Text="Count: 0"
-           FontAttributes="Bold"
-           FontSize="16"
-           Margin="10,5,10,10"
-           HorizontalOptions="Start"/>
+                   x:Name="lblCnt2"
+                   Text="Count: 0"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   Margin="10,5,10,10"
+                   HorizontalOptions="Start"/>
 
             <!-- SCROLLABLE AREA (Both Horizontal and Vertical) -->
             <ScrollView Grid.Row="1" 
-                Orientation="Both"
-                HorizontalScrollBarVisibility="Always"
-                VerticalScrollBarVisibility="Always">
+                        Orientation="Both"
+                        HorizontalScrollBarVisibility="Always"
+                        VerticalScrollBarVisibility="Always">
                 <Grid RowDefinitions="Auto,*">
 
                     <!-- COLUMN HEADERS (Fixed width for horizontal scroll) -->
                     <Grid Grid.Row="0"
-                  ColumnDefinitions="80,200,80,80,150,80,80,80"
-                  Padding="5"
-                  HeightRequest="45"
-                  BackgroundColor="Blue"
-                  WidthRequest="830">
+                          ColumnDefinitions="80,200,80,80,150,80,80,80"
+                          Padding="5"
+                          HeightRequest="45"
+                          BackgroundColor="Blue"
+                          WidthRequest="830">
                         <Label Text="SKU" 
-                       Grid.Column="0" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="0" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Description" 
-                       Grid.Column="1" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="1" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Qty" 
-                       Grid.Column="2" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="2" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Picked" 
-                       Grid.Column="3" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="3" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="UPC" 
-                       Grid.Column="4" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="4" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="ChkQty" 
-                       Grid.Column="5" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="5" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="BUM" 
-                       Grid.Column="6" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="6" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                         <Label Text="Slot" 
-                       Grid.Column="7" 
-                       FontSize="14" 
-                       FontAttributes="Bold" 
-                       TextColor="White" 
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"/>
+                               Grid.Column="7" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center" 
+                               VerticalTextAlignment="Center"/>
                     </Grid>
 
                     <!-- COLLECTION VIEW (Fixed width to enable horizontal scroll) -->
                     <CollectionView Grid.Row="1"
-                            x:Name="lvSKU2"
-                            SelectionMode="Single"
-                            WidthRequest="830">
+                                    x:Name="lvSKU2"
+                                    SelectionMode="Single"
+                                    WidthRequest="830">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="80,200,80,80,150,80,80,80"
-                              Padding="5,15"
-                              BackgroundColor="White">
+                                      Padding="5,15"
+                                      BackgroundColor="White">
 
                                     <!-- Separator line -->
                                     <BoxView Grid.ColumnSpan="8" 
-                                     HeightRequest="1" 
-                                     Color="LightGray" 
-                                     VerticalOptions="End"/>
+                                             HeightRequest="1" 
+                                             Color="LightGray" 
+                                             VerticalOptions="End"/>
 
                                     <Label Text="{Binding SKU}" 
-                                   Grid.Column="0" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="0" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding Descr}" 
-                                   Grid.Column="1" 
-                                   FontSize="12" 
-                                   LineBreakMode="WordWrap" 
-                                   VerticalTextAlignment="Center"
-                                   Padding="5,0"/>
+                                           Grid.Column="1" 
+                                           FontSize="12" 
+                                           LineBreakMode="WordWrap" 
+                                           VerticalTextAlignment="Center"
+                                           Padding="5,0"/>
                                     <Label Text="{Binding Qty}" 
-                                   Grid.Column="2" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="2" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding PickQty}" 
-                                   Grid.Column="3" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="3" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding UPC}" 
-                                   Grid.Column="4" 
-                                   FontSize="11" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"
-                                   LineBreakMode="TailTruncation"/>
+                                           Grid.Column="4" 
+                                           FontSize="11" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"
+                                           LineBreakMode="TailTruncation"/>
                                     <Label Text="{Binding ChkQty}" 
-                                   Grid.Column="5" 
-                                   FontSize="13" 
-                                   FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center" 
-                                   TextColor="{Binding ChkQtyColor}"/>
+                                           Grid.Column="5" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold"
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center" 
+                                           TextColor="{Binding ChkQtyColor}"/>
                                     <Label Text="{Binding BUM}" 
-                                   Grid.Column="6" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="6" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                     <Label Text="{Binding Slot}" 
-                                   Grid.Column="7" 
-                                   FontSize="13" 
-                                   HorizontalTextAlignment="Center" 
-                                   VerticalTextAlignment="Center"/>
+                                           Grid.Column="7" 
+                                           FontSize="13" 
+                                           HorizontalTextAlignment="Center" 
+                                           VerticalTextAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -690,15 +689,15 @@
 
             <!-- Close Button at BOTTOM -->
             <Button Grid.Row="3"
-            x:Name="btnCloseItems2"
-            Text="✕ Close Items"
-            FontAttributes="Bold"
-            BackgroundColor="Red"
-            TextColor="White"
-            HeightRequest="50"
-            CornerRadius="10"
-            Margin="0,5,0,10"
-            Clicked="BtnCloseItems2_Clicked"/>
+                    x:Name="btnCloseItems2"
+                    Text="✕ Close Items"
+                    FontAttributes="Bold"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Margin="0,5,0,10"
+                    Clicked="BtnCloseItems2_Clicked"/>
         </Grid>
 
         <!-- LAYER 4: Confirmation Panel OVERLAY -->
