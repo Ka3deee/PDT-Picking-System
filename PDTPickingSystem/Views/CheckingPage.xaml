@@ -241,19 +241,40 @@
 
                         <!-- Buttons Row -->
                         <Grid ColumnDefinitions="*,*" 
-                                  ColumnSpacing="10" 
-                                  Margin="0,-5,0,0">
+                              ColumnSpacing="10" 
+                              Margin="0,-5,0,0">
 
-                            <Button x:Name="btnViewItems" 
-                                    Grid.Column="0" 
-                                    Text="View Items" 
-                                    FontAttributes="Bold" 
-                                    FontSize="16" 
-                                    HeightRequest="40" 
-                                    BackgroundColor="Blue"
-                                    CornerRadius="10"
-                                    Clicked="BtnViewItems_Clicked"
-                                    FontFamily="MontserratRegular"/>
+                            <!-- View Items Button with Loading Indicator -->
+                            <Grid Grid.Column="0">
+                                <Button x:Name="btnViewItems" 
+                                        Text="View Items" 
+                                        FontAttributes="Bold" 
+                                        FontSize="16" 
+                                        HeightRequest="40" 
+                                        BackgroundColor="Blue"
+                                        CornerRadius="10"
+                                        Clicked="BtnViewItems_Clicked"
+                                        FontFamily="MontserratRegular"/>
+
+                                <!-- Loading Overlay -->
+                                <Frame x:Name="viewItemsLoadingOverlay"
+                                       IsVisible="False"
+                                       BackgroundColor="#AA000000"
+                                       CornerRadius="10"
+                                       Padding="0"
+                                       HasShadow="False"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill">
+
+                                    <ActivityIndicator IsRunning="True"
+                                                       Color="White"
+                                                       WidthRequest="24"
+                                                       HeightRequest="24"
+                                                       VerticalOptions="Center"
+                                                       HorizontalOptions="Center"/>
+                                </Frame>
+
+                            </Grid>
 
                             <Button x:Name="btnAccept" 
                                     Grid.Column="1" 
@@ -314,14 +335,6 @@
                         Margin="5,-8,-5,0"
                         Loaded="LblTrf_Loaded"/>
                 </Grid>
-
-                <!-- Request Button -->
-                <ImageButton x:Name="pbReq"
-                             Source="your_image.png"
-                             HeightRequest="50"
-                             WidthRequest="50"
-                             BackgroundColor="Black"
-                             IsVisible="False"/>
 
                 <!-- Navigation Panel -->
                 <StackLayout x:Name="pnlNavigate" 
@@ -756,14 +769,226 @@
                 TextColor="White"
                 FontAttributes="Bold"
                 FontSize="18"
-                HeightRequest="55"
+                HeightRequest="50"
                 WidthRequest="200"
                 CornerRadius="18"
                 Clicked="BtnFinished_Clicked"
+                FontFamily="MontserratRegular"
                 VerticalOptions="Start"
                 HorizontalOptions="Center"
                 Margin="0,110,0,0"
                 ZIndex="1000"
                 Opacity="0.95"/>
+
+        <!-- ================= 🚫 CUSTOM MODAL DIALOG ================= -->
+        <Frame x:Name="customModalOverlay"
+               IsVisible="False"
+               BackgroundColor="#CC000000"
+               Padding="0"
+               CornerRadius="0"
+               HasShadow="False"
+               BorderColor="Transparent"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               InputTransparent="False"
+               ZIndex="10000">
+
+            <!-- Modal Dialog Card -->
+            <Frame BackgroundColor="White"
+                   CornerRadius="10"
+                   HasShadow="True"
+                   Padding="30"
+                   WidthRequest="300"
+                   HeightRequest="250"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center">
+
+                <VerticalStackLayout Spacing="20" 
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center">
+
+                    <!-- Title -->
+                    <Label x:Name="modalTitle"
+                           Text="Requesting..."
+                           FontFamily="MontserratBold"
+                           FontSize="24"
+                           TextColor="Black"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Message -->
+                    <Label x:Name="modalMessage"
+                           Text="Request from server?"
+                           FontFamily="MontserratRegular"
+                           FontSize="16"
+                           TextColor="#333333"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Buttons -->
+                    <HorizontalStackLayout Spacing="15"
+                                          HorizontalOptions="Center"
+                                          Margin="0,10,0,0">
+
+                        <Button x:Name="modalNoButton"
+                                Text="No"
+                                BackgroundColor="Red"
+                                TextColor="White"
+                                FontFamily="MontserratSemibold"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                WidthRequest="100"
+                                HeightRequest="45"
+                                CornerRadius="12"
+                                Clicked="ModalNoButton_Clicked"/>
+
+                        <Button x:Name="modalYesButton"
+                                Text="Yes"
+                                BackgroundColor="Green"
+                                TextColor="White"
+                                FontFamily="MontserratSemibold"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                WidthRequest="100"
+                                HeightRequest="45"
+                                CornerRadius="12"
+                                Clicked="ModalYesButton_Clicked"/>
+
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Frame>
+        </Frame>
+
+        <!-- ================= 🚚 LOADING OVERLAY ================= -->
+        <Frame x:Name="pbReq"
+               IsVisible="False"
+               BackgroundColor="#CC000000"
+               Padding="0"
+               CornerRadius="0"
+               HasShadow="False"
+               BorderColor="Transparent"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               InputTransparent="False"
+               ZIndex="9999">
+
+            <!-- Loading Content -->
+            <Grid VerticalOptions="Fill" 
+                  HorizontalOptions="Fill">
+
+                <!-- White Card Background -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="10"
+                       HasShadow="True"
+                       Padding="20"
+                       WidthRequest="280"
+                       HeightRequest="350"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center">
+
+                    <VerticalStackLayout Spacing="30" 
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="Center">
+
+                        <!-- Animated Truck Container -->
+                        <Grid HeightRequest="110" 
+                              WidthRequest="240"
+                              HorizontalOptions="Center"
+                              Margin="0,-20,0,0">
+
+                            <!-- Road Line -->
+                            <BoxView BackgroundColor="LightGray"
+                                     HeightRequest="5"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Fill"
+                                     Margin="0,40,0,0"/>
+
+                            <!-- Dashed Road Lines -->
+                            <BoxView x:Name="roadDash1"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="25"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="20,40,0,0"/>
+
+                            <BoxView x:Name="roadDash2"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="25"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="70,40,0,0"/>
+
+                            <BoxView x:Name="roadDash3"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="25"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="120,40,0,0"/>
+
+                            <BoxView x:Name="roadDash4"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="25"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="170,40,0,0"/>
+
+                            <BoxView x:Name="roadDash5"
+                                     BackgroundColor="Gray"
+                                     HeightRequest="5"
+                                     WidthRequest="25"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     Margin="220,40,0,0"/>
+
+                            <!-- Animated Truck Image -->
+                            <Image x:Name="truckIcon"
+                                   Source="truck_loading.png"
+                                   WidthRequest="120"
+                                   HeightRequest="120"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Start"
+                                   Aspect="AspectFit"/>
+
+                        </Grid>
+
+                        <!-- Loading Text -->
+                        <Label x:Name="loadingText"
+                               Text="Requesting..."
+                               FontFamily="MontserratSemibold"
+                               FontSize="20"
+                               TextColor="Blue"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center"
+                               Margin="0,-30,0,0"/>
+
+                        <!-- Loading Dots Animation -->
+                        <HorizontalStackLayout HorizontalOptions="Center"
+                                               Margin="0,0,0,0"
+                                               Spacing="8">
+                            <Ellipse x:Name="dot1"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                            <Ellipse x:Name="dot2"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                            <Ellipse x:Name="dot3"
+                                     Fill="Blue"
+                                     WidthRequest="10"
+                                     HeightRequest="10"/>
+                        </HorizontalStackLayout>
+
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+        </Frame>
+
     </Grid>
 </ContentPage>

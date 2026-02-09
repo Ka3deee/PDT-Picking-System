@@ -587,12 +587,12 @@
                 FontSize="18"
                 HeightRequest="50"
                 WidthRequest="200"
-                CornerRadius="10"
+                CornerRadius="18"
                 Clicked="BtnFinished_Clicked"
                 FontFamily="MontserratRegular"
                 VerticalOptions="Start"
                 HorizontalOptions="Center"
-                Margin="0,395,0,0"
+                Margin="0,110,0,0"
                 ZIndex="1000"
                 Opacity="0.95"/>
 
@@ -1008,6 +1008,86 @@
                     </VerticalStackLayout>
                 </Frame>
             </Grid>
+        </Frame>
+
+        <!-- ================= 🚫 CUSTOM MODAL DIALOG ================= -->
+        <Frame x:Name="customModalOverlay"
+               IsVisible="False"
+               BackgroundColor="#CC000000"
+               Padding="0"
+               CornerRadius="0"
+               HasShadow="False"
+               BorderColor="Transparent"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               InputTransparent="False"
+               ZIndex="10000">
+
+            <!-- Modal Dialog Card -->
+            <Frame BackgroundColor="White"
+                   CornerRadius="10"
+                   HasShadow="True"
+                   Padding="30"
+                   WidthRequest="300"
+                   HeightRequest="250"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center">
+
+                <VerticalStackLayout Spacing="20" 
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center">
+
+                    <!-- Title -->
+                    <Label x:Name="modalTitle"
+                           Text="Requesting..."
+                           FontFamily="MontserratBold"
+                           FontSize="24"
+                           TextColor="Black"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Message -->
+                    <Label x:Name="modalMessage"
+                           Text="Request from server?"
+                           FontFamily="MontserratRegular"
+                           FontSize="16"
+                           TextColor="#333333"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Buttons -->
+                    <HorizontalStackLayout Spacing="15"
+                                          HorizontalOptions="Center"
+                                          Margin="0,10,0,0">
+
+                        <Button x:Name="modalNoButton"
+                                Text="No"
+                                BackgroundColor="Red"
+                                TextColor="White"
+                                FontFamily="MontserratSemibold"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                WidthRequest="100"
+                                HeightRequest="45"
+                                CornerRadius="12"
+                                Clicked="ModalNoButton_Clicked"/>
+
+                        <Button x:Name="modalYesButton"
+                                Text="Yes"
+                                BackgroundColor="Green"
+                                TextColor="White"
+                                FontFamily="MontserratSemibold"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                WidthRequest="100"
+                                HeightRequest="45"
+                                CornerRadius="12"
+                                Clicked="ModalYesButton_Clicked"/>
+
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Frame>
         </Frame>
 
     </Grid>

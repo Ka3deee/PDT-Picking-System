@@ -63,7 +63,7 @@ namespace PDTPickingSystem.Views
         // Summary mode
         private int isSummary = 2;
 
-        // ================== ✅ NEW: IDLE MONITORING FIELDS ==================
+        // ================== ✅ IDLE MONITORING FIELDS ==================
 
         /// <summary>
         /// Timer that checks for idle state every second
@@ -104,12 +104,34 @@ namespace PDTPickingSystem.Views
         /// Flag to track if checking is currently active
         /// </summary>
         private bool _isCheckingActive = false;
-        // Add this field at the top with other fields
+
+        // Spam-click prevention flags
         private bool _isAccepting = false;
-        // Add this field at the top with other fields
         private bool _isFinishing = false;
-        // Add this with other private fields
         private bool _isShowingAlert = false;
+        private bool _isViewingItems = false; // ✅ NEW: View Items loading flag
+
+        // ================== 🚚 LOADING ANIMATION FIELDS ==================
+
+        /// <summary>
+        /// Timer for truck animation
+        /// </summary>
+        private IDispatcherTimer _truckAnimationTimer;
+
+        /// <summary>
+        /// Current truck position (0 to 240)
+        /// </summary>
+        private double _truckPosition = 0;
+
+        /// <summary>
+        /// Timer for loading dots animation
+        /// </summary>
+        private IDispatcherTimer _dotsAnimationTimer;
+
+        /// <summary>
+        /// Current dot animation step (0-3)
+        /// </summary>
+        private int _dotAnimationStep = 0;
 
         // ================== CONSTRUCTOR ==================
 
@@ -216,11 +238,14 @@ namespace PDTPickingSystem.Views
             // ✅ NEW: Initialize idle monitoring
             _InitializeIdleMonitoring();
 
+            // ✅ NEW: Initialize loading animations
+            _InitializeLoadingAnimations();
+
             // ✅ NEW: Attach activity tracking to all interactive controls
             _AttachActivityTracking();
         }
 
-        // ================== ✅ NEW: IDLE MONITORING INITIALIZATION ==================
+        // ================== ✅ IDLE MONITORING INITIALIZATION ==================
 
         /// <summary>
         /// Initialize idle monitoring system
@@ -267,7 +292,7 @@ namespace PDTPickingSystem.Views
             lvSKU.SelectionChanged += OnUserActivity;
         }
 
-        // ================== ✅ NEW: ACTIVITY TRACKING ==================
+        // ================== ✅ ACTIVITY TRACKING ==================
 
         /// <summary>
         /// Called whenever user interacts with the app
@@ -316,7 +341,7 @@ namespace PDTPickingSystem.Views
             _StopAlarm();
         }
 
-        // ================== ✅ NEW: IDLE CHECK TIMER ==================
+        // ================== ✅ IDLE CHECK TIMER ==================
 
         /// <summary>
         /// Timer tick - checks for idle state every second
@@ -345,7 +370,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== ✅ NEW: ALERT & ALARM FUNCTIONS ==================
+        // ================== ✅ ALERT & ALARM FUNCTIONS ==================
 
         /// <summary>
         /// Show warning alert (10 seconds before alarm)
@@ -490,6 +515,104 @@ namespace PDTPickingSystem.Views
             }
         }
 
+        // ================== 🚚 LOADING ANIMATION METHODS ==================
+
+        /// <summary>
+        /// Initialize loading screen animations
+        /// </summary>
+        private void _InitializeLoadingAnimations()
+        {
+            // Truck moving animation
+            _truckAnimationTimer = Dispatcher.CreateTimer();
+            _truckAnimationTimer.Interval = TimeSpan.FromMilliseconds(30);
+            _truckAnimationTimer.Tick += TruckAnimationTimer_Tick;
+
+            // Loading dots animation
+            _dotsAnimationTimer = Dispatcher.CreateTimer();
+            _dotsAnimationTimer.Interval = TimeSpan.FromMilliseconds(400);
+            _dotsAnimationTimer.Tick += DotsAnimationTimer_Tick;
+        }
+
+        /// <summary>
+        /// Truck animation tick - moves truck across screen
+        /// </summary>
+        private void TruckAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            _truckPosition += 3; // Move 3 pixels per tick
+
+            // Reset position when truck reaches end
+            if (_truckPosition > 240)
+            {
+                _truckPosition = -80; // Start from left edge (off-screen)
+            }
+
+            // Update truck position
+            truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// Loading dots animation tick - animates three dots
+        /// </summary>
+        private void DotsAnimationTimer_Tick(object sender, EventArgs e)
+        {
+            _dotAnimationStep = (_dotAnimationStep + 1) % 4;
+
+            // Animate dots based on current step
+            switch (_dotAnimationStep)
+            {
+                case 0:
+                    dot1.Opacity = 1;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 0.3;
+                    break;
+                case 1:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 1;
+                    dot3.Opacity = 0.3;
+                    break;
+                case 2:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 1;
+                    break;
+                case 3:
+                    dot1.Opacity = 0.3;
+                    dot2.Opacity = 0.3;
+                    dot3.Opacity = 0.3;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Show loading overlay with truck animation
+        /// </summary>
+        private void _ShowLoading(string message = "Loading...")
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                loadingText.Text = message;
+                pbReq.IsVisible = true;
+                _truckPosition = -80; // Start from left
+                truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
+
+                _truckAnimationTimer.Start();
+                _dotsAnimationTimer.Start();
+            });
+        }
+
+        /// <summary>
+        /// Hide loading overlay
+        /// </summary>
+        private void _HideLoading()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                pbReq.IsVisible = false;
+                _truckAnimationTimer?.Stop();
+                _dotsAnimationTimer?.Stop();
+            });
+        }
+
         // ================== PAGE LIFECYCLE ==================
 
         private async void CheckingPage_Appearing(object sender, EventArgs e)
@@ -500,7 +623,6 @@ namespace PDTPickingSystem.Views
 
             pnlItems.IsVisible = false;
             pnlItems2.IsVisible = false;
-            pbReq.IsVisible = true;
 
             isBarcode = true;
             btnFinished.IsVisible = false;
@@ -516,6 +638,9 @@ namespace PDTPickingSystem.Views
 
             // ✅ NEW: Stop idle monitoring and alarm
             _StopIdleMonitoring();
+
+            // ✅ NEW: Stop loading animations
+            _HideLoading();
         }
 
         // ================== FOCUS MANAGEMENT ==================
@@ -822,33 +947,61 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        private void BtnViewItems_Clicked(object sender, EventArgs e)
+        private async void BtnViewItems_Clicked(object sender, EventArgs e)
         {
-            // ✅ Reset idle timer
-            _ResetIdleTimer();
-
-            // 🔍 DEBUG: Check if we have items
-            System.Diagnostics.Debug.WriteLine($"📊 SKUList.Count = {SKUList.Count}");
-
-            if (SKUList.Count == 0)
-            {
-                DisplayAlert("SKU List Empty!", "SKU List is empty. No items to display.", "OK");
+            // ✅ FIX: Prevent double-clicking
+            if (_isViewingItems)
                 return;
-            }
 
-            pnlItems.IsVisible = true;
-            lblCnt.Text = $"Count: {SKUList.Count}";
+            _isViewingItems = true;
 
-            if (!string.IsNullOrWhiteSpace(txtSKU.Text) && SKUList.Count > 0)
+            try
             {
-                int index = _getIndexLV();
-                System.Diagnostics.Debug.WriteLine($"📍 Current index = {index}");
+                // ✅ Show loading indicator
+                viewItemsLoadingOverlay.IsVisible = true;
+                btnViewItems.IsEnabled = false;
 
-                if (index >= 0 && index < SKUList.Count)
+                // ✅ Reset idle timer
+                _ResetIdleTimer();
+
+                // Small delay to show loading animation
+                await Task.Delay(100);
+
+                // 🔍 DEBUG: Check if we have items
+                System.Diagnostics.Debug.WriteLine($"📊 SKUList.Count = {SKUList.Count}");
+
+                if (SKUList.Count == 0)
                 {
-                    lvSKU.ScrollTo(SKUList[index], position: ScrollToPosition.MakeVisible, animate: true);
-                    lvSKU.SelectedItem = SKUList[index];
+                    viewItemsLoadingOverlay.IsVisible = false;
+                    btnViewItems.IsEnabled = true;
+                    await DisplayAlert("SKU List Empty!", "SKU List is empty. No items to display.", "OK");
+                    return;
                 }
+
+                pnlItems.IsVisible = true;
+                lblCnt.Text = $"Count: {SKUList.Count}";
+
+                if (!string.IsNullOrWhiteSpace(txtSKU.Text) && SKUList.Count > 0)
+                {
+                    int index = _getIndexLV();
+                    System.Diagnostics.Debug.WriteLine($"📍 Current index = {index}");
+
+                    if (index >= 0 && index < SKUList.Count)
+                    {
+                        // Allow UI to render before scrolling
+                        await Task.Delay(50);
+
+                        lvSKU.ScrollTo(SKUList[index], position: ScrollToPosition.MakeVisible, animate: true);
+                        lvSKU.SelectedItem = SKUList[index];
+                    }
+                }
+            }
+            finally
+            {
+                // ✅ Hide loading indicator
+                viewItemsLoadingOverlay.IsVisible = false;
+                btnViewItems.IsEnabled = true;
+                _isViewingItems = false;
             }
         }
 
@@ -932,13 +1085,50 @@ namespace PDTPickingSystem.Views
 
         // ================== CORE BUSINESS LOGIC ==================
 
+        // ================== MODAL DIALOG FIELDS ==================
+        private TaskCompletionSource<bool> _modalDialogResult;
+        private bool _isRequesting = false;
+
+        // ================== MODAL DIALOG BUTTON HANDLERS ==================
+
+        private void ModalYesButton_Clicked(object sender, EventArgs e)
+        {
+            _modalDialogResult?.TrySetResult(true);
+            customModalOverlay.IsVisible = false;
+        }
+
+        private void ModalNoButton_Clicked(object sender, EventArgs e)
+        {
+            _modalDialogResult?.TrySetResult(false);
+            customModalOverlay.IsVisible = false;
+        }
+
+        /// <summary>
+        /// Show custom modal dialog (truly modal - blocks all interaction)
+        /// </summary>
+        private async Task<bool> ShowCustomModalDialog(string title, string message, string yesText = "Yes", string noText = "No")
+        {
+            _modalDialogResult = new TaskCompletionSource<bool>();
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                modalTitle.Text = title;
+                modalMessage.Text = message;
+                modalYesButton.Text = yesText;
+                modalNoButton.Text = noText;
+                customModalOverlay.IsVisible = true;
+            });
+
+            // Wait for user to click Yes or No
+            return await _modalDialogResult.Task;
+        }
+
         /// <summary>
         /// Initialize checking session and load data from server
         /// </summary>
         private async Task _GetSetPickNoAsync()
         {
             btnFinished.IsVisible = false;
-            pbReq.IsVisible = true;
 
             string sUserPNo = "";
 
@@ -954,10 +1144,10 @@ namespace PDTPickingSystem.Views
             {
                 // Query user info
                 string cmdText = @"
-                    SELECT a.ID_SumHdr, a.PickRef, b.user_id, a.isChecker
-                    FROM tblUsers a
-                    LEFT JOIN tblChkrDept b ON a.id = b.user_id
-                    WHERE a.ID=@UserID";
+            SELECT a.ID_SumHdr, a.PickRef, b.user_id, a.isChecker
+            FROM tblUsers a
+            LEFT JOIN tblChkrDept b ON a.id = b.user_id
+            WHERE a.ID=@UserID";
 
                 using var sqlCmd = new SqlCommand(cmdText, conn);
                 sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
@@ -991,6 +1181,10 @@ namespace PDTPickingSystem.Views
                 // Check if user has active checking session
                 if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
+                    // ✅ Show loading immediately
+                    _ShowLoading("Loading existing checking session...");
+                    await Task.Yield();
+
                     txtSKU.Text = string.Empty;
                     await _AddSKUtoListAsync();
                     return;
@@ -1001,36 +1195,53 @@ namespace PDTPickingSystem.Views
                 {
                     _requestAlreadyShown = true;
 
-                    bool answer = await DisplayAlert("Requesting...", "Request from server?", "Yes", "No");
-                    if (answer)
+                    // Prevent double-clicking
+                    if (_isRequesting)
+                        return;
+
+                    _isRequesting = true;
+
+                    try
                     {
-                        string updateCmd = @"
-                            UPDATE tblUsers 
-                            SET isRequest=1, isSummary=@Summary, PickRef=@PickNo 
-                            WHERE ID=@UserID";
+                        bool answer = await ShowCustomModalDialog(
+                            "Requesting...",
+                            "Request from server?",
+                            "Yes",
+                            "No");
 
-                        using var updateSqlCmd = new SqlCommand(updateCmd, conn);
-                        updateSqlCmd.Parameters.AddWithValue("@Summary", 2);
-                        updateSqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
-                        updateSqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                        await updateSqlCmd.ExecuteNonQueryAsync();
+                        if (answer)
+                        {
+                            // ✅ User clicked YES - proceed with requesting
+                            _ShowLoading("Requesting...");
+                            await Task.Yield();
 
-                        tmrRequest.Start();
+                            string updateCmd = @"
+                        UPDATE tblUsers 
+                        SET isRequest=1, isSummary=@Summary, PickRef=@PickNo 
+                        WHERE ID=@UserID";
+
+                            using var updateSqlCmd = new SqlCommand(updateCmd, conn);
+                            updateSqlCmd.Parameters.AddWithValue("@Summary", 2);
+                            updateSqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
+                            updateSqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+                            await updateSqlCmd.ExecuteNonQueryAsync();
+
+                            tmrRequest.Start();
+                        }
+                        else
+                        {
+                            await Navigation.PopModalAsync();
+                        }
                     }
-                    else
+                    finally
                     {
-                        await Navigation.PopAsync();
+                        _isRequesting = false;
                     }
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error", ex.Message, "OK");
-                await Navigation.PopAsync();
-            }
-            finally
-            {
-                pbReq.IsVisible = false;
             }
         }
 
@@ -1039,8 +1250,20 @@ namespace PDTPickingSystem.Views
         /// </summary>
         private async Task _AddSKUtoListAsync()
         {
+            // ✅ UPDATE LOADING MESSAGE
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                loadingText.Text = "Loading checking data...";
+            });
+
             using var conn = await AppGlobal._SQL_Connect();
-            if (conn == null) return;
+            if (conn == null)
+            {
+                // ✅ HIDE LOADING ON CONNECTION FAILURE
+                _HideLoading();
+                await DisplayAlert("Error", "Cannot connect to server!", "OK");
+                return;
+            }
 
             try
             {
@@ -1068,8 +1291,9 @@ namespace PDTPickingSystem.Views
                     // Do not allow not yet picked transfers
                     if (reader["TimeEnd"].ToString().Trim() == "0" || reader["DateDone"].ToString().Trim() == "")
                     {
+                        _HideLoading();
                         await DisplayAlert("System Says", "Not yet Picked!", "OK");
-                        await Navigation.PopAsync();
+                        await Navigation.PopModalAsync(); // ✅ CHANGED: Return to MainMenuPage
                         return;
                     }
 
@@ -1151,8 +1375,11 @@ namespace PDTPickingSystem.Views
             }
             catch (Exception ex)
             {
+                // ✅ HIDE LOADING ON EXCEPTION
+                _HideLoading();
                 await DisplayAlert("Error", ex.Message, "OK");
             }
+            // ✅ NOTE: Loading will be hidden in _CountPicked() on successful completion
         }
 
         /// <summary>
@@ -1214,7 +1441,8 @@ namespace PDTPickingSystem.Views
                 btnFinished.IsVisible = false;
             }
 
-            pbReq.IsVisible = false;
+            // ✅ HIDE LOADING WITH ANIMATION
+            _HideLoading();
         }
 
         /// <summary>
@@ -1258,6 +1486,8 @@ namespace PDTPickingSystem.Views
                         resetCmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
                         await resetCmd.ExecuteNonQueryAsync();
 
+                        _HideLoading();
+
                         await DisplayAlert("Unable to request!", "No picking no. available!", "OK");
                         await Navigation.PopAsync();
                     }
@@ -1269,6 +1499,7 @@ namespace PDTPickingSystem.Views
             }
             catch (Exception ex)
             {
+                _HideLoading();
                 await DisplayAlert("Error!", ex.Message, "OK");
             }
         }
@@ -1764,7 +1995,6 @@ namespace PDTPickingSystem.Views
                 }
             }
         }
-
 
         // ================== DATA CLASS ==================
 

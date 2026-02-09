@@ -6,7 +6,7 @@
              Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
-        
+
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Shadow">
                 <Setter.Value>
@@ -14,7 +14,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <Style x:Key="CardFrame" TargetType="Frame">
             <Setter Property="Shadow">
                 <Setter.Value>
@@ -23,7 +23,6 @@
             </Setter>
         </Style>
     </ContentPage.Resources>
-
 
     <Grid RowDefinitions="Auto,*">
         <!-- 🔹 HEADER -->
@@ -34,14 +33,12 @@
               VerticalOptions="Start"
               Padding="15,0,0,0">
 
-            <!-- Logo -->
             <Image Source="lcclogo2.png"
                    HeightRequest="40"
                    WidthRequest="40"
                    VerticalOptions="Center"
                    Margin="0,-5,0,0"/>
 
-            <!-- Title -->
             <Label Grid.Column="2"
                    Text="PDT Picking System"
                    FontSize="16"
@@ -51,167 +48,298 @@
                    Margin="-5,0,0,0"/>
         </Grid>
 
+        <VerticalStackLayout Padding="-12" Spacing="7">
 
-    <VerticalStackLayout Padding="-12" Spacing="7">
-
-        <!-- App Logo with Tap Gesture for Version Info -->
-        <Frame Style="{StaticResource CardFrame}"
-               Margin="33,70,33,0"
-               Padding="0"
-               BackgroundColor="Blue"
-               CornerRadius="18"
-               HasShadow="True"
-               HeightRequest="100">
-            <Image x:Name="imgLogo"
-                   Source="pblogo.png"
-                   HorizontalOptions="Fill"
-                   VerticalOptions="Start"
-                   HeightRequest="150"
-                   WidthRequest="500"
-                   Aspect="AspectFit"
-                   Margin="0,-23,0,0">
-                <Image.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="ImgLogo_Tapped"/>
-                </Image.GestureRecognizers>
-            </Image>
-        </Frame>
+            <!-- App Logo -->
+            <Frame Style="{StaticResource CardFrame}"
+                   Margin="33,70,33,0"
+                   Padding="0"
+                   BackgroundColor="Blue"
+                   CornerRadius="18"
+                   HasShadow="True"
+                   HeightRequest="100">
+                <Image x:Name="imgLogo"
+                       Source="pblogo.png"
+                       HorizontalOptions="Fill"
+                       VerticalOptions="Start"
+                       HeightRequest="150"
+                       WidthRequest="500"
+                       Aspect="AspectFit"
+                       Margin="0,-23,0,0">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="ImgLogo_Tapped"/>
+                    </Image.GestureRecognizers>
+                </Image>
+            </Frame>
 
             <!-- First row -->
-        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                <Button Text="📦 Start Picking"
-                    Clicked="BtnOpt1_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="10"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
+            <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                <!-- Start Picking Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt1"
+                            Text="📦 Start Picking"
+                            Clicked="BtnOpt1_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="10"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
 
-                <Button Text="✅ Start Checking"
-                    Clicked="BtnOpt2_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="5"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
-        </HorizontalStackLayout>
+                    <Frame x:Name="loadingOpt1" 
+                           IsVisible="False"
+                           BackgroundColor="#80000000"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           Padding="0"
+                           Margin="0"
+                           CornerRadius="18"
+                           HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
 
-        <!-- Second row -->
-        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                <Button Text="🧑 Set User ID"
-                    Clicked="BtnOpt3_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="5"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
+                <!-- Start Checking Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt2"
+                            Text="✅ Start Checking"
+                            Clicked="BtnOpt2_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="5"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
 
-                <Button Text="📝 Confirm Check"
-                    Clicked="BtnOpt4_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="5"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
-        </HorizontalStackLayout>
+                    <Frame x:Name="loadingOpt2" 
+                           IsVisible="False"
+                           BackgroundColor="#80000000"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           Padding="0"
+                           Margin="0"
+                           CornerRadius="18"
+                           HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
+            </HorizontalStackLayout>
 
-        <!-- Third row -->
-        <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                <Button Text="⚙️ Server Settings"
-                    Clicked="BtnOpt5_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="285"
-                    HeightRequest="60"
-                    FontSize="16"
-                    Padding="5"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
-        </HorizontalStackLayout>
+            <!-- Second row -->
+            <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                <!-- Set User ID Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt3"
+                            Text="🧑 Set User ID"
+                            Clicked="BtnOpt3_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="5"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
 
-        <!-- Fourth row -->
-        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                <Button Text="🏷️ Set Pick Ref"
-                    Clicked="BtnOpt6_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="5"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
+                    <Frame x:Name="loadingOpt3" 
+                           IsVisible="False"
+                           BackgroundColor="#80000000"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           Padding="0"
+                           Margin="0"
+                           CornerRadius="18"
+                           HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
 
-                <Button Text="⏏️ Exit"
-                    Clicked="BtnOpt7_Clicked"
-                    Style="{StaticResource PrimaryButton}"
-                    BackgroundColor="Red"
-                    TextColor="White"
-                    WidthRequest="140"
-                    HeightRequest="60"
-                    FontSize="14"
-                    Padding="-10,0,0,0"
-                    CornerRadius="18"
-                    FontAttributes="Bold"
-                    FontFamily="MontserratRegular"/>
-        </HorizontalStackLayout>
+                <!-- Confirm Check Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt4"
+                            Text="📝 Confirm Check"
+                            Clicked="BtnOpt4_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="5"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
 
-        <!-- User Info -->
-        <Label x:Name="lblUser"
-               Text="User: (None)"
-               FontAttributes="Bold"
-               FontSize="14"
-               TextColor="Black"
-               HorizontalOptions="Center"/>
+                    <Frame x:Name="loadingOpt4" 
+                                   IsVisible="False"
+                                   BackgroundColor="#80000000"
+                                   HorizontalOptions="Fill"
+                                   VerticalOptions="Fill"
+                                   Padding="0"
+                                   Margin="0"
+                                   CornerRadius="18"
+                                   HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
+            </HorizontalStackLayout>
 
-        <!-- Status -->
-        <Grid Grid.Row="1"
-              Padding="0"
-              Margin="0,0,0,0">
-            <Label x:Name="lblStatus"
-               Text=""
-               FontSize="14"
-               TextColor="Black"
-               HorizontalOptions="Center"
-               Margin="0,-8,0,5"/>
-        </Grid>
+            <!-- Third row -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <!-- Server Settings Button -->
+                <Grid WidthRequest="285" HeightRequest="60">
+                    <Button x:Name="btnOpt5"
+                            Text="⚙️ Server Settings"
+                            Clicked="BtnOpt5_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="16"
+                            Padding="5"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
 
-        <!-- App Version -->
-        <Grid Grid.Row="1"
-              BackgroundColor="Blue"
-              Padding="10"
-              Margin="-30,-10,-30,0">
-            <Label Text="{Binding VersionText}"
-                   FontSize="12"
-                   TextColor="White"
-                   FontAttributes="None"
-                   HorizontalOptions="Center"
-                   VerticalOptions="End"
-                   Margin="0,-8,0,5"/>
-        </Grid>
-    </VerticalStackLayout>
-        </Grid>
+                    <Frame x:Name="loadingOpt5" 
+                           IsVisible="False"
+                           BackgroundColor="#80000000"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           Padding="0"
+                           Margin="0"
+                           HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
+            </HorizontalStackLayout>
+
+            <!-- Fourth row -->
+            <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                <!-- Set Pick Ref Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt6"
+                            Text="🏷️ Set Pick Ref"
+                            Clicked="BtnOpt6_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="5"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
+
+                    <Frame x:Name="loadingOpt6" 
+                          IsVisible="False"
+                          BackgroundColor="#80000000"
+                          HorizontalOptions="Fill"
+                          VerticalOptions="Fill"
+                          Padding="0"
+                          Margin="0"
+                          CornerRadius="18"
+                          HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                          Color="White"
+                                          WidthRequest="30"
+                                          HeightRequest="30"/>
+                    </Frame>
+                </Grid>
+
+                <!-- Exit Button -->
+                <Grid WidthRequest="140" HeightRequest="60">
+                    <Button x:Name="btnOpt7"
+                            Text="⏏️ Exit"
+                            Clicked="BtnOpt7_Clicked"
+                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="Red"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="-10,0,0,0"
+                            CornerRadius="18"
+                            FontAttributes="Bold"
+                            FontFamily="MontserratRegular"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"/>
+
+                    <Frame x:Name="loadingOpt7" 
+                           IsVisible="False"
+                           BackgroundColor="#80000000"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill"
+                           Padding="0"
+                           Margin="0"
+                           CornerRadius="18"
+                           HasShadow="False">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="White"
+                                           WidthRequest="30"
+                                           HeightRequest="30"/>
+                    </Frame>
+                </Grid>
+            </HorizontalStackLayout>
+
+            <!-- User Info -->
+            <Label x:Name="lblUser"
+                   Text="User: (None)"
+                   FontAttributes="Bold"
+                   FontSize="14"
+                   TextColor="Black"
+                   HorizontalOptions="Center"/>
+
+            <!-- Status -->
+            <Grid Grid.Row="1"
+                  Padding="0"
+                  Margin="0,0,0,0">
+                <Label x:Name="lblStatus"
+                       Text=""
+                       FontSize="14"
+                       TextColor="Black"
+                       HorizontalOptions="Center"
+                       Margin="0,-8,0,5"/>
+            </Grid>
+
+            <!-- App Version -->
+            <Grid Grid.Row="1"
+                  BackgroundColor="Blue"
+                  Padding="10"
+                  Margin="-30,-10,-30,0">
+                <Label Text="{Binding VersionText}"
+                       FontSize="12"
+                       TextColor="White"
+                       FontAttributes="None"
+                       HorizontalOptions="Center"
+                       VerticalOptions="End"
+                       Margin="0,-8,0,5"/>
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
 </ContentPage>

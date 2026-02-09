@@ -878,7 +878,29 @@ namespace PDTPickingSystem.Views
                     }
                     else if (txtSKU.Text.Trim() != "" && txtSKU.Text == txtpSKU.Text)
                     {
-                        await _AcceptItemAsync();
+                        // ✅ NEW: Show confirmation alert before accepting item
+                        double totalQty = (Convert.ToDouble(txtpCaseTag ?? 0) * caseQty) + eachQty;
+                        string itemInfo = $"SKU: {txtpSKU.Text}\n" +
+                                          $"Description: {txtpDescr.Text}\n" +
+                                          $"Case: {caseQty:N2}\n" +
+                                          $"Each: {eachQty:N2}\n" +
+                                          $"Total Qty: {totalQty:N2}";
+
+                        bool confirmAccept = await DisplayAlert(
+                            "Accept Item?",
+                            itemInfo + "\n\nDo you want to accept this item?",
+                            "Yes",
+                            "No");
+
+                        if (confirmAccept)
+                        {
+                            await _AcceptItemAsync();
+                        }
+                        else
+                        {
+                            // User cancelled - refocus on barcode entry
+                            txtBarcode.Focus();
+                        }
                     }
                 }
             }
@@ -1132,6 +1154,45 @@ namespace PDTPickingSystem.Views
 
         // ================== CORE BUSINESS LOGIC ==================
 
+        // ================== MODAL DIALOG FIELDS ==================
+        private TaskCompletionSource<bool> _modalDialogResult;
+
+        // ================== MODAL DIALOG BUTTON HANDLERS ==================
+
+        private void ModalYesButton_Clicked(object sender, EventArgs e)
+        {
+            _modalDialogResult?.TrySetResult(true);
+            customModalOverlay.IsVisible = false;
+        }
+
+        private void ModalNoButton_Clicked(object sender, EventArgs e)
+        {
+            _modalDialogResult?.TrySetResult(false);
+            customModalOverlay.IsVisible = false;
+        }
+
+        /// <summary>
+        /// Show custom modal dialog (truly modal - blocks all interaction)
+        /// </summary>
+        private async Task<bool> ShowCustomModalDialog(string title, string message, string yesText = "Yes", string noText = "No")
+        {
+            _modalDialogResult = new TaskCompletionSource<bool>();
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                modalTitle.Text = title;
+                modalMessage.Text = message;
+                modalYesButton.Text = yesText;
+                modalNoButton.Text = noText;
+                customModalOverlay.IsVisible = true;
+            });
+
+            // Wait for user to click Yes or No
+            return await _modalDialogResult.Task;
+        }
+
+        // ================== CORE BUSINESS LOGIC ==================
+
         private async Task _GetSetPickNoAsync()
         {
             btnFinished.IsVisible = false;
@@ -1159,7 +1220,7 @@ namespace PDTPickingSystem.Views
             {
                 await DisplayAlert("No Connection!",
                     "Cannot connect to server! Please retry or check settings...", "OK");
-                await Navigation.PopAsync();
+                await Navigation.PopModalAsync(); // ✅ CHANGED from PopAsync
                 return;
             }
 
@@ -1220,8 +1281,8 @@ namespace PDTPickingSystem.Views
 
                 try
                 {
-                    // ✅ No active session - request from server
-                    bool requestFromServer = await DisplayAlert(
+                    // ✅ NEW: Show CUSTOM modal dialog (truly modal - blocks everything!)
+                    bool requestFromServer = await ShowCustomModalDialog(
                         "Requesting...",
                         "Request from server?",
                         "Yes",
@@ -1229,6 +1290,7 @@ namespace PDTPickingSystem.Views
 
                     if (requestFromServer)
                     {
+                        // ✅ User clicked YES - proceed with requesting
                         _ShowLoading("Requesting...");
                         await Task.Yield();
 
@@ -1244,7 +1306,9 @@ namespace PDTPickingSystem.Views
                     }
                     else
                     {
-                        await Navigation.PopAsync();
+                        // ✅ User clicked NO - go back to Main Menu
+                        _HideLoading();
+                        await Navigation.PopModalAsync(); // ✅ CHANGED from PopAsync - this closes the modal and returns to MainMenuPage
                     }
                 }
                 finally
@@ -1256,9 +1320,10 @@ namespace PDTPickingSystem.Views
             catch (Exception ex)
             {
                 _HideLoading();
-                _isRequesting = false; // ✅ Reset flag on error
+                _isRequesting = false;
+
                 await DisplayAlert("Error", ex.Message, "OK");
-                await Navigation.PopAsync();
+                await Navigation.PopModalAsync(); // ✅ CHANGED from PopAsync
             }
         }
 
