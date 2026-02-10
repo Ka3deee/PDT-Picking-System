@@ -41,10 +41,10 @@
 
                 <!-- Main Input Frame -->
                 <Frame Padding="10,10,10,10"
-                        Margin="5,-15,5,0"
-                        HasShadow="True"
-                        CornerRadius="10"
-                        BorderColor="LightGray">
+                       Margin="5,-15,5,0"
+                       HasShadow="True"
+                       CornerRadius="10"
+                       BorderColor="LightGray">
                     <VerticalStackLayout x:Name="pnlInput"
                                          Spacing="5">
 
@@ -63,11 +63,11 @@
                                HorizontalOptions="FillAndExpand"
                                Margin="0,-5,0,5">
                             <Entry x:Name="txtBarcode"
-                               Placeholder="Barcode"
-                               FontSize="16"
-                               Completed="Entry_Completed"
-                               HorizontalTextAlignment="Center"
-                               TextChanged="Entry_TextChanged"/>
+                                   Placeholder="Barcode"
+                                   FontSize="16"
+                                   Completed="Entry_Completed"
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="Entry_TextChanged"/>
                         </Frame>
 
                         <!-- Description -->
@@ -80,12 +80,12 @@
                                HorizontalOptions="FillAndExpand"
                                Margin="0,0,0,5">
                             <Entry x:Name="txtDesc"
-                               Placeholder="Description"
-                               FontSize="16"
-                               HeightRequest="45"
-                               IsReadOnly="True"
-                               HorizontalTextAlignment="Center"
-                               TextChanged="TxtDesc_TextChanged"/>
+                                   Placeholder="Description"
+                                   FontSize="16"
+                                   HeightRequest="45"
+                                   IsReadOnly="True"
+                                   HorizontalTextAlignment="Center"
+                                   TextChanged="TxtDesc_TextChanged"/>
                         </Frame>
 
                         <!-- Scanner + SKU -->
@@ -118,13 +118,13 @@
                                    HorizontalOptions="FillAndExpand"
                                    Margin="5,0,0,0">
                                 <Entry x:Name="txtSKU"
-                                           Grid.Column="3"
-                                           Placeholder=""
-									       FontSize="16"
-                                           IsReadOnly="True"
-                                           HeightRequest="45"
-                                           HorizontalTextAlignment="Center"
-                                           TextChanged="TxtSKU_TextChanged"/>
+                                       Grid.Column="3"
+                                       Placeholder=""
+							           FontSize="16"
+                                       IsReadOnly="True"
+                                       HeightRequest="45"
+                                       HorizontalTextAlignment="Center"
+                                       TextChanged="TxtSKU_TextChanged"/>
                             </Frame>
                         </Grid>
 
@@ -826,8 +826,8 @@
 
                     <!-- Buttons -->
                     <HorizontalStackLayout Spacing="15"
-                                          HorizontalOptions="Center"
-                                          Margin="0,10,0,0">
+                                           HorizontalOptions="Center"
+                                           Margin="0,10,0,0">
 
                         <Button x:Name="modalNoButton"
                                 Text="No"
@@ -887,8 +887,8 @@
                        HorizontalOptions="Center">
 
                     <VerticalStackLayout Spacing="30" 
-                                        VerticalOptions="Center"
-                                        HorizontalOptions="Center">
+                                         VerticalOptions="Center"
+                                         HorizontalOptions="Center">
 
                         <!-- Animated Truck Container -->
                         <Grid HeightRequest="110" 

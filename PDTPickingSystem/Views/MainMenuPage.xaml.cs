@@ -15,7 +15,7 @@ namespace PDTPickingSystem.Views
         private IDispatcherTimer _wifiSignalTimer;
         public string VersionText { get; set; }
 
-        // ✅ NEW: Loading state flags for each button
+        // Loading state flags for each button
         private bool _isLoadingOpt1 = false;
         private bool _isLoadingOpt2 = false;
         private bool _isLoadingOpt3 = false;
@@ -263,7 +263,7 @@ namespace PDTPickingSystem.Views
         }
 
         // ====================================================================
-        // ✅ HELPER: SET BUTTON LOADING STATE
+        // HELPER: SET BUTTON LOADING STATE
         // ====================================================================
         private void SetButtonLoading(Button button, View loadingView, bool isLoading)
         {
