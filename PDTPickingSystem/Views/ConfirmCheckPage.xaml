@@ -58,6 +58,7 @@
                            Text="Description"
                            FontSize="16"
                            TextColor="Black"
+                           TextDecorations="None"
                            HorizontalOptions="Center"
                            HorizontalTextAlignment="Center"
                            Margin="0,5"/>

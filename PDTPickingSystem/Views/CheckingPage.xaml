@@ -85,7 +85,9 @@
                                    HeightRequest="45"
                                    IsReadOnly="True"
                                    HorizontalTextAlignment="Center"
-                                   TextChanged="TxtDesc_TextChanged"/>
+                                   TextChanged="TxtDesc_TextChanged"
+                                   IsSpellCheckEnabled="False"
+                                   IsTextPredictionEnabled="False"/>
                         </Frame>
 
                         <!-- Scanner + SKU -->

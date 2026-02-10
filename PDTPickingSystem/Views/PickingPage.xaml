@@ -134,7 +134,9 @@
                                        HorizontalOptions="FillAndExpand"
                                        InputTransparent="True"
                                        TextChanged="TxtpDescr_TextChanged"
-                                       HorizontalTextAlignment="Center"/>
+                                       HorizontalTextAlignment="Center"
+                                       IsSpellCheckEnabled="False"
+                                       IsTextPredictionEnabled="False"/>
 
                                 <!-- Clickable Label on top -->
                                 <Label x:Name="llblDescr"
@@ -142,6 +144,7 @@
                                        TextColor="Blue"
                                        FontAttributes="Bold"
                                        FontSize="16"
+                                       TextDecorations="None"
                                        BackgroundColor="Transparent"
                                        VerticalTextAlignment="Center"
                                        HorizontalTextAlignment="Center"
@@ -192,7 +195,9 @@
                                            FontSize="16"
                                            InputTransparent="True"
                                            TextChanged="TxtpSlot_TextChanged"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center"
+                                           IsSpellCheckEnabled="False"
+                                           IsTextPredictionEnabled="False"/>
 
                                     <!-- Clickable Label on top -->
                                     <Label x:Name="llblSlot"
@@ -200,6 +205,7 @@
                                            TextColor="Blue"
                                            FontAttributes="Bold"
                                            FontSize="16"
+                                           TextDecorations="None"
                                            BackgroundColor="Transparent"
                                            VerticalTextAlignment="Center"
                                            HorizontalTextAlignment="Center"
