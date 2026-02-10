@@ -1213,22 +1213,7 @@ namespace PDTPickingSystem.Views
         {
             btnFinished.IsVisible = false;
 
-            string pickSetup = await AppGlobal._GetPickNo();
-
-            if (string.IsNullOrEmpty(pickSetup))
-            {
-                await DisplayAlert("No Picking!",
-                    "No Picking Reference Set! Please ask to set reference #", "OK");
-                await Navigation.PopModalAsync();
-                return;
-            }
-
-            if (pickSetup == "Per Transfer")
-            {
-                AppGlobal.isSummary = 2;
-                isSummary = 2;
-            }
-
+            // ✅ Validation (picking reference, isSummary) already done in MainMenuPage
             string sUserPNo = "";
 
             using var conn = await AppGlobal._SQL_Connect();
@@ -1236,7 +1221,7 @@ namespace PDTPickingSystem.Views
             {
                 await DisplayAlert("No Connection!",
                     "Cannot connect to server! Please retry or check settings...", "OK");
-                await Navigation.PopModalAsync(); //Changed from PopAsync
+                await Navigation.PopModalAsync();
                 return;
             }
 
@@ -1324,7 +1309,7 @@ namespace PDTPickingSystem.Views
                     {
                         // User clicked NO - go back to Main Menu
                         _HideLoading();
-                        await Navigation.PopModalAsync(); // Changed from PopAsync - closes the modal and returns to MainMenuPage
+                        await Navigation.PopModalAsync();
                     }
                 }
                 finally
@@ -1339,7 +1324,7 @@ namespace PDTPickingSystem.Views
                 _isRequesting = false;
 
                 await DisplayAlert("Error", ex.Message, "OK");
-                await Navigation.PopModalAsync(); // Changed from PopAsync
+                await Navigation.PopModalAsync();
             }
         }
 
@@ -2024,7 +2009,7 @@ namespace PDTPickingSystem.Views
                         _HideLoading();
 
                         await DisplayAlert("Unable to request!", "No Picking # Available!", "OK");
-                        await Navigation.PopAsync();
+                        await Navigation.PopModalAsync();
                     }
                 }
                 else

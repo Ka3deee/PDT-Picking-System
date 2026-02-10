@@ -1119,7 +1119,6 @@ namespace PDTPickingSystem.Views
         private async Task _GetSetPickNoAsync()
         {
             btnFinished.IsVisible = false;
-
             string sUserPNo = "";
 
             using var conn = await AppGlobal._SQL_Connect();
@@ -1134,9 +1133,8 @@ namespace PDTPickingSystem.Views
             {
                 // Query user info
                 string cmdText = @"
-            SELECT a.ID_SumHdr, a.PickRef, b.user_id, a.isChecker
+            SELECT a.ID_SumHdr, a.PickRef
             FROM tblUsers a
-            LEFT JOIN tblChkrDept b ON a.id = b.user_id
             WHERE a.ID=@UserID";
 
                 using var sqlCmd = new SqlCommand(cmdText, conn);
@@ -1149,20 +1147,7 @@ namespace PDTPickingSystem.Views
                         ? Convert.ToInt32(reader["ID_SumHdr"])
                         : 0;
 
-                    if (reader["user_id"] == DBNull.Value)
-                    {
-                        await DisplayAlert("System Says", "No dept setup for checker!", "OK");
-                        await Navigation.PopAsync();
-                        return;
-                    }
-
-                    if (Convert.ToInt32(reader["isChecker"]) != 1)
-                    {
-                        await DisplayAlert("System Says", "Only Checker can access this option!", "OK");
-                        await Navigation.PopAsync();
-                        return;
-                    }
-
+                    // ✅ Validation (dept setup, isChecker) already done in MainMenuPage
                     if (reader["PickRef"] != DBNull.Value && Convert.ToInt32(reader["PickRef"]) != 0)
                         sUserPNo = reader["PickRef"].ToString().Trim();
                 }

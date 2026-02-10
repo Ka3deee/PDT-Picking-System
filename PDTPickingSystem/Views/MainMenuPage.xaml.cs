@@ -294,6 +294,21 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
+                // ✅ NEW: Check for picking reference BEFORE opening PickingPage
+                string pickSetup = await AppGlobal._GetPickNo();
+                if (string.IsNullOrEmpty(pickSetup))
+                {
+                    await DisplayAlert("No Picking!", "No Picking Reference Set! Please ask to set reference #", "OK");
+                    return;
+                }
+
+                // ✅ Set isSummary if needed
+                if (pickSetup == "Per Transfer")
+                {
+                    AppGlobal.isSummary = 2;
+                }
+
+                // ✅ All validations passed - open PickingPage
                 var pickingPage = new PickingPage();
                 var navPage = new NavigationPage(pickingPage);
                 await Navigation.PushModalAsync(navPage);
@@ -338,6 +353,50 @@ namespace PDTPickingSystem.Views
                     AppGlobal.isSummary = 2;
                 }
 
+                // ✅ NEW: Validate checker setup BEFORE opening CheckingPage
+                using var conn = await AppGlobal._SQL_Connect();
+                if (conn == null)
+                {
+                    await DisplayAlert("No Connection!", "Cannot connect to server! Please retry or check settings...", "OK");
+                    return;
+                }
+
+                try
+                {
+                    string cmdText = @"
+                SELECT a.isChecker, b.user_id
+                FROM tblUsers a
+                LEFT JOIN tblChkrDept b ON a.id = b.user_id
+                WHERE a.ID=@UserID";
+
+                    using var sqlCmd = new Microsoft.Data.SqlClient.SqlCommand(cmdText, conn);
+                    sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
+
+                    using var reader = await sqlCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        // ✅ Check if user has dept setup
+                        if (reader["user_id"] == DBNull.Value)
+                        {
+                            await DisplayAlert("System Says", "No dept setup for checker!", "OK");
+                            return;
+                        }
+
+                        // ✅ Check if user is a checker
+                        if (Convert.ToInt32(reader["isChecker"]) != 1)
+                        {
+                            await DisplayAlert("System Says", "Only Checker can access this option!", "OK");
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", ex.Message, "OK");
+                    return;
+                }
+
+                // ✅ All validations passed - open CheckingPage
                 var checkerPage = new CheckingPage(this);
                 var navChecker = new NavigationPage(checkerPage);
                 await Navigation.PushModalAsync(navChecker);
