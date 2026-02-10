@@ -609,7 +609,6 @@ namespace PDTPickingSystem.Views
         {
             txtBarcode.Text = string.Empty;
             txtEachVal = string.Empty;
-            txtBarcode.Focus();
 
             pnlItems.IsVisible = false;
             pnlItems2.IsVisible = false;
@@ -620,6 +619,14 @@ namespace PDTPickingSystem.Views
             await _GetSetPickNoAsync();
 
             scanCount = 0;
+
+            // ⭐ AUTO-FOCUS barcode entry after page loads
+            // Use a small delay to ensure UI is fully rendered
+            await Task.Delay(300);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                txtBarcode.Focus();
+            });
         }
 
         private void CheckingPage_Disappearing(object sender, EventArgs e)
@@ -1418,6 +1425,12 @@ namespace PDTPickingSystem.Views
 
             // ✅ HIDE LOADING WITH ANIMATION
             _HideLoading();
+
+            // ⭐ AUTO-FOCUS barcode entry after counting
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                txtBarcode.Focus();
+            });
         }
 
         /// <summary>
@@ -1675,11 +1688,23 @@ namespace PDTPickingSystem.Views
 
                 _CountPicked();
                 _ClearScan();
+
+                // ⭐ AUTO-FOCUS barcode entry after accepting item
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    txtBarcode.Focus();
+                });
             }
             catch (Exception ex)
             {
                 txn?.Rollback();
                 await DisplayAlert("Transaction Error", $"Please Retry.\n{ex.Message}", "OK");
+
+                // ⭐ Refocus barcode on error too
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    txtBarcode.Focus();
+                });
             }
         }
 

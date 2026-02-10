@@ -655,6 +655,14 @@ namespace PDTPickingSystem.Views
 
             // Load picking data
             await _GetSetPickNoAsync();
+
+            // ⭐ AUTO-FOCUS barcode entry after page loads
+            // Use a small delay to ensure UI is fully rendered
+            await Task.Delay(300);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                txtBarcode.Focus();
+            });
         }
 
         private void PickingPage_Disappearing(object sender, EventArgs e)
@@ -1581,6 +1589,16 @@ namespace PDTPickingSystem.Views
 
             _CountPicked();
 
+            // ⭐ AUTO-FOCUS barcode entry after loading SKU
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (!currentItem.IsPicked)
+                {
+                    // Item not picked yet - focus barcode for scanning
+                    txtBarcode.Focus();
+                }
+            });
+
             System.Diagnostics.Debug.WriteLine($"🟢 _GetSKUtoPickAsync END: sSKU={sSKU}");
             System.Diagnostics.Debug.WriteLine($"═══════════════════════════════════════════════════════════\n");
         }
@@ -1612,6 +1630,16 @@ namespace PDTPickingSystem.Views
 
             // Hide loading with animation
             _HideLoading();
+
+            // ⭐ AUTO-FOCUS barcode entry after counting
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Only auto-focus if current item is not picked yet
+                if (sSKU >= 0 && sSKU < pickList.Count && !pickList[sSKU].IsPicked)
+                {
+                    txtBarcode.Focus();
+                }
+            });
         }
 
         private void _ClearScan(bool bWithBarcode = true)
