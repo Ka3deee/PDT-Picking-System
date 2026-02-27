@@ -848,7 +848,6 @@ namespace PDTPickingSystem.Views
                 bool answer = await DisplayAlert("Done Checking?", "Done Checking? Please Verify.", "Yes", "No");
                 if (!answer)
                 {
-                    // ✅ Restart monitoring if user cancels
                     _StartIdleMonitoring();
                     return;
                 }
@@ -856,7 +855,6 @@ namespace PDTPickingSystem.Views
                 answer = await DisplayAlert("Finished?", "Finish Checking?", "Yes", "No");
                 if (!answer)
                 {
-                    // ✅ Restart monitoring if user cancels
                     _StartIdleMonitoring();
                     return;
                 }
@@ -865,7 +863,7 @@ namespace PDTPickingSystem.Views
                 if (conn == null)
                 {
                     await DisplayAlert("No Connection!", "Cannot connect to server!", "OK");
-                    _StartIdleMonitoring(); // ✅ Restart monitoring
+                    _StartIdleMonitoring();
                     return;
                 }
 
@@ -928,18 +926,23 @@ namespace PDTPickingSystem.Views
                     sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
                     await sqlCmd.ExecuteNonQueryAsync();
 
+                    // ✅ Reset all state for next session
                     scanCount = 0;
+                    AppGlobal.ID_SumHdr = 0;
+                    iRetry = 0;
+                    SKUList.Clear();
+                    SKUList2.Clear();
+
                     await _GetSetPickNoAsync();
                 }
                 catch (SqlException ex)
                 {
                     await DisplayAlert("Error!", ex.Message, "OK");
-                    _StartIdleMonitoring(); // ✅ Restart monitoring on error
+                    _StartIdleMonitoring();
                 }
             }
             finally
             {
-                // ✅ Reset the flag when done
                 _isFinishing = false;
             }
         }
@@ -1154,7 +1157,6 @@ namespace PDTPickingSystem.Views
                         ? Convert.ToInt32(reader["ID_SumHdr"])
                         : 0;
 
-                    // ✅ Validation (dept setup, isChecker) already done in MainMenuPage
                     if (reader["PickRef"] != DBNull.Value && Convert.ToInt32(reader["PickRef"]) != 0)
                         sUserPNo = reader["PickRef"].ToString().Trim();
                 }
@@ -1163,21 +1165,22 @@ namespace PDTPickingSystem.Views
                 // Check if user has active checking session
                 if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
-                    // ✅ Show loading immediately
                     _ShowLoading("Loading existing checking session...");
                     await Task.Yield();
-
                     txtSKU.Text = string.Empty;
                     await _AddSKUtoListAsync();
                     return;
                 }
 
-                // Request from server (show once only)
+                // ✅ Reset flags for fresh request (supports auto-loop after finishing)
+                _requestAlreadyShown = false;
+                _requestFailedShown = false;
+
+                // Request from server
                 if (!_requestAlreadyShown)
                 {
                     _requestAlreadyShown = true;
 
-                    // Prevent double-clicking
                     if (_isRequesting)
                         return;
 
@@ -1193,7 +1196,6 @@ namespace PDTPickingSystem.Views
 
                         if (answer)
                         {
-                            // ✅ User clicked YES - proceed with requesting
                             _ShowLoading("Requesting...");
                             await Task.Yield();
 
@@ -1448,7 +1450,6 @@ namespace PDTPickingSystem.Views
                     "SELECT * FROM tblUsers WHERE ID=@ID AND ID_SumHdr<>0", conn))
                 {
                     cmd.Parameters.AddWithValue("@ID", AppGlobal.ID_User);
-
                     using var reader = await cmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
@@ -1476,8 +1477,30 @@ namespace PDTPickingSystem.Views
 
                         _HideLoading();
 
-                        await DisplayAlert("Unable to request!", "No picking no. available!", "OK");
-                        await Navigation.PopAsync();
+                        // ✅ Disable all controls so user can't touch anything while alert is shown
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            btnAccept.IsEnabled = false;
+                            btnFinished.IsEnabled = false;
+                            btnViewItems.IsEnabled = false;
+                            btnConso.IsEnabled = false;
+                            btnCloseItems.IsEnabled = false;
+                            btnCloseItems2.IsEnabled = false;
+                            btnConfirm.IsEnabled = false;
+                            btnCancel.IsEnabled = false;
+                            txtBarcode.IsEnabled = false;
+                            txtCase.IsEnabled = false;
+                            txtEach.IsEnabled = false;
+                            txtStocker.IsEnabled = false;
+                        });
+
+                        await DisplayAlert("Unable to Request!", "No Picking # available!", "OK");
+
+                        // ✅ Go back to MainMenuPage immediately after OK
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                        {
+                            await Navigation.PopModalAsync();
+                        });
                     }
                 }
                 else
