@@ -136,7 +136,10 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void BtnApply_Clicked(object sender, EventArgs e)
         {
-            await GetUserNameAsync();
+            // ✅ FIXED: Only fetch if not already looked up — prevents double
+            //           ConnectAsync calls which caused multiple stacked alerts
+            if (string.IsNullOrEmpty(lblNameTag))
+                await GetUserNameAsync();
 
             if (string.IsNullOrEmpty(lblNameTag))
                 return;
@@ -146,7 +149,7 @@ namespace PDTPickingSystem.Views
                 AppGlobal.ID_User = _storedUserID;
                 AppGlobal.sEENo = lblNameTag; // EE number — unchanged, still used by PDT app
 
-                // ✅ CHANGED: Normalize to uppercase so SignalR group key matches desktop
+                // Normalize to uppercase so SignalR group key matches desktop
                 AppGlobal.sUserName = lblName.Text
                     .Replace("( ", "")
                     .Replace(" )", "")
@@ -155,7 +158,7 @@ namespace PDTPickingSystem.Views
 
                 UpdateCurrentUserLabel();
 
-                // ✅ CHANGED: Connect using full name instead of EE number
+                // Connect using full name as SignalR group key
                 // EE number (sEENo) is untouched and still used everywhere else in the app
                 await SignalRService.ConnectAsync(AppGlobal.sUserName);
 

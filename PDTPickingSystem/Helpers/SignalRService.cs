@@ -23,9 +23,9 @@ namespace PDTPickingSystem.Helpers
                     .WithAutomaticReconnect()
                     .Build();
 
-                _connection.On<string>("ReceiveMessage", (message) =>
+                _connection.On<string>("ReceiveMessage", async (message) =>
                 {
-                    MainThread.BeginInvokeOnMainThread(async () =>
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
                         await Shell.Current.DisplayAlert(
                             "📩 Message from Office",
@@ -41,8 +41,8 @@ namespace PDTPickingSystem.Helpers
 
                 Debug.WriteLine($"[SignalR] Connected and registered as: '{UserKey}'");
 
-                // DEBUG: confirm registration key on device — remove after confirming
-                MainThread.BeginInvokeOnMainThread(async () =>
+                // Confirm registration key on device
+                await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     await Shell.Current.DisplayAlert(
                         "✅ SignalR Connected",
@@ -53,7 +53,7 @@ namespace PDTPickingSystem.Helpers
             catch (Exception ex)
             {
                 Debug.WriteLine($"[SignalR] Connection failed: {ex.Message}");
-                MainThread.BeginInvokeOnMainThread(async () =>
+                await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     await Shell.Current.DisplayAlert(
                         "❌ SignalR Failed",
