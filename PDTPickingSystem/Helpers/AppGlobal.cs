@@ -165,7 +165,7 @@ namespace PDTPickingSystem.Helpers
 
                 ID_User = Convert.ToInt32(r["ID"]);
                 sEENo = userId;
-                sUserName = r["FullName"]?.ToString() ?? "";
+                sUserName = (r["FullName"]?.ToString() ?? "").Trim().ToUpper();
 
                 isChecker = Convert.ToInt32(r["isChecker"]);
                 isStocker = Convert.ToInt32(r["isStocker"]);
@@ -635,7 +635,7 @@ namespace PDTPickingSystem.Helpers
                 if (await reader.ReadAsync())
                 {
                     string fullName = reader["FullName"] != DBNull.Value
-                        ? reader["FullName"].ToString().Trim()
+                        ? reader["FullName"].ToString().Trim().ToUpper()
                         : "";
 
                     Debug.WriteLine($"✅ User ID {userId} = {fullName}");

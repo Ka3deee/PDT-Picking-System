@@ -136,30 +136,31 @@ namespace PDTPickingSystem.Views
         // ====================================================================
         private async void BtnApply_Clicked(object sender, EventArgs e)
         {
-            // ✅ FIXED: VB calls GetUserName AGAIN in btnApply_Click (Line 59)
             await GetUserNameAsync();
 
-            // Only proceed if user was found (VB Line 60: lblName.Tag <> "")
             if (string.IsNullOrEmpty(lblNameTag))
-            {
-                // GetUserNameAsync already showed error message
                 return;
-            }
 
             try
             {
-                // ✅ FIXED: Set global variables (VB.NET Lines 61-64)
-                AppGlobal.ID_User = _storedUserID;  // ← VB: ID_User = Int(txtEENo.Tag)
-                AppGlobal.sEENo = lblNameTag;       // ← VB: sEENo = lblName.Tag
-                AppGlobal.sUserName = lblName.Text.Replace("( ", "").Replace(" )", "").Trim();
+                AppGlobal.ID_User = _storedUserID;
+                AppGlobal.sEENo = lblNameTag; // EE number — unchanged, still used by PDT app
 
-                // ✅ FIXED: Update user label (VB Line 65: _SetUser(lblUser))
+                // ✅ CHANGED: Normalize to uppercase so SignalR group key matches desktop
+                AppGlobal.sUserName = lblName.Text
+                    .Replace("( ", "")
+                    .Replace(" )", "")
+                    .Trim()
+                    .ToUpper();
+
                 UpdateCurrentUserLabel();
 
-                // Show success (VB.NET Line 66)
+                // ✅ CHANGED: Connect using full name instead of EE number
+                // EE number (sEENo) is untouched and still used everywhere else in the app
+                await SignalRService.ConnectAsync(AppGlobal.sUserName);
+
                 await DisplayAlert("Welcome!", $"User accepted: {AppGlobal.sUserName}", "OK");
 
-                // Go back (VB.NET Line 67: Me.Close())
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)

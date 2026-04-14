@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
 using PDTPickingSystem.Helpers;
-using Plugin.Maui.Audio; // ✅ NEW: For alarm sound
+using Plugin.Maui.Audio;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -46,16 +46,16 @@ namespace PDTPickingSystem.Views
         private int iRetry = 0;
 
         // Data collections
-        public ObservableCollection<SKUItem> SKUList { get; set; } = new ObservableCollection<SKUItem>();
+        public ObservableCollection<SKUItem> SKUList  { get; set; } = new ObservableCollection<SKUItem>();
         public ObservableCollection<SKUItem> SKUList2 { get; set; } = new ObservableCollection<SKUItem>();
 
         // Tag replacements
         private string txtStockerTag = "";
-        private string txtpSKU_UPC = "";
+        private string txtpSKU_UPC   = "";
 
         // Request tracking flags
         private bool _requestAlreadyShown = false;
-        private bool _requestFailedShown = false;
+        private bool _requestFailedShown  = false;
 
         // MainMenu reference
         private MainMenuPage _mainMenu;
@@ -63,74 +63,55 @@ namespace PDTPickingSystem.Views
         // Summary mode
         private int isSummary = 2;
 
-        // ================== ✅ IDLE MONITORING FIELDS ==================
+        // Concurrency guards
+        private bool _isRequesting    = false;
+        private bool _isAccepting     = false;
+        private bool _isFinishing     = false;
+        private bool _isShowingAlert  = false;
+        private bool _isViewingItems  = false;
 
-        /// <summary>
-        /// Timer that checks for idle state every second
-        /// </summary>
+        // ── Auto-assignment: true after the checker confirms the very first request.
+        //    All subsequent Transfer/SKU requests are issued silently (no modal).
+        private bool _hasEverRequested = false;
+
+        // ================== IDLE MONITORING FIELDS ==================
+
+        /// <summary>Timer that checks for idle state every second</summary>
         private IDispatcherTimer _idleCheckTimer;
 
-        /// <summary>
-        /// Last time user interacted with the app
-        /// </summary>
+        /// <summary>Last time user interacted with the app</summary>
         private DateTime _lastActivityTime;
 
-        /// <summary>
-        /// Idle timeout duration (1 minute)
-        /// </summary>
+        /// <summary>Idle timeout duration (1 minute)</summary>
         private readonly TimeSpan _idleTimeout = TimeSpan.FromMinutes(1);
 
-        /// <summary>
-        /// Warning timeout (50 seconds - 10 seconds before alarm)
-        /// </summary>
+        /// <summary>Warning timeout (50 seconds – 10 seconds before alarm)</summary>
         private readonly TimeSpan _warningTimeout = TimeSpan.FromSeconds(50);
 
-        /// <summary>
-        /// Flag to prevent multiple alert popups
-        /// </summary>
+        /// <summary>Flag to prevent multiple alert popups</summary>
         private bool _idleAlertShown = false;
 
-        /// <summary>
-        /// Flag to prevent multiple warning popups
-        /// </summary>
+        /// <summary>Flag to prevent multiple warning popups</summary>
         private bool _warningAlertShown = false;
 
-        /// <summary>
-        /// Audio player for alarm sound
-        /// </summary>
+        /// <summary>Audio player for alarm sound</summary>
         private IAudioPlayer _alarmPlayer;
 
-        /// <summary>
-        /// Flag to track if checking is currently active
-        /// </summary>
+        /// <summary>Flag to track if checking is currently active</summary>
         private bool _isCheckingActive = false;
-
-        // Spam-click prevention flags
-        private bool _isAccepting = false;
-        private bool _isFinishing = false;
-        private bool _isShowingAlert = false;
-        private bool _isViewingItems = false; // ✅ NEW: View Items loading flag
 
         // ================== 🚚 LOADING ANIMATION FIELDS ==================
 
-        /// <summary>
-        /// Timer for truck animation
-        /// </summary>
+        /// <summary>Timer for truck animation</summary>
         private IDispatcherTimer _truckAnimationTimer;
 
-        /// <summary>
-        /// Current truck position (0 to 240)
-        /// </summary>
+        /// <summary>Current truck position (0 to 240)</summary>
         private double _truckPosition = 0;
 
-        /// <summary>
-        /// Timer for loading dots animation
-        /// </summary>
+        /// <summary>Timer for loading dots animation</summary>
         private IDispatcherTimer _dotsAnimationTimer;
 
-        /// <summary>
-        /// Current dot animation step (0-3)
-        /// </summary>
+        /// <summary>Current dot animation step (0-3)</summary>
         private int _dotAnimationStep = 0;
 
         // ================== CONSTRUCTOR ==================
@@ -143,197 +124,169 @@ namespace PDTPickingSystem.Views
             _mainMenu = mainMenu;
 
             // Initialize timer
-            tmrRequest = Dispatcher.CreateTimer();
+            tmrRequest          = Dispatcher.CreateTimer();
             tmrRequest.Interval = TimeSpan.FromSeconds(1);
-            tmrRequest.Tick += TmrRequest_Tick;
+            tmrRequest.Tick    += TmrRequest_Tick;
 
             // Initialize fields
             _focusedEntry = null;
-            iSKU = 0;
-            sSKU = -1;
-            ID_Stocker = 0;
-            isStarted = false;
-            chkqty = 0;
-            pickqty = 0;
-            Gsku = string.Empty;
-            lvCnt = 1;
-            skuArr = new List<int>();
-            txtEachVal = string.Empty;
-            scanCount = 0;
+            iSKU          = 0;
+            sSKU          = -1;
+            ID_Stocker    = 0;
+            isStarted     = false;
+            chkqty        = 0;
+            pickqty       = 0;
+            Gsku          = string.Empty;
+            lvCnt         = 1;
+            skuArr        = new List<int>();
+            txtEachVal    = string.Empty;
+            scanCount     = 0;
 
             // Bind CollectionViews
-            lvSKU.ItemsSource = SKUList;
+            lvSKU.ItemsSource  = SKUList;
             lvSKU2.ItemsSource = SKUList2;
 
             // ===== Entry Completed events =====
             txtBarcode.Completed += Entry_Completed;
-            txtCase.Completed += Entry_Completed;
-            txtEach.Completed += Entry_Completed;
+            txtCase.Completed    += Entry_Completed;
+            txtEach.Completed    += Entry_Completed;
             txtStocker.Completed += TxtStocker_Completed;
 
             // ===== TextChanged events =====
-            txtBarcode.TextChanged += Entry_TextChanged;
-            txtCase.TextChanged += Entry_TextChanged;
-            txtEach.TextChanged += Entry_TextChanged;
-            txtStocker.TextChanged += TxtStocker_TextChanged;
+            txtBarcode.TextChanged   += Entry_TextChanged;
+            txtCase.TextChanged      += Entry_TextChanged;
+            txtEach.TextChanged      += Entry_TextChanged;
+            txtStocker.TextChanged   += TxtStocker_TextChanged;
             txtDeptStore.TextChanged += TxtDeptStore_TextChanged;
-            txtDesc.TextChanged += TxtDesc_TextChanged;
-            txtSKU.TextChanged += TxtSKU_TextChanged;
-            txtBum.TextChanged += TxtBum_TextChanged;
-            txtDone.TextChanged += TxtDone_TextChanged;
+            txtDesc.TextChanged      += TxtDesc_TextChanged;
+            txtSKU.TextChanged       += TxtSKU_TextChanged;
+            txtBum.TextChanged       += TxtBum_TextChanged;
+            txtDone.TextChanged      += TxtDone_TextChanged;
 
             // ===== Focus events =====
             txtBarcode.Unfocused += TxtEntry_Unfocused;
             txtStocker.Unfocused += TxtEntry_Unfocused;
-            txtCase.Unfocused += TxtCaseEach_Unfocused;
-            txtEach.Unfocused += TxtCaseEach_Unfocused;
+            txtCase.Unfocused    += TxtCaseEach_Unfocused;
+            txtEach.Unfocused    += TxtCaseEach_Unfocused;
 
-            txtBarcode.Focused += TxtBarcodeQtyFocus_Focused;
-            txtStocker.Focused += TxtBarcodeQtyFocus_Focused;
-            txtEach.Focused += TxtBarcodeQtyFocus_Focused;
-            txtCase.Focused += TxtBarcodeQtyFocus_Focused;
+            txtBarcode.Focused  += TxtBarcodeQtyFocus_Focused;
+            txtStocker.Focused  += TxtBarcodeQtyFocus_Focused;
+            txtEach.Focused     += TxtBarcodeQtyFocus_Focused;
+            txtCase.Focused     += TxtBarcodeQtyFocus_Focused;
 
             // ===== Other entry focus (force back to barcode) =====
-            txtpSKU.Focused += TxtOther_Focused;
-            txtpDescr.Focused += TxtOther_Focused;
-            txtpSlot.Focused += TxtOther_Focused;
-            txtpEach.Focused += TxtOther_Focused;
-            txtpCase.Focused += TxtOther_Focused;
-            txtSKU.Focused += TxtOther_Focused;
-            txtDone.Focused += TxtOther_Focused;
+            txtpSKU.Focused    += TxtOther_Focused;
+            txtpDescr.Focused  += TxtOther_Focused;
+            txtpSlot.Focused   += TxtOther_Focused;
+            txtpEach.Focused   += TxtOther_Focused;
+            txtpCase.Focused   += TxtOther_Focused;
+            txtSKU.Focused     += TxtOther_Focused;
+            txtDone.Focused    += TxtOther_Focused;
             txtDeptStore.Focused += TxtOther_Focused;
 
             // ===== Button events =====
-            btnAccept.Clicked += BtnAccept_Clicked;
-            btnFinished.Clicked += BtnFinished_Clicked;
-            btnViewItems.Clicked += BtnViewItems_Clicked;
-            btnConso.Clicked += BtnConso_Clicked;
-            btnCloseItems.Clicked += BtnCloseItems_Clicked;
+            btnAccept.Clicked      += BtnAccept_Clicked;
+            btnFinished.Clicked    += BtnFinished_Clicked;
+            btnViewItems.Clicked   += BtnViewItems_Clicked;
+            btnConso.Clicked       += BtnConso_Clicked;
+            btnCloseItems.Clicked  += BtnCloseItems_Clicked;
             btnCloseItems2.Clicked += BtnCloseItems2_Clicked;
-            btnConfirm.Clicked += BtnConfirm_Clicked;
-            btnCancel.Clicked += BtnCancel_Clicked;
+            btnConfirm.Clicked     += BtnConfirm_Clicked;
+            btnCancel.Clicked      += BtnCancel_Clicked;
 
             // ===== Loaded events =====
-            lblBarcode.Loaded += LblBarcode_Loaded;
-            lblSKU.Loaded += LblSKU_Loaded;
-            lblCase.Loaded += LblCase_Loaded;
-            lblEach.Loaded += LblEach_Loaded;
-            lblBUM.Loaded += LblBUM_Loaded;
-            lblDone.Loaded += LblDone_Loaded;
-            lblTransfer.Loaded += LblTransfer_Loaded;
-            lblLoc.Loaded += LblLoc_Loaded;
-            lblPicker.Loaded += LblPicker_Loaded;
-            lblTrf.Loaded += LblTrf_Loaded;
-            lblDeptStore.Loaded += LblDeptStore_Loaded;
+            lblBarcode.Loaded      += LblBarcode_Loaded;
+            lblSKU.Loaded          += LblSKU_Loaded;
+            lblCase.Loaded         += LblCase_Loaded;
+            lblEach.Loaded         += LblEach_Loaded;
+            lblBUM.Loaded          += LblBUM_Loaded;
+            lblDone.Loaded         += LblDone_Loaded;
+            lblTransfer.Loaded     += LblTransfer_Loaded;
+            lblLoc.Loaded          += LblLoc_Loaded;
+            lblPicker.Loaded       += LblPicker_Loaded;
+            lblTrf.Loaded          += LblTrf_Loaded;
+            lblDeptStore.Loaded    += LblDeptStore_Loaded;
             lblConfirmTitle.Loaded += LblConfirmTitle_Loaded;
-            lblInput.Loaded += LblInput_Loaded;
+            lblInput.Loaded        += LblInput_Loaded;
 
             // ===== CollectionView selection =====
             lvSKU.SelectionChanged += LvSKU_SelectionChanged;
 
             // Page events
-            Appearing += CheckingPage_Appearing;
+            Appearing    += CheckingPage_Appearing;
             Disappearing += CheckingPage_Disappearing;
 
-            // ✅ NEW: Initialize idle monitoring
+            // Initialize idle monitoring
             _InitializeIdleMonitoring();
 
-            // ✅ NEW: Initialize loading animations
+            // Initialize loading animations
             _InitializeLoadingAnimations();
 
-            // ✅ NEW: Attach activity tracking to all interactive controls
+            // Attach activity tracking to all interactive controls
             _AttachActivityTracking();
         }
 
-        // ================== ✅ IDLE MONITORING INITIALIZATION ==================
+        // ================== IDLE MONITORING INITIALIZATION ==================
 
-        /// <summary>
-        /// Initialize idle monitoring system
-        /// </summary>
         private void _InitializeIdleMonitoring()
         {
-            // Initialize last activity time
             _lastActivityTime = DateTime.Now;
 
-            // Create idle check timer (checks every second)
-            _idleCheckTimer = Dispatcher.CreateTimer();
+            _idleCheckTimer          = Dispatcher.CreateTimer();
             _idleCheckTimer.Interval = TimeSpan.FromSeconds(1);
-            _idleCheckTimer.Tick += IdleCheckTimer_Tick;
-
-            // Don't start timer yet - starts when checking begins
+            _idleCheckTimer.Tick    += IdleCheckTimer_Tick;
+            // Don't start timer yet – starts when checking begins
         }
 
-        /// <summary>
-        /// Attach activity tracking to all interactive controls
-        /// </summary>
         private void _AttachActivityTracking()
         {
-            // Track Entry interactions
+            // Entries
             txtBarcode.TextChanged += OnUserActivity;
-            txtBarcode.Focused += OnUserActivity;
-            txtCase.TextChanged += OnUserActivity;
-            txtCase.Focused += OnUserActivity;
-            txtEach.TextChanged += OnUserActivity;
-            txtEach.Focused += OnUserActivity;
+            txtBarcode.Focused     += OnUserActivity;
+            txtCase.TextChanged    += OnUserActivity;
+            txtCase.Focused        += OnUserActivity;
+            txtEach.TextChanged    += OnUserActivity;
+            txtEach.Focused        += OnUserActivity;
             txtStocker.TextChanged += OnUserActivity;
-            txtStocker.Focused += OnUserActivity;
+            txtStocker.Focused     += OnUserActivity;
 
-            // Track Button clicks
-            btnAccept.Clicked += OnUserActivity;
-            btnFinished.Clicked += OnUserActivity;
-            btnViewItems.Clicked += OnUserActivity;
-            btnConso.Clicked += OnUserActivity;
-            btnCloseItems.Clicked += OnUserActivity;
+            // Buttons
+            btnAccept.Clicked      += OnUserActivity;
+            btnFinished.Clicked    += OnUserActivity;
+            btnViewItems.Clicked   += OnUserActivity;
+            btnConso.Clicked       += OnUserActivity;
+            btnCloseItems.Clicked  += OnUserActivity;
             btnCloseItems2.Clicked += OnUserActivity;
-            btnConfirm.Clicked += OnUserActivity;
-            btnCancel.Clicked += OnUserActivity;
+            btnConfirm.Clicked     += OnUserActivity;
+            btnCancel.Clicked      += OnUserActivity;
 
-            // Track CollectionView interactions
+            // CollectionView
             lvSKU.SelectionChanged += OnUserActivity;
         }
 
-        // ================== ✅ ACTIVITY TRACKING ==================
+        // ================== ACTIVITY TRACKING ==================
 
-        /// <summary>
-        /// Called whenever user interacts with the app
-        /// </summary>
-        private void OnUserActivity(object sender, EventArgs e)
-        {
-            _ResetIdleTimer();
-        }
+        private void OnUserActivity(object sender, EventArgs e) => _ResetIdleTimer();
 
-        /// <summary>
-        /// Reset idle timer when user is active
-        /// </summary>
         private void _ResetIdleTimer()
         {
-            _lastActivityTime = DateTime.Now;
-            _idleAlertShown = false;
+            _lastActivityTime  = DateTime.Now;
+            _idleAlertShown    = false;
             _warningAlertShown = false;
-
-            // Stop alarm if playing
             _StopAlarm();
         }
 
-        /// <summary>
-        /// Start idle monitoring (when checking begins)
-        /// </summary>
         private void _StartIdleMonitoring()
         {
-            _isCheckingActive = true;
-            _lastActivityTime = DateTime.Now;
-            _idleAlertShown = false;
+            _isCheckingActive  = true;
+            _lastActivityTime  = DateTime.Now;
+            _idleAlertShown    = false;
             _warningAlertShown = false;
 
             if (!_idleCheckTimer.IsRunning)
-            {
                 _idleCheckTimer.Start();
-            }
         }
 
-        /// <summary>
-        /// Stop idle monitoring (when checking ends or page closes)
-        /// </summary>
         private void _StopIdleMonitoring()
         {
             _isCheckingActive = false;
@@ -341,27 +294,20 @@ namespace PDTPickingSystem.Views
             _StopAlarm();
         }
 
-        // ================== ✅ IDLE CHECK TIMER ==================
+        // ================== IDLE CHECK TIMER ==================
 
-        /// <summary>
-        /// Timer tick - checks for idle state every second
-        /// </summary>
         private async void IdleCheckTimer_Tick(object sender, EventArgs e)
         {
-            // Only monitor if checking is active
-            if (!_isCheckingActive)
-                return;
+            if (!_isCheckingActive) return;
 
             var idleTime = DateTime.Now - _lastActivityTime;
 
-            // Check for warning threshold (50 seconds - 10 seconds before alarm)
             if (idleTime >= _warningTimeout && !_warningAlertShown)
             {
                 _warningAlertShown = true;
                 await _ShowWarningAlert();
             }
 
-            // Check for idle threshold (1 minute)
             if (idleTime >= _idleTimeout && !_idleAlertShown)
             {
                 _idleAlertShown = true;
@@ -370,16 +316,12 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== ✅ ALERT & ALARM FUNCTIONS ==================
+        // ================== ALERT & ALARM FUNCTIONS ==================
 
-        /// <summary>
-        /// Show warning alert (10 seconds before alarm)
-        /// </summary>
         private async Task _ShowWarningAlert()
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                // Vibrate device
                 _VibrateDevice(500);
 
                 var result = await DisplayAlert(
@@ -387,78 +329,52 @@ namespace PDTPickingSystem.Views
                     "You have been idle for 50 seconds.\n\n" +
                     "Alarm will sound in 10 seconds if no activity detected.\n\n" +
                     "Tap 'Continue' to resume checking.",
-                    "Continue",
-                    "Cancel"
-                );
+                    "Continue", "Cancel");
 
-                if (result)
-                {
-                    // User tapped Continue - reset timer
-                    _ResetIdleTimer();
-                }
+                if (result) _ResetIdleTimer();
             });
         }
 
-        /// <summary>
-        /// Show idle alert with alarm (only Resume)
-        /// </summary>
         private async Task _ShowIdleAlert()
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                // Vibrate device strongly
                 _VibrateDevice(1000);
 
-                // Only one button now: "Resume"
                 await DisplayAlert(
                     "🚨 IDLE ALERT! 🚨",
                     "You have been idle for 1 minute!\n\n" +
                     "Checking is still in progress.\n\n" +
                     "Tap 'Resume' to continue checking.",
-                    "Resume"
-                );
+                    "Resume");
 
-                // Reset timer and refocus barcode entry
                 _ResetIdleTimer();
                 txtBarcode.Focus();
             });
         }
 
-        /// <summary>
-        /// Play alarm sound
-        /// </summary>
         private async Task _PlayAlarm()
         {
             try
             {
-                // Get audio manager
                 var audioManager = Plugin.Maui.Audio.AudioManager.Current;
-
-                // Load alarm sound from embedded resource
-                var alarmStream = await FileSystem.OpenAppPackageFileAsync("alarm_sound.mp3");
+                var alarmStream  = await FileSystem.OpenAppPackageFileAsync("alarm_sound.mp3");
 
                 if (alarmStream != null)
                 {
-                    _alarmPlayer = audioManager.CreatePlayer(alarmStream);
-
-                    // Set to loop and max volume
-                    _alarmPlayer.Loop = true;
+                    _alarmPlayer        = audioManager.CreatePlayer(alarmStream);
+                    _alarmPlayer.Loop   = true;
                     _alarmPlayer.Volume = 1.0;
-
                     _alarmPlayer.Play();
                 }
             }
             catch (Exception ex)
             {
-                // Fallback: Use system beep if audio file fails
                 System.Diagnostics.Debug.WriteLine($"Alarm audio failed: {ex.Message}");
                 _PlaySystemBeep();
             }
         }
 
-        /// <summary>
-        /// Stop alarm sound
-        /// </summary>
         private void _StopAlarm()
         {
             try
@@ -476,12 +392,8 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Fallback: Play system beep sound (repeating)
-        /// </summary>
         private async void _PlaySystemBeep()
         {
-            // Play 5 beeps in a row
             for (int i = 0; i < 5; i++)
             {
                 _VibrateDevice(200);
@@ -489,15 +401,11 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Vibrate device
-        /// </summary>
         private void _VibrateDevice(int durationMs)
         {
             try
             {
-                var duration = TimeSpan.FromMilliseconds(durationMs);
-                Vibration.Default.Vibrate(duration);
+                Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(durationMs));
             }
             catch (Exception ex)
             {
@@ -507,92 +415,49 @@ namespace PDTPickingSystem.Views
 
         // ================== 🚚 LOADING ANIMATION METHODS ==================
 
-        /// <summary>
-        /// Initialize loading screen animations
-        /// </summary>
         private void _InitializeLoadingAnimations()
         {
-            // Truck moving animation
-            _truckAnimationTimer = Dispatcher.CreateTimer();
+            _truckAnimationTimer          = Dispatcher.CreateTimer();
             _truckAnimationTimer.Interval = TimeSpan.FromMilliseconds(30);
-            _truckAnimationTimer.Tick += TruckAnimationTimer_Tick;
+            _truckAnimationTimer.Tick    += TruckAnimationTimer_Tick;
 
-            // Loading dots animation
-            _dotsAnimationTimer = Dispatcher.CreateTimer();
+            _dotsAnimationTimer          = Dispatcher.CreateTimer();
             _dotsAnimationTimer.Interval = TimeSpan.FromMilliseconds(400);
-            _dotsAnimationTimer.Tick += DotsAnimationTimer_Tick;
+            _dotsAnimationTimer.Tick    += DotsAnimationTimer_Tick;
         }
 
-        /// <summary>
-        /// Truck animation tick - moves truck across screen
-        /// </summary>
         private void TruckAnimationTimer_Tick(object sender, EventArgs e)
         {
-            _truckPosition += 3; // Move 3 pixels per tick
-
-            // Reset position when truck reaches end
-            if (_truckPosition > 240)
-            {
-                _truckPosition = -80; // Start from left edge (off-screen)
-            }
-
-            // Update truck position
+            _truckPosition += 3;
+            if (_truckPosition > 240) _truckPosition = -80;
             truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
         }
 
-        /// <summary>
-        /// Loading dots animation tick - animates three dots
-        /// </summary>
         private void DotsAnimationTimer_Tick(object sender, EventArgs e)
         {
             _dotAnimationStep = (_dotAnimationStep + 1) % 4;
-
-            // Animate dots based on current step
             switch (_dotAnimationStep)
             {
-                case 0:
-                    dot1.Opacity = 1;
-                    dot2.Opacity = 0.3;
-                    dot3.Opacity = 0.3;
-                    break;
-                case 1:
-                    dot1.Opacity = 0.3;
-                    dot2.Opacity = 1;
-                    dot3.Opacity = 0.3;
-                    break;
-                case 2:
-                    dot1.Opacity = 0.3;
-                    dot2.Opacity = 0.3;
-                    dot3.Opacity = 1;
-                    break;
-                case 3:
-                    dot1.Opacity = 0.3;
-                    dot2.Opacity = 0.3;
-                    dot3.Opacity = 0.3;
-                    break;
+                case 0: dot1.Opacity = 1;   dot2.Opacity = 0.3; dot3.Opacity = 0.3; break;
+                case 1: dot1.Opacity = 0.3; dot2.Opacity = 1;   dot3.Opacity = 0.3; break;
+                case 2: dot1.Opacity = 0.3; dot2.Opacity = 0.3; dot3.Opacity = 1;   break;
+                case 3: dot1.Opacity = 0.3; dot2.Opacity = 0.3; dot3.Opacity = 0.3; break;
             }
         }
 
-        /// <summary>
-        /// Show loading overlay with truck animation
-        /// </summary>
         private void _ShowLoading(string message = "Loading...")
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 loadingText.Text = message;
-                pbReq.IsVisible = true;
-                _truckPosition = -80; // Start from left
+                pbReq.IsVisible  = true;
+                _truckPosition   = -80;
                 truckIcon.Margin = new Thickness(_truckPosition, 0, 0, 0);
-
                 _truckAnimationTimer.Start();
                 _dotsAnimationTimer.Start();
             });
         }
 
-        /// <summary>
-        /// Hide loading overlay
-        /// </summary>
         private void _HideLoading()
         {
             MainThread.BeginInvokeOnMainThread(() =>
@@ -608,36 +473,30 @@ namespace PDTPickingSystem.Views
         private async void CheckingPage_Appearing(object sender, EventArgs e)
         {
             txtBarcode.Text = string.Empty;
-            txtEachVal = string.Empty;
+            txtEachVal      = string.Empty;
 
-            pnlItems.IsVisible = false;
+            pnlItems.IsVisible  = false;
             pnlItems2.IsVisible = false;
 
-            isBarcode = true;
+            isBarcode             = true;
             btnFinished.IsVisible = false;
 
             await _GetSetPickNoAsync();
 
             scanCount = 0;
 
-            // ⭐ AUTO-FOCUS barcode entry after page loads
-            // Use a small delay to ensure UI is fully rendered
             await Task.Delay(300);
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                txtBarcode.Focus();
-            });
+            MainThread.BeginInvokeOnMainThread(() => txtBarcode.Focus());
         }
 
         private void CheckingPage_Disappearing(object sender, EventArgs e)
         {
             tmrRequest?.Stop();
-
-            // ✅ NEW: Stop idle monitoring and alarm
             _StopIdleMonitoring();
-
-            // ✅ NEW: Stop loading animations
             _HideLoading();
+
+            // Reset the first-request flag so a fresh page visit starts clean
+            _hasEverRequested = false;
         }
 
         // ================== FOCUS MANAGEMENT ==================
@@ -645,9 +504,7 @@ namespace PDTPickingSystem.Views
         private void TxtEntry_Unfocused(object sender, FocusEventArgs e)
         {
             if (sender is Entry entry)
-            {
                 entry.BackgroundColor = Colors.WhiteSmoke;
-            }
         }
 
         private void TxtCaseEach_Unfocused(object sender, FocusEventArgs e)
@@ -655,13 +512,12 @@ namespace PDTPickingSystem.Views
             if (sender is Entry entry)
             {
                 entry.SelectionLength = 0;
-                entry.CursorPosition = 0;
+                entry.CursorPosition  = 0;
             }
         }
 
         private void TxtBarcodeQtyFocus_Focused(object sender, FocusEventArgs e)
         {
-            // ✅ ADDED: Reset idle timer on focus
             _ResetIdleTimer();
 
             if (sender is Entry entry)
@@ -675,30 +531,23 @@ namespace PDTPickingSystem.Views
                 }
                 else
                 {
-                    entry.CursorPosition = 0;
+                    entry.CursorPosition  = 0;
                     entry.SelectionLength = entry.Text?.Length ?? 0;
                 }
             }
         }
 
-        private void TxtOther_Focused(object sender, FocusEventArgs e)
-        {
-            _focusedEntry?.Focus();
-        }
+        private void TxtOther_Focused(object sender, FocusEventArgs e) => _focusedEntry?.Focus();
 
         // ================== ENTRY VALIDATION & COMPLETION ==================
 
         private async void Entry_Completed(object sender, EventArgs e)
         {
-            // ✅ FIX: Prevent multiple simultaneous executions
-            if (_isShowingAlert)
-                return;
-
+            if (_isShowingAlert) return;
             _isShowingAlert = true;
 
             try
             {
-                // ✅ ADDED: Reset idle timer on entry completion
                 _ResetIdleTimer();
 
                 var entry = sender as Entry;
@@ -711,7 +560,7 @@ namespace PDTPickingSystem.Views
                 }
 
                 pbScanned.IsVisible = false;
-                txtDesc.Text = string.Empty;
+                txtDesc.Text        = string.Empty;
 
                 if (entry == txtBarcode)
                 {
@@ -721,8 +570,6 @@ namespace PDTPickingSystem.Views
 
                     var result = await _isUPCFound(txtBarcode.Text.Trim());
 
-                    // ✅ Only show "Mismatch" if barcode was NOT found (false)
-                    // Don't show if already checked (null) or found successfully (true)
                     if (result == false)
                     {
                         await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
@@ -730,16 +577,14 @@ namespace PDTPickingSystem.Views
                     }
                     else if (result == null)
                     {
-                        // Already checked - alert already shown in _isUPCFound
                         _ClearScan();
                     }
-                    // else result == true, item loaded successfully, do nothing
                 }
                 else if (entry == txtCase)
                 {
                     txtCase.SelectionLength = 0;
                     txtEach.Focus();
-                    txtEach.CursorPosition = 0;
+                    txtEach.CursorPosition  = 0;
                     txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
                 }
                 else if (entry == txtEach)
@@ -749,7 +594,6 @@ namespace PDTPickingSystem.Views
             }
             finally
             {
-                // ✅ Reset flag after completion
                 _isShowingAlert = false;
             }
         }
@@ -760,9 +604,7 @@ namespace PDTPickingSystem.Views
             if (entry == null) return;
 
             if (e.NewTextValue != null && e.NewTextValue.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
-            {
                 entry.Text = e.OldTextValue;
-            }
         }
 
         private void TxtStocker_TextChanged(object sender, TextChangedEventArgs e)
@@ -773,7 +615,7 @@ namespace PDTPickingSystem.Views
                 var filtered = new string(txt.Where(c => AppGlobal._isAllowedNum(c) != '\0').ToArray());
                 if (txt != filtered)
                 {
-                    txtStocker.Text = filtered;
+                    txtStocker.Text           = filtered;
                     txtStocker.CursorPosition = txtStocker.Text.Length;
                 }
             }
@@ -782,9 +624,7 @@ namespace PDTPickingSystem.Views
         private void TxtStocker_Completed(object sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(txtStocker.Text))
-            {
                 _ = ConfirmStockerAsync();
-            }
         }
 
         // ================== TEXT CHANGED HANDLERS ==================
@@ -799,19 +639,14 @@ namespace PDTPickingSystem.Views
 
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
-            // ✅ FIX: Prevent double-clicking
-            if (_isAccepting)
-                return;
-
+            if (_isAccepting) return;
             _isAccepting = true;
 
             try
             {
-                // ✅ Reset idle timer on button click
                 _ResetIdleTimer();
 
-                if (string.IsNullOrWhiteSpace(txtSKU.Text))
-                    return;
+                if (string.IsNullOrWhiteSpace(txtSKU.Text)) return;
 
                 if (!string.IsNullOrWhiteSpace(txtEach.Text) &&
                     !string.IsNullOrWhiteSpace(txtCase.Text) &&
@@ -819,45 +654,34 @@ namespace PDTPickingSystem.Views
                     double.TryParse(txtCase.Text, out double caseVal) && caseVal >= 0)
                 {
                     bool answer = await DisplayAlert("Accept?", "Accept quantity?", "Yes", "No");
-                    if (answer)
-                    {
-                        await _AcceptItemAsync();
-                    }
+                    if (answer) await _AcceptItemAsync();
                 }
             }
             finally
             {
-                // ✅ Reset the flag when done
                 _isAccepting = false;
             }
         }
 
+        /// <summary>
+        /// Finishes the current Transfer/SKU, commits to DB, then automatically
+        /// requests the next one without prompting the checker again.
+        /// </summary>
         private async void BtnFinished_Clicked(object sender, EventArgs e)
         {
-            // ✅ FIX: Prevent double-clicking
-            if (_isFinishing)
-                return;
-
+            if (_isFinishing) return;
             _isFinishing = true;
 
             try
             {
-                // ✅ Stop idle monitoring when finishing
+                // Pause idle monitoring during the finish flow
                 _StopIdleMonitoring();
 
                 bool answer = await DisplayAlert("Done Checking?", "Done Checking? Please Verify.", "Yes", "No");
-                if (!answer)
-                {
-                    _StartIdleMonitoring();
-                    return;
-                }
+                if (!answer) { _StartIdleMonitoring(); return; }
 
                 answer = await DisplayAlert("Finished?", "Finish Checking?", "Yes", "No");
-                if (!answer)
-                {
-                    _StartIdleMonitoring();
-                    return;
-                }
+                if (!answer) { _StartIdleMonitoring(); return; }
 
                 using var conn = await AppGlobal._SQL_Connect();
                 if (conn == null)
@@ -871,7 +695,7 @@ namespace PDTPickingSystem.Views
                 {
                     using var sqlCmd = conn.CreateCommand();
 
-                    // Update items with zero checked quantity
+                    // Mark items with zero checked quantity
                     foreach (var skuItem in SKUList)
                     {
                         if (string.IsNullOrEmpty(skuItem.ChkQty) ||
@@ -881,8 +705,8 @@ namespace PDTPickingSystem.Views
                                                  "isUpdate=1, checkTime='00:00:00', isCSorted=1, CheckBy=@UserID " +
                                                  "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
                             sqlCmd.Parameters.Clear();
-                            sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                            sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
+                            sqlCmd.Parameters.AddWithValue("@UserID",    AppGlobal.ID_User);
+                            sqlCmd.Parameters.AddWithValue("@SKU",       skuItem.SKU);
                             sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                             await sqlCmd.ExecuteNonQueryAsync();
                         }
@@ -894,8 +718,8 @@ namespace PDTPickingSystem.Views
                                                  "isCSorted=1, CheckBy=@UserID " +
                                                  "WHERE SKU=@SKU AND ID_SumHdr=@ID_SumHdr";
                             sqlCmd.Parameters.Clear();
-                            sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                            sqlCmd.Parameters.AddWithValue("@SKU", skuItem.SKU);
+                            sqlCmd.Parameters.AddWithValue("@UserID",    AppGlobal.ID_User);
+                            sqlCmd.Parameters.AddWithValue("@SKU",       skuItem.SKU);
                             sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                             await sqlCmd.ExecuteNonQueryAsync();
                         }
@@ -915,25 +739,22 @@ namespace PDTPickingSystem.Views
                     sqlCmd.Parameters.Clear();
                     if (scanCount < 1)
                         sqlCmd.Parameters.AddWithValue("@chkStart", await AppGlobal._GetDateTime());
-                    sqlCmd.Parameters.AddWithValue("@chkEnd", await AppGlobal._GetDateTime());
+                    sqlCmd.Parameters.AddWithValue("@chkEnd",      await AppGlobal._GetDateTime());
                     sqlCmd.Parameters.AddWithValue("@chkDateDone", await AppGlobal._GetDateTime(true));
-                    sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
+                    sqlCmd.Parameters.AddWithValue("@ID_SumHdr",   AppGlobal.ID_SumHdr);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // Reset user sum header
+                    // Clear the user's active session on the server
                     sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
                     sqlCmd.Parameters.Clear();
                     sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // ✅ Reset all state for next session
-                    scanCount = 0;
-                    AppGlobal.ID_SumHdr = 0;
-                    iRetry = 0;
-                    SKUList.Clear();
-                    SKUList2.Clear();
+                    // ── Reset all local session state ready for the next Transfer/SKU ──
+                    _ResetSessionState();
 
-                    await _GetSetPickNoAsync();
+                    // ── Auto-request the next Transfer/SKU (no modal shown) ──
+                    await _GetSetPickNoAsync(autoRequest: true);
                 }
                 catch (SqlException ex)
                 {
@@ -949,37 +770,29 @@ namespace PDTPickingSystem.Views
 
         private async void BtnViewItems_Clicked(object sender, EventArgs e)
         {
-            // ✅ FIX: Prevent double-clicking
-            if (_isViewingItems)
-                return;
-
+            if (_isViewingItems) return;
             _isViewingItems = true;
 
             try
             {
-                // ✅ Show loading indicator
                 viewItemsLoadingOverlay.IsVisible = true;
-                btnViewItems.IsEnabled = false;
-
-                // ✅ Reset idle timer
+                btnViewItems.IsEnabled            = false;
                 _ResetIdleTimer();
 
-                // Small delay to show loading animation
                 await Task.Delay(100);
 
-                // 🔍 DEBUG: Check if we have items
                 System.Diagnostics.Debug.WriteLine($"📊 SKUList.Count = {SKUList.Count}");
 
                 if (SKUList.Count == 0)
                 {
                     viewItemsLoadingOverlay.IsVisible = false;
-                    btnViewItems.IsEnabled = true;
+                    btnViewItems.IsEnabled            = true;
                     await DisplayAlert("SKU List Empty!", "SKU List is empty. No items to display.", "OK");
                     return;
                 }
 
                 pnlItems.IsVisible = true;
-                lblCnt.Text = $"Count: {SKUList.Count}";
+                lblCnt.Text        = $"Count: {SKUList.Count}";
 
                 if (!string.IsNullOrWhiteSpace(txtSKU.Text) && SKUList.Count > 0)
                 {
@@ -988,9 +801,7 @@ namespace PDTPickingSystem.Views
 
                     if (index >= 0 && index < SKUList.Count)
                     {
-                        // Allow UI to render before scrolling
                         await Task.Delay(50);
-
                         lvSKU.ScrollTo(SKUList[index], position: ScrollToPosition.MakeVisible, animate: true);
                         lvSKU.SelectedItem = SKUList[index];
                     }
@@ -998,17 +809,16 @@ namespace PDTPickingSystem.Views
             }
             finally
             {
-                // ✅ Hide loading indicator
                 viewItemsLoadingOverlay.IsVisible = false;
-                btnViewItems.IsEnabled = true;
-                _isViewingItems = false;
+                btnViewItems.IsEnabled            = true;
+                _isViewingItems                   = false;
             }
         }
 
         private void BtnConso_Clicked(object sender, EventArgs e)
         {
             pnlItems2.IsVisible = true;
-            lblCnt2.Text = $"Count: {SKUList2.Count}";
+            lblCnt2.Text        = $"Count: {SKUList2.Count}";
         }
 
         private void BtnCloseItems_Clicked(object sender, EventArgs e)
@@ -1037,8 +847,8 @@ namespace PDTPickingSystem.Views
         private void BtnCancel_Clicked(object sender, EventArgs e)
         {
             pnlNavigate.IsVisible = true;
-            pnlInput.IsVisible = true;
-            pnlConfirm.IsVisible = false;
+            pnlInput.IsVisible    = true;
+            pnlConfirm.IsVisible  = false;
             txtBarcode.Focus();
         }
 
@@ -1055,12 +865,6 @@ namespace PDTPickingSystem.Views
                     {
                         txtBarcode.Text = selectedItem.UPC?.Replace("-", "").Replace(",", "").Trim();
                         BtnCloseItems_Clicked(null, null);
-
-                        var upcCount = selectedItem.UPC?.Split(',').Length ?? 0;
-                        if (upcCount > 0)
-                        {
-                            // Additional logic if needed
-                        }
                     }
                 }
                 lvSKU.SelectedItem = null;
@@ -1083,13 +887,9 @@ namespace PDTPickingSystem.Views
         private void LblConfirmTitle_Loaded(object sender, EventArgs e) { }
         private void LblInput_Loaded(object sender, EventArgs e) { }
 
-        // ================== CORE BUSINESS LOGIC ==================
+        // ================== MODAL DIALOG ==================
 
-        // ================== MODAL DIALOG FIELDS ==================
         private TaskCompletionSource<bool> _modalDialogResult;
-        private bool _isRequesting = false;
-
-        // ================== MODAL DIALOG BUTTON HANDLERS ==================
 
         private void ModalYesButton_Clicked(object sender, EventArgs e)
         {
@@ -1104,29 +904,90 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// Show custom modal dialog (truly modal - blocks all interaction)
+        /// Show custom modal dialog (truly modal – blocks all interaction).
+        /// Only used for the very first server request.
         /// </summary>
-        private async Task<bool> ShowCustomModalDialog(string title, string message, string yesText = "Yes", string noText = "No")
+        private async Task<bool> ShowCustomModalDialog(
+            string title, string message,
+            string yesText = "Yes", string noText = "No")
         {
             _modalDialogResult = new TaskCompletionSource<bool>();
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                modalTitle.Text = title;
+                modalTitle.Text   = title;
                 modalMessage.Text = message;
                 modalYesButton.Text = yesText;
-                modalNoButton.Text = noText;
+                modalNoButton.Text  = noText;
                 customModalOverlay.IsVisible = true;
             });
 
-            // Wait for user to click Yes or No
             return await _modalDialogResult.Task;
         }
 
+        // ================== CORE BUSINESS LOGIC ==================
+
         /// <summary>
-        /// Initialize checking session and load data from server
+        /// Resets all in-memory session state so the page is ready to receive a
+        /// brand-new Transfer/SKU assignment without navigating away.
         /// </summary>
-        private async Task _GetSetPickNoAsync()
+        private void _ResetSessionState()
+        {
+            // In-memory data
+            AppGlobal.ID_SumHdr = 0;
+            sSKU      = -1;
+            isStarted = false;
+            scanCount = 0;
+            ID_Stocker = 0;
+            iRetry     = 0;
+
+            // Request-guard flags
+            _requestAlreadyShown = false;
+            _requestFailedShown  = false;
+
+            // Idle-monitor flags (monitoring itself was stopped by _StopIdleMonitoring)
+            _idleAlertShown    = false;
+            _warningAlertShown = false;
+
+            // Clear lists
+            SKUList.Clear();
+            SKUList2.Clear();
+
+            // Clear UI on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                txtDone.Text      = "";
+                txtBarcode.Text   = "";
+                txtSKU.Text       = "";
+                txtCase.Text      = "0";
+                txtEach.Text      = "0";
+                txtDesc.Text      = "";
+                txtBum.Text       = "";
+                txtDeptStore.Text = "";
+                lblLoc.Text       = "";
+                lblTrf.Text       = "";
+                lblPicker.Text    = "";
+                btnFinished.IsVisible = false;
+
+                // Re-hide all overlay panels
+                pnlItems.IsVisible   = false;
+                pnlItems2.IsVisible  = false;
+                pnlConfirm.IsVisible = false;
+            });
+        }
+
+        /// <summary>
+        /// Entry point for loading / requesting a checking session.
+        /// <para>
+        /// <paramref name="autoRequest"/> = <c>false</c> (default) →
+        ///   first-time path: shows "Request from server?" modal.<br/>
+        /// <paramref name="autoRequest"/> = <c>true</c> →
+        ///   continuation path: silently issues the next request with no modal,
+        ///   provided the checker has already confirmed at least once
+        ///   (<see cref="_hasEverRequested"/> is <c>true</c>).
+        /// </para>
+        /// </summary>
+        private async Task _GetSetPickNoAsync(bool autoRequest = false)
         {
             btnFinished.IsVisible = false;
             string sUserPNo = "";
@@ -1141,30 +1002,27 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                // Query user info
-                string cmdText = @"
-            SELECT a.ID_SumHdr, a.PickRef
-            FROM tblUsers a
-            WHERE a.ID=@UserID";
-
-                using var sqlCmd = new SqlCommand(cmdText, conn);
-                sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-
-                using var reader = await sqlCmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                // ── Read the user's current session from the DB ──
+                using (var sqlCmd = new SqlCommand(
+                    "SELECT a.ID_SumHdr, a.PickRef FROM tblUsers a WHERE a.ID=@UserID", conn))
                 {
-                    AppGlobal.ID_SumHdr = reader["ID_SumHdr"] != DBNull.Value
-                        ? Convert.ToInt32(reader["ID_SumHdr"])
-                        : 0;
+                    sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
 
-                    if (reader["PickRef"] != DBNull.Value && Convert.ToInt32(reader["PickRef"]) != 0)
-                        sUserPNo = reader["PickRef"].ToString().Trim();
+                    using var reader = await sqlCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        AppGlobal.ID_SumHdr = reader["ID_SumHdr"] != DBNull.Value
+                            ? Convert.ToInt32(reader["ID_SumHdr"]) : 0;
+
+                        if (reader["PickRef"] != DBNull.Value && Convert.ToInt32(reader["PickRef"]) != 0)
+                            sUserPNo = reader["PickRef"].ToString().Trim();
+                    }
                 }
-                reader.Close();
 
-                // Check if user has active checking session
+                // ── If the server already assigned a session, load it directly ──
                 if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
+                    System.Diagnostics.Debug.WriteLine("✅ Found existing checking session – loading data...");
                     _ShowLoading("Loading existing checking session...");
                     await Task.Yield();
                     txtSKU.Text = string.Empty;
@@ -1172,55 +1030,76 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                // ✅ Reset flags for fresh request (supports auto-loop after finishing)
-                _requestAlreadyShown = false;
-                _requestFailedShown = false;
+                System.Diagnostics.Debug.WriteLine(
+                    $"❌ No existing session – will request. " +
+                    $"autoRequest={autoRequest}, _hasEverRequested={_hasEverRequested}");
 
-                // Request from server
-                if (!_requestAlreadyShown)
+                if (_isRequesting) return;
+                _isRequesting = true;
+
+                try
                 {
-                    _requestAlreadyShown = true;
-
-                    if (_isRequesting)
-                        return;
-
-                    _isRequesting = true;
-
-                    try
+                    // ════════════════════════════════════════════════════════
+                    // AUTO-REQUEST PATH
+                    // Silently issue the next request – no modal, no prompt.
+                    // Used after BtnFinished completes a Transfer/SKU.
+                    // ════════════════════════════════════════════════════════
+                    if (autoRequest && _hasEverRequested)
                     {
-                        bool answer = await ShowCustomModalDialog(
-                            "Requesting...",
-                            "Request from server?",
-                            "Yes",
-                            "No");
+                        System.Diagnostics.Debug.WriteLine("🔄 Auto-requesting next Transfer/SKU (Checking)...");
 
-                        if (answer)
-                        {
-                            _ShowLoading("Requesting...");
-                            await Task.Yield();
+                        _ShowLoading("Loading next checking session...");
+                        await Task.Yield();
 
-                            string updateCmd = @"
-                        UPDATE tblUsers 
-                        SET isRequest=1, isSummary=@Summary, PickRef=@PickNo 
-                        WHERE ID=@UserID";
+                        using var autoCmd = new SqlCommand(
+                            "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickNo WHERE ID=@UserID",
+                            conn);
+                        autoCmd.Parameters.AddWithValue("@Summary", 2);
+                        autoCmd.Parameters.AddWithValue("@PickNo",  AppGlobal.pPickNo);
+                        autoCmd.Parameters.AddWithValue("@UserID",  AppGlobal.ID_User);
+                        await autoCmd.ExecuteNonQueryAsync();
 
-                            using var updateSqlCmd = new SqlCommand(updateCmd, conn);
-                            updateSqlCmd.Parameters.AddWithValue("@Summary", 2);
-                            updateSqlCmd.Parameters.AddWithValue("@PickNo", AppGlobal.pPickNo);
-                            updateSqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
-                            await updateSqlCmd.ExecuteNonQueryAsync();
-
-                            tmrRequest.Start();
-                        }
-                        else
-                        {
-                            await Navigation.PopModalAsync();
-                        }
+                        tmrRequest.Start();
+                        return; // timer will call _AddSKUtoListAsync when assigned
                     }
-                    finally
+
+                    // ════════════════════════════════════════════════════════
+                    // FIRST-TIME REQUEST PATH
+                    // Show the "Request from server?" modal once.
+                    // ════════════════════════════════════════════════════════
+                    bool answer = await ShowCustomModalDialog(
+                        "Requesting...",
+                        "Request from server?",
+                        "Yes", "No");
+
+                    if (answer)
                     {
-                        _isRequesting = false;
+                        // Mark that the checker has now given at least one explicit confirmation.
+                        // All future requests in this page session will be automatic.
+                        _hasEverRequested = true;
+
+                        _ShowLoading("Requesting...");
+                        await Task.Yield();
+
+                        using var updateCmd = new SqlCommand(
+                            "UPDATE tblUsers SET isRequest=1, isSummary=@Summary, PickRef=@PickNo WHERE ID=@UserID",
+                            conn);
+                        updateCmd.Parameters.AddWithValue("@Summary", 2);
+                        updateCmd.Parameters.AddWithValue("@PickNo",  AppGlobal.pPickNo);
+                        updateCmd.Parameters.AddWithValue("@UserID",  AppGlobal.ID_User);
+                        await updateCmd.ExecuteNonQueryAsync();
+
+                        tmrRequest.Start();
                     }
+                    else
+                    {
+                        // User explicitly declined – return to Main Menu
+                        await Navigation.PopModalAsync();
+                    }
+                }
+                finally
+                {
+                    _isRequesting = false;
                 }
             }
             catch (Exception ex)
@@ -1234,16 +1113,11 @@ namespace PDTPickingSystem.Views
         /// </summary>
         private async Task _AddSKUtoListAsync()
         {
-            // ✅ UPDATE LOADING MESSAGE
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                loadingText.Text = "Loading checking data...";
-            });
+            MainThread.BeginInvokeOnMainThread(() => loadingText.Text = "Loading checking data...");
 
             using var conn = await AppGlobal._SQL_Connect();
             if (conn == null)
             {
-                // ✅ HIDE LOADING ON CONNECTION FAILURE
                 _HideLoading();
                 await DisplayAlert("Error", "Cannot connect to server!", "OK");
                 return;
@@ -1252,49 +1126,45 @@ namespace PDTPickingSystem.Views
             try
             {
                 // Load PickHdr
-                string cmdStr = $"SELECT * FROM tbl{AppGlobal.pPickNo}PickHdr WHERE ID=@SumHdr";
-                using var sqlCmd = new SqlCommand(cmdStr, conn);
-                sqlCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
-
-                using var reader = await sqlCmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                using (var sqlCmd = new SqlCommand(
+                    $"SELECT * FROM tbl{AppGlobal.pPickNo}PickHdr WHERE ID=@SumHdr", conn))
                 {
-                    lblDeptStore.Text = isSummary == 1 ? "Department:" : "Store No:";
+                    sqlCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
 
-                    if (isSummary == 1)
+                    using var reader = await sqlCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
                     {
-                        txtDeptStore.Text = await AppGlobal._GetDeptName(Convert.ToInt32(reader["iDept"]));
-                    }
-                    else
-                    {
-                        txtDeptStore.Text = await AppGlobal._GetStoreNo();
-                    }
+                        lblDeptStore.Text = isSummary == 1 ? "Department:" : "Store No:";
+                        txtDeptStore.Text = isSummary == 1
+                            ? await AppGlobal._GetDeptName(Convert.ToInt32(reader["iDept"]))
+                            : await AppGlobal._GetStoreNo();
 
-                    lblPicker.Text = " Picker : " + await AppGlobal._GetUserName(reader["User_ID"].ToString());
+                        lblPicker.Text = " Picker : " + await AppGlobal._GetUserName(reader["User_ID"].ToString());
 
-                    // Do not allow not yet picked transfers
-                    if (reader["TimeEnd"].ToString().Trim() == "0" || reader["DateDone"].ToString().Trim() == "")
-                    {
-                        _HideLoading();
-                        await DisplayAlert("System Says", "Not yet Picked!", "OK");
-                        await Navigation.PopModalAsync(); // ✅ CHANGED: Return to MainMenuPage
-                        return;
+                        // Do not allow not-yet-picked transfers
+                        if (reader["TimeEnd"].ToString().Trim() == "0" ||
+                            reader["DateDone"].ToString().Trim() == "")
+                        {
+                            _HideLoading();
+                            await DisplayAlert("System Says", "Not yet Picked!", "OK");
+                            await Navigation.PopModalAsync();
+                            return;
+                        }
+
+                        isStarted = reader["chkStart"].ToString().Trim() != "0";
                     }
-
-                    isStarted = reader["chkStart"].ToString().Trim() != "0";
                 }
-                reader.Close();
 
                 // Load PickQty data
-                var dsData = new DataSet();
+                var dsData  = new DataSet();
                 string cmdData = $@"
-                    SELECT a.*, b.ToLoc, b.TranNo 
-                    FROM tbl{AppGlobal.pPickNo}PickQty a 
+                    SELECT a.*, b.ToLoc, b.TranNo
+                    FROM tbl{AppGlobal.pPickNo}PickQty a
                     LEFT JOIN (
-                        SELECT DISTINCT id_sumhdr, ToLoc, TranNo 
+                        SELECT DISTINCT id_sumhdr, ToLoc, TranNo
                         FROM tbl{AppGlobal.pPickNo}PickDtl
-                    ) b ON a.id_sumhdr = b.id_sumhdr 
-                    WHERE a.ID_SumHdr=@SumHdr 
+                    ) b ON a.id_sumhdr = b.id_sumhdr
+                    WHERE a.ID_SumHdr=@SumHdr
                     ORDER BY a.slot, a.sku";
 
                 using (var loadCmd = new SqlCommand(cmdData, conn))
@@ -1310,134 +1180,96 @@ namespace PDTPickingSystem.Views
 
                 foreach (DataRow row in dsData.Tables[0].Rows)
                 {
-                    // Add to main list (SKUList)
                     var item = new SKUItem
                     {
-                        ID = row["ID"].ToString().Trim(),
-                        BUM = row["BUM"].ToString().Trim(),
-                        Slot = row["Slot"].ToString().Trim(),
-                        SKU = row["SKU"].ToString().Trim(),
-                        Descr = row["Descr"].ToString().Trim(),
-                        Qty = row["Qty"].ToString().Trim(),
-                        isPicked = row["isPicked"].ToString().Trim(),
-                        PickQty = row["isPicked"].ToString().Trim() == "0" ? "" : row["PickQty"].ToString(),
-                        UPC = row["UPC"].ToString().Trim(),
+                        ID        = row["ID"].ToString().Trim(),
+                        BUM       = row["BUM"].ToString().Trim(),
+                        Slot      = row["Slot"].ToString().Trim(),
+                        SKU       = row["SKU"].ToString().Trim(),
+                        Descr     = row["Descr"].ToString().Trim(),
+                        Qty       = row["Qty"].ToString().Trim(),
+                        isPicked  = row["isPicked"].ToString().Trim(),
+                        PickQty   = row["isPicked"].ToString().Trim() == "0" ? "" : row["PickQty"].ToString(),
+                        UPC       = row["UPC"].ToString().Trim(),
                         isChecked = row["isChecked"].ToString().Trim(),
-                        ChkQty = row["isChecked"].ToString().Trim() == "0" ? "" : row["chkQty"].ToString()
+                        ChkQty    = row["isChecked"].ToString().Trim() == "0" ? "" : row["chkQty"].ToString()
                     };
                     SKUList.Add(item);
 
-                    // Add to consolidated list (SKUList2) - unique SKUs
                     _loadlvSKU2(
-                        row["ID"].ToString(),
-                        row["BUM"].ToString(),
-                        row["Slot"].ToString(),
-                        row["SKU"].ToString(),
-                        row["Descr"].ToString(),
-                        row["Qty"].ToString(),
-                        row["isPicked"].ToString(),
-                        row["PickQty"].ToString(),
-                        row["UPC"].ToString(),
-                        row["isChecked"].ToString(),
-                        row["chkQty"].ToString()
-                    );
+                        row["ID"].ToString(),   row["BUM"].ToString(),
+                        row["Slot"].ToString(), row["SKU"].ToString(),
+                        row["Descr"].ToString(), row["Qty"].ToString(),
+                        row["isPicked"].ToString(), row["PickQty"].ToString(),
+                        row["UPC"].ToString(),  row["isChecked"].ToString(),
+                        row["chkQty"].ToString());
                 }
 
                 if (dsData.Tables[0].Rows.Count > 0)
                 {
-                    var firstRow = dsData.Tables[0].Rows[0];
-                    lblLoc.Text = "Location: " + firstRow["ToLoc"].ToString();
-                    lblTrf.Text = "Transfer # : " + firstRow["TranNo"].ToString();
+                    var firstRow   = dsData.Tables[0].Rows[0];
+                    lblLoc.Text    = "Location: "   + firstRow["ToLoc"].ToString();
+                    lblTrf.Text    = "Transfer # : " + firstRow["TranNo"].ToString();
                 }
 
                 dsData.Tables.Clear();
                 sSKU = -1;
                 _CountPicked();
 
-                // ✅ NEW: Start idle monitoring - checking has begun!
+                // Start idle monitoring – checking has begun
                 _StartIdleMonitoring();
             }
             catch (Exception ex)
             {
-                // ✅ HIDE LOADING ON EXCEPTION
                 _HideLoading();
                 await DisplayAlert("Error", ex.Message, "OK");
             }
-            // ✅ NOTE: Loading will be hidden in _CountPicked() on successful completion
         }
 
-        /// <summary>
-        /// Load consolidated SKU list (unique SKUs)
-        /// </summary>
         private void _loadlvSKU2(string id, string bum, string slot, string sku, string descr,
-                                 string qty, string isPck, string pckqty, string upc,
-                                 string isChecked, string chkQty)
+                                  string qty, string isPck, string pckqty, string upc,
+                                  string isChecked, string chkQty)
         {
-            // Check if SKU already exists in consolidated list
             var existingItem = SKUList2.FirstOrDefault(x => x.SKU == sku);
 
             if (existingItem != null)
             {
-                // Sum the checked quantity
                 if (double.TryParse(existingItem.ChkQty, out double existingChk) &&
                     double.TryParse(chkQty, out double addChk))
-                {
                     existingItem.ChkQty = (existingChk + addChk).ToString();
-                }
                 return;
             }
 
-            // Add new unique SKU
-            var item = new SKUItem
+            SKUList2.Add(new SKUItem
             {
-                ID = id,
-                BUM = bum,
-                Slot = slot,
-                SKU = sku,
-                Descr = descr,
-                Qty = qty,
-                isPicked = isPck,
-                PickQty = isPck.Trim() == "0" ? "" : pckqty,
-                UPC = upc.Trim(),
+                ID        = id,
+                BUM       = bum,
+                Slot      = slot,
+                SKU       = sku,
+                Descr     = descr,
+                Qty       = qty,
+                isPicked  = isPck,
+                PickQty   = isPck.Trim() == "0" ? "" : pckqty,
+                UPC       = upc.Trim(),
                 isChecked = isChecked,
-                ChkQty = isChecked.Trim() == "0" ? "" : chkQty
-            };
+                ChkQty    = isChecked.Trim() == "0" ? "" : chkQty
+            });
 
-            SKUList2.Add(item);
             lvCnt++;
         }
 
-        /// <summary>
-        /// Count checked items and update UI
-        /// </summary>
         private void _CountPicked()
         {
             int iPicked = SKUList.Count(item => !string.IsNullOrWhiteSpace(item.ChkQty));
             txtDone.Text = $"{iPicked}/{SKUList.Count}";
 
-            // ✅ Show button only when all items are checked
-            if (iPicked == SKUList.Count && SKUList.Count > 0)
-            {
-                btnFinished.IsVisible = true;
-            }
-            else
-            {
-                btnFinished.IsVisible = false;
-            }
+            btnFinished.IsVisible = iPicked == SKUList.Count && SKUList.Count > 0;
 
-            // ✅ HIDE LOADING WITH ANIMATION
             _HideLoading();
 
-            // ⭐ AUTO-FOCUS barcode entry after counting
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                txtBarcode.Focus();
-            });
+            MainThread.BeginInvokeOnMainThread(() => txtBarcode.Focus());
         }
 
-        /// <summary>
-        /// Timer tick handler for request checking
-        /// </summary>
         private async void TmrRequest_Tick(object sender, EventArgs e)
         {
             try
@@ -1445,7 +1277,6 @@ namespace PDTPickingSystem.Views
                 using var conn = await AppGlobal._SQL_Connect();
                 if (conn == null) return;
 
-                // Check if request has been sent
                 using (var cmd = new SqlCommand(
                     "SELECT * FROM tblUsers WHERE ID=@ID AND ID_SumHdr<>0", conn))
                 {
@@ -1460,7 +1291,6 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // Retry logic
                 if (iRetry >= 5)
                 {
                     tmrRequest.Stop();
@@ -1477,30 +1307,26 @@ namespace PDTPickingSystem.Views
 
                         _HideLoading();
 
-                        // ✅ Disable all controls so user can't touch anything while alert is shown
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                            btnAccept.IsEnabled = false;
-                            btnFinished.IsEnabled = false;
-                            btnViewItems.IsEnabled = false;
-                            btnConso.IsEnabled = false;
-                            btnCloseItems.IsEnabled = false;
+                            btnAccept.IsEnabled      = false;
+                            btnFinished.IsEnabled    = false;
+                            btnViewItems.IsEnabled   = false;
+                            btnConso.IsEnabled       = false;
+                            btnCloseItems.IsEnabled  = false;
                             btnCloseItems2.IsEnabled = false;
-                            btnConfirm.IsEnabled = false;
-                            btnCancel.IsEnabled = false;
-                            txtBarcode.IsEnabled = false;
-                            txtCase.IsEnabled = false;
-                            txtEach.IsEnabled = false;
-                            txtStocker.IsEnabled = false;
+                            btnConfirm.IsEnabled     = false;
+                            btnCancel.IsEnabled      = false;
+                            txtBarcode.IsEnabled     = false;
+                            txtCase.IsEnabled        = false;
+                            txtEach.IsEnabled        = false;
+                            txtStocker.IsEnabled     = false;
                         });
 
                         await DisplayAlert("Unable to Request!", "No Picking # available!", "OK");
 
-                        // ✅ Go back to MainMenuPage immediately after OK
                         await MainThread.InvokeOnMainThreadAsync(async () =>
-                        {
-                            await Navigation.PopModalAsync();
-                        });
+                            await Navigation.PopModalAsync());
                     }
                 }
                 else
@@ -1515,35 +1341,26 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Clear scan fields
-        /// </summary>
         private void _ClearScan(bool bWithBarcode = true)
         {
-            if (bWithBarcode)
-                txtBarcode.Text = string.Empty;
+            if (bWithBarcode) txtBarcode.Text = string.Empty;
 
-            txtSKU.Text = string.Empty;
+            txtSKU.Text  = string.Empty;
             txtEach.Text = "0";
             txtCase.Text = "0";
 
             txtCase.CursorPosition = 0;
             txtCase.SelectionLength = 0;
-
-            txtEach.CursorPosition = 0;
+            txtEach.CursorPosition  = 0;
             txtEach.SelectionLength = 0;
 
             txtBarcode.Focus();
-            txtBarcode.CursorPosition = 0;
+            txtBarcode.CursorPosition  = 0;
             txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
         }
 
-        /// <summary>
-        /// Accept checked item and update database
-        /// </summary>
         private async Task _AcceptItemAsync()
         {
-            // ✅ ADDED: Reset idle timer on successful action
             _ResetIdleTimer();
 
             using var conn = await AppGlobal._SQL_Connect();
@@ -1561,11 +1378,10 @@ namespace PDTPickingSystem.Views
                 using var sqlCmd = conn.CreateCommand();
                 sqlCmd.Transaction = txn;
 
-                // Calculate checked quantity
-                double dBum = ParseEntry(txtBum);
+                double dBum  = ParseEntry(txtBum);
                 double dCase = ParseEntry(txtCase);
                 double dEach = string.IsNullOrWhiteSpace(txtEach.Text) ? 0 : ParseEntry(txtEach);
-                double dQty = (dBum * dCase) + dEach;
+                double dQty  = (dBum * dCase) + dEach;
                 double totQty = 0.0;
 
                 if (sSKU < 0 || sSKU >= SKUList.Count) return;
@@ -1577,7 +1393,7 @@ namespace PDTPickingSystem.Views
                     isStarted = true;
                     sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr SET " +
                                          "isUpdate=1, chkStart=@chkStart WHERE ID=@ID_SumHdr";
-                    sqlCmd.Parameters.AddWithValue("@chkStart", await AppGlobal._GetDateTime());
+                    sqlCmd.Parameters.AddWithValue("@chkStart",  await AppGlobal._GetDateTime());
                     sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                 }
                 else
@@ -1588,32 +1404,28 @@ namespace PDTPickingSystem.Views
                 }
                 await sqlCmd.ExecuteNonQueryAsync();
 
-                // Prepare UPC update
                 string sUPC = "";
                 if (!pbScanned.IsVisible && !string.IsNullOrWhiteSpace(txtBarcode.Text))
                     sUPC = "UPC=@UPC,";
                 if (dEach == 0 && dCase == 0)
                     sUPC = "";
 
-                // Update PickDtl
                 if (isSummary == 1)
                 {
                     sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
                         $"{sUPC}PickBy=@PickBy, ConfBy=@ConfBy, PickTime=@PickTime " +
                         "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr";
                     sqlCmd.Parameters.Clear();
-                    if (!string.IsNullOrEmpty(sUPC))
-                        sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text);
-                    sqlCmd.Parameters.AddWithValue("@PickBy", AppGlobal.ID_User);
-                    sqlCmd.Parameters.AddWithValue("@ConfBy", ID_Stocker);
+                    if (!string.IsNullOrEmpty(sUPC)) sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text);
+                    sqlCmd.Parameters.AddWithValue("@PickBy",   AppGlobal.ID_User);
+                    sqlCmd.Parameters.AddWithValue("@ConfBy",   ID_Stocker);
                     sqlCmd.Parameters.AddWithValue("@PickTime", await AppGlobal._GetDateTime());
-                    sqlCmd.Parameters.AddWithValue("@SKU", lvI.SKU);
-                    sqlCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
+                    sqlCmd.Parameters.AddWithValue("@SKU",      lvI.SKU);
+                    sqlCmd.Parameters.AddWithValue("@SumHdr",   AppGlobal.ID_SumHdr);
                     await sqlCmd.ExecuteNonQueryAsync();
                 }
                 else
                 {
-                    // ✅ FIXED: Parameterized query
                     var dsData = new DataSet();
 
                     using (var readCmd = conn.CreateCommand())
@@ -1621,76 +1433,68 @@ namespace PDTPickingSystem.Views
                         readCmd.Transaction = txn;
                         readCmd.CommandText = $"SELECT ID, Qty FROM tbl{AppGlobal.pPickNo}PickDtl " +
                                               "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr ORDER BY slot, sku";
-                        readCmd.Parameters.AddWithValue("@SKU", lvI.SKU);
+                        readCmd.Parameters.AddWithValue("@SKU",    lvI.SKU);
                         readCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
-
                         using var adapter = new SqlDataAdapter(readCmd);
                         adapter.Fill(dsData, "DATA");
                     }
 
-                    // Update all PickDtl records
                     sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
                         $"{sUPC}SortBy=@SortBy, CheckBy=@CheckBy, ConfBy=@ConfBy, CheckTime=@CheckTime " +
                         "WHERE SKU=@SKU AND ID_SumHdr=@SumHdr";
                     sqlCmd.Parameters.Clear();
-                    if (!string.IsNullOrEmpty(sUPC))
-                        sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text);
-                    sqlCmd.Parameters.AddWithValue("@SortBy", AppGlobal.ID_User);
-                    sqlCmd.Parameters.AddWithValue("@CheckBy", AppGlobal.ID_User);
-                    sqlCmd.Parameters.AddWithValue("@ConfBy", ID_Stocker);
+                    if (!string.IsNullOrEmpty(sUPC)) sqlCmd.Parameters.AddWithValue("@UPC", txtBarcode.Text);
+                    sqlCmd.Parameters.AddWithValue("@SortBy",    AppGlobal.ID_User);
+                    sqlCmd.Parameters.AddWithValue("@CheckBy",   AppGlobal.ID_User);
+                    sqlCmd.Parameters.AddWithValue("@ConfBy",    ID_Stocker);
                     sqlCmd.Parameters.AddWithValue("@CheckTime", await AppGlobal._GetDateTime());
-                    sqlCmd.Parameters.AddWithValue("@SKU", lvI.SKU);
-                    sqlCmd.Parameters.AddWithValue("@SumHdr", AppGlobal.ID_SumHdr);
+                    sqlCmd.Parameters.AddWithValue("@SKU",       lvI.SKU);
+                    sqlCmd.Parameters.AddWithValue("@SumHdr",    AppGlobal.ID_SumHdr);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // Distribute checked quantity across multiple detail records
-                    if (dsData.Tables["DATA"] != null && dsData.Tables["DATA"].Rows.Count > 0)
+                    if (dsData.Tables["DATA"]?.Rows.Count > 0)
                     {
                         int lCount = dsData.Tables["DATA"].Rows.Count - 1;
 
                         for (int iCount = 0; iCount <= lCount; iCount++)
                         {
-                            var dRow = dsData.Tables["DATA"].Rows[iCount];
-                            double dNeedQty = Convert.ToDouble(dRow["Qty"]);
+                            var dRow     = dsData.Tables["DATA"].Rows[iCount];
+                            double dNeed = Convert.ToDouble(dRow["Qty"]);
 
-                            if (iCount == lCount) // Last item
+                            if (iCount == lCount)
                             {
                                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
                                     "isCSorted=1, cSortQty=@cSortQty, isUpdate=1 WHERE ID=@ID";
                                 sqlCmd.Parameters.Clear();
                                 sqlCmd.Parameters.AddWithValue("@cSortQty", dQty);
-                                sqlCmd.Parameters.AddWithValue("@ID", dRow["ID"]);
+                                sqlCmd.Parameters.AddWithValue("@ID",       dRow["ID"]);
                                 await sqlCmd.ExecuteNonQueryAsync();
                                 totQty += dQty;
                             }
+                            else if (dQty >= dNeed)
+                            {
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCSorted=1, cSortQty=Qty, isUpdate=1 WHERE ID=@ID";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@ID", dRow["ID"]);
+                                await sqlCmd.ExecuteNonQueryAsync();
+                                dQty   -= dNeed;
+                                totQty += dNeed;
+                            }
                             else
                             {
-                                if (dQty >= dNeedQty)
-                                {
-                                    sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                        "isCSorted=1, cSortQty=Qty, isUpdate=1 WHERE ID=@ID";
-                                    sqlCmd.Parameters.Clear();
-                                    sqlCmd.Parameters.AddWithValue("@ID", dRow["ID"]);
-                                    await sqlCmd.ExecuteNonQueryAsync();
-                                    dQty -= dNeedQty;
-                                    totQty += dNeedQty;
-                                }
-                                else
-                                {
-                                    sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
-                                        "isCSorted=1, cSortQty=@cSortQty, isUpdate=1 WHERE ID=@ID";
-                                    sqlCmd.Parameters.Clear();
-                                    sqlCmd.Parameters.AddWithValue("@cSortQty", dQty);
-                                    sqlCmd.Parameters.AddWithValue("@ID", dRow["ID"]);
-                                    await sqlCmd.ExecuteNonQueryAsync();
-                                    totQty += dQty;
-                                    dQty = 0;
-                                    break;
-                                }
+                                sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
+                                    "isCSorted=1, cSortQty=@cSortQty, isUpdate=1 WHERE ID=@ID";
+                                sqlCmd.Parameters.Clear();
+                                sqlCmd.Parameters.AddWithValue("@cSortQty", dQty);
+                                sqlCmd.Parameters.AddWithValue("@ID",       dRow["ID"]);
+                                await sqlCmd.ExecuteNonQueryAsync();
+                                totQty += dQty;
+                                dQty    = 0;
+                                break;
                             }
                         }
 
-                        // Update ListView
                         lvI.ChkQty = totQty.ToString("N2");
                     }
 
@@ -1702,7 +1506,7 @@ namespace PDTPickingSystem.Views
                     "isChecked=1, chkQty=@chkQty WHERE ID=@ID";
                 sqlCmd.Parameters.Clear();
                 sqlCmd.Parameters.AddWithValue("@chkQty", totQty);
-                sqlCmd.Parameters.AddWithValue("@ID", lvI.ID);
+                sqlCmd.Parameters.AddWithValue("@ID",     lvI.ID);
                 await sqlCmd.ExecuteNonQueryAsync();
 
                 txn.Commit();
@@ -1712,32 +1516,19 @@ namespace PDTPickingSystem.Views
                 _CountPicked();
                 _ClearScan();
 
-                // ⭐ AUTO-FOCUS barcode entry after accepting item
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    txtBarcode.Focus();
-                });
+                MainThread.BeginInvokeOnMainThread(() => txtBarcode.Focus());
             }
             catch (Exception ex)
             {
                 txn?.Rollback();
                 await DisplayAlert("Transaction Error", $"Please Retry.\n{ex.Message}", "OK");
-
-                // ⭐ Refocus barcode on error too
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    txtBarcode.Focus();
-                });
+                MainThread.BeginInvokeOnMainThread(() => txtBarcode.Focus());
             }
         }
 
-        /// <summary>
-        /// Confirm stocker ID
-        /// </summary>
         private async Task ConfirmStockerAsync()
         {
-            if (string.IsNullOrWhiteSpace(txtStocker.Text))
-                return;
+            if (string.IsNullOrWhiteSpace(txtStocker.Text)) return;
 
             using var conn = await AppGlobal._SQL_Connect();
             if (conn == null)
@@ -1759,9 +1550,8 @@ namespace PDTPickingSystem.Views
 
                 if (await reader.ReadAsync())
                 {
-                    ID_Stocker = Convert.ToInt32(reader["ID"]);
+                    ID_Stocker    = Convert.ToInt32(reader["ID"]);
                     txtStockerTag = reader["ID"].ToString().Trim();
-
                     await DisplayAlert("Stocker Name:", reader["FullName"].ToString().Trim(), "OK");
                     btnConfirm.Focus();
                 }
@@ -1770,7 +1560,7 @@ namespace PDTPickingSystem.Views
                     txtStockerTag = "";
                     await DisplayAlert("Not Found!", "Stocker ID not found!", "OK");
                     txtStocker.Focus();
-                    txtStocker.CursorPosition = 0;
+                    txtStocker.CursorPosition  = 0;
                     txtStocker.SelectionLength = txtStocker.Text?.Length ?? 0;
                 }
             }
@@ -1781,8 +1571,8 @@ namespace PDTPickingSystem.Views
         }
 
         /// <summary>
-        /// Check if UPC is found in SKU list
-        /// Returns: true = found and loaded, false = not found, null = found but already checked
+        /// Check if UPC is found in SKU list.
+        /// Returns: true = found and loaded, false = not found, null = already checked.
         /// </summary>
         private async Task<bool?> _isUPCFound(string upc)
         {
@@ -1790,86 +1580,57 @@ namespace PDTPickingSystem.Views
             {
                 if (!string.IsNullOrWhiteSpace(item.UPC) && item.UPC.Contains("-" + upc.Trim() + ","))
                 {
-                    // 🔍 DEBUG: Log what we found
-                    System.Diagnostics.Debug.WriteLine($"🔍 Found UPC match:");
-                    System.Diagnostics.Debug.WriteLine($"   SKU: {item.SKU}");
-                    System.Diagnostics.Debug.WriteLine($"   ChkQty: {item.ChkQty}");
+                    System.Diagnostics.Debug.WriteLine($"🔍 Found UPC match: SKU={item.SKU}, ChkQty={item.ChkQty}");
 
-                    // ✅ Check if already checked - show alert and return null
                     if (double.TryParse(item.ChkQty, out double chkQty) && chkQty > 0)
                     {
                         await DisplayAlert("Checked!", $"SKU: {item.SKU} Checked already", "OK");
-                        return null; // ✅ Return null = found but already checked
+                        return null;
                     }
 
-                    // Check if quantity matches
                     if (double.TryParse(item.Qty, out double qty) &&
                         double.TryParse(item.ChkQty, out double chkQty2) &&
                         qty == chkQty2)
-                    {
                         continue;
-                    }
 
-                    // Set current SKU index
                     sSKU = SKUList.IndexOf(item);
-
-                    // Get duplicate SKU indices
                     _getDuplicateSKUIndex(item.SKU.Trim());
 
                     double bumVal = double.TryParse(item.BUM, out double b) ? b : 0;
 
-                    // Try PickQty first, fallback to Qty if PickQty is empty/zero
                     double qtyVal = 0;
-                    if (!string.IsNullOrWhiteSpace(item.PickQty) && double.TryParse(item.PickQty, out double pq) && pq > 0)
+                    if (!string.IsNullOrWhiteSpace(item.PickQty) &&
+                        double.TryParse(item.PickQty, out double pq) && pq > 0)
                     {
                         qtyVal = pq;
-                        System.Diagnostics.Debug.WriteLine($"✅ Using PickQty: {qtyVal}");
                     }
                     else if (double.TryParse(item.Qty, out double q))
                     {
                         qtyVal = q;
-                        System.Diagnostics.Debug.WriteLine($"⚠️ PickQty empty, using Qty: {qtyVal}");
                     }
 
                     _loadDetails(item.SKU, bumVal, qtyVal, item.Descr);
-
-                    return true; // ✅ Found and loaded successfully
+                    return true;
                 }
             }
 
-            return false; // ✅ Not found at all
+            return false;
         }
 
-        /// <summary>
-        /// Get indices of duplicate SKUs
-        /// </summary>
         private void _getDuplicateSKUIndex(string sku)
         {
             skuArr = new List<int>();
-
             for (int i = 0; i < SKUList.Count; i++)
             {
                 var item = SKUList[i];
-                if (string.IsNullOrWhiteSpace(item.SKU))
-                    continue;
-
-                if (item.SKU.Trim() == sku)
-                {
+                if (!string.IsNullOrWhiteSpace(item.SKU) && item.SKU.Trim() == sku)
                     skuArr.Add(i);
-                }
             }
         }
 
-        /// <summary>
-        /// Load SKU details into input fields
-        /// </summary>
         private void _loadDetails(string sku, double cse, double qty, string skuDesc)
         {
-            System.Diagnostics.Debug.WriteLine($"📝 _loadDetails called:");
-            System.Diagnostics.Debug.WriteLine($"   SKU: {sku}");
-            System.Diagnostics.Debug.WriteLine($"   BUM (cse): {cse}");
-            System.Diagnostics.Debug.WriteLine($"   Qty: {qty}");
-            System.Diagnostics.Debug.WriteLine($"   Descr: {skuDesc}");
+            System.Diagnostics.Debug.WriteLine($"📝 _loadDetails: SKU={sku}, BUM={cse}, Qty={qty}");
 
             txtCase.IsEnabled = cse != 1;
 
@@ -1887,92 +1648,61 @@ namespace PDTPickingSystem.Views
                 eachValue = qty % cse;
             }
 
-            System.Diagnostics.Debug.WriteLine($"📊 Calculated:");
-            System.Diagnostics.Debug.WriteLine($"   Case: {caseValue}");
-            System.Diagnostics.Debug.WriteLine($"   Each: {eachValue}");
-
-            // Temporarily unhook TextChanged events
+            // Temporarily unhook TextChanged events to avoid validation interference
             txtCase.TextChanged -= Entry_TextChanged;
             txtEach.TextChanged -= Entry_TextChanged;
 
             try
             {
-                // ✅ FIX: Use whole numbers (no decimals) - decimal points trigger validation failure
                 txtCase.Text = ((int)caseValue).ToString();
                 txtEach.Text = ((int)eachValue).ToString();
-
-                txtBum.Text = cse.ToString("N2");
-                txtSKU.Text = sku;
+                txtBum.Text  = cse.ToString("N2");
+                txtSKU.Text  = sku;
                 txtDesc.Text = skuDesc;
-
                 txtBarcode.SelectionLength = 0;
-
-                System.Diagnostics.Debug.WriteLine($"✅ Fields populated:");
-                System.Diagnostics.Debug.WriteLine($"   txtCase.Text: '{txtCase.Text}'");
-                System.Diagnostics.Debug.WriteLine($"   txtEach.Text: '{txtEach.Text}'");
-                System.Diagnostics.Debug.WriteLine($"   txtBum.Text: '{txtBum.Text}'");
-                System.Diagnostics.Debug.WriteLine($"   txtSKU.Text: '{txtSKU.Text}'");
             }
             finally
             {
-                // Re-hook TextChanged events
                 txtCase.TextChanged += Entry_TextChanged;
                 txtEach.TextChanged += Entry_TextChanged;
             }
 
-            // Focus on appropriate field
             if (caseValue == 0)
             {
                 txtEach.Focus();
-                txtEach.CursorPosition = 0;
+                txtEach.CursorPosition  = 0;
                 txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
             }
             else
             {
                 txtCase.Focus();
-                txtCase.CursorPosition = 0;
+                txtCase.CursorPosition  = 0;
                 txtCase.SelectionLength = txtCase.Text?.Length ?? 0;
             }
         }
 
-        /// <summary>
-        /// Get index of SKU in list matching current txtSKU
-        /// </summary>
         private int _getIndexLV()
         {
             for (int i = 0; i < SKUList.Count; i++)
             {
-                var item = SKUList[i];
-                if (item.SKU?.Trim() == txtSKU.Text.Trim())
-                {
+                if (SKUList[i].SKU?.Trim() == txtSKU.Text.Trim())
                     return i;
-                }
             }
             return -1;
         }
 
-        /// <summary>
-        /// Set user label
-        /// </summary>
         private void _SetUser(Label lbl)
         {
-            if (lbl != null)
-                lbl.Text = $"User: {AppGlobal.sUserName}";
+            if (lbl != null) lbl.Text = $"User: {AppGlobal.sUserName}";
         }
 
-        /// <summary>
-        /// Parse entry text to double
-        /// </summary>
         private double ParseEntry(Entry entry)
-        {
-            return double.TryParse(entry.Text, out double val) ? val : 0;
-        }
+            => double.TryParse(entry.Text, out double val) ? val : 0;
 
         // ================== HARDWARE KEY HANDLERS ==================
 
         public void OnF1Pressed()
         {
-            // ✅ ADDED: Reset idle timer on hardware key
             _ResetIdleTimer();
 
             if (txtStocker.IsFocused)
@@ -1982,21 +1712,19 @@ namespace PDTPickingSystem.Views
             }
 
             if (Navigation.NavigationStack.Count > 0)
-            {
                 MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
-            }
         }
 
         public void OnF2Pressed()
         {
-            // ✅ ADDED: Reset idle timer on hardware key
             _ResetIdleTimer();
+
             if (txtBarcode != null)
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     txtBarcode.Focus();
-                    txtBarcode.CursorPosition = 0;
+                    txtBarcode.CursorPosition  = 0;
                     txtBarcode.SelectionLength = txtBarcode.Text?.Length ?? 0;
                 });
             }
@@ -2004,19 +1732,12 @@ namespace PDTPickingSystem.Views
 
         public void OnEscapePressed()
         {
-            // ✅ ADDED: Stop monitoring on Escape
             _StopIdleMonitoring();
+
             if (txtStocker.IsFocused)
-            {
                 BtnCancel_Clicked(null, null);
-            }
-            else
-            {
-                if (Navigation.NavigationStack.Count > 0)
-                {
-                    MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
-                }
-            }
+            else if (Navigation.NavigationStack.Count > 0)
+                MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
         }
 
         // ================== DATA CLASS ==================
@@ -2026,19 +1747,17 @@ namespace PDTPickingSystem.Views
             public event PropertyChangedEventHandler PropertyChanged;
 
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
+                => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-            public string ID { get; set; }
-            public string BUM { get; set; }
-            public string Slot { get; set; }
-            public string SKU { get; set; }
-            public string Descr { get; set; }
-            public string Qty { get; set; }
-            public string isPicked { get; set; }
-            public string PickQty { get; set; }
-            public string UPC { get; set; }
+            public string ID        { get; set; }
+            public string BUM       { get; set; }
+            public string Slot      { get; set; }
+            public string SKU       { get; set; }
+            public string Descr     { get; set; }
+            public string Qty       { get; set; }
+            public string isPicked  { get; set; }
+            public string PickQty   { get; set; }
+            public string UPC       { get; set; }
             public string isChecked { get; set; }
 
             private string _chkQty;
@@ -2057,9 +1776,8 @@ namespace PDTPickingSystem.Views
                 }
             }
 
-            // Display properties
             public string ChkQtyDisplay => !string.IsNullOrEmpty(ChkQty) ? ChkQty : "";
-            public Color ChkQtyColor => !string.IsNullOrEmpty(ChkQty) ? Colors.Green : Colors.Black;
+            public Color  ChkQtyColor   => !string.IsNullOrEmpty(ChkQty) ? Colors.Green : Colors.Black;
         }
     }
 }
