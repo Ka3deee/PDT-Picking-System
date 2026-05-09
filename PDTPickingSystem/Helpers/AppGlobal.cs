@@ -14,25 +14,18 @@ namespace PDTPickingSystem.Helpers
 {
     public static class AppGlobal
     {
-        // ------------------------------
         // System info
-        // ------------------------------
         public const string sysVersion = "2025.10.15";
 
         public static string PDTName =>
             System.Net.Dns.GetHostName().ToUpper().Trim();
 
-        // ------------------------------
         // Formatting
-        // ------------------------------
         public const string fmtNumber1 = "0.00";
         public const string fmtNumber2 = "0";
         public const string fmtTimeDate = "yy/MM/dd HH:mm:ss";
 
-
-        // ------------------------------
         // User info
-        // ------------------------------
         public static string sEENo { get; set; } = "";
         public static string sUserName { get; set; } = "";
         public static int ID_User { get; set; } = 0;
@@ -45,22 +38,16 @@ namespace PDTPickingSystem.Helpers
         public static bool IsStocker => isStocker == 1;
         public static bool IsChecker => isChecker == 1;
 
-        // ------------------------------
         // Picking / session flags
-        // ------------------------------
         public static string pPickNo { get; set; } = "";
         public static bool isLoaded { get; set; } = false;
         public static bool isBarcode { get; set; } = false;
         public static int isSummary { get; set; } = 0;
 
-        // ------------------------------
         // Store / Department
-        // ------------------------------
         public static string DeptStore { get; set; } = "";
 
-        // ------------------------------
         // Server config
-        // ------------------------------
         public static string sServer { get; set; } = "";
         public static string SqlUser { get; } = "sa";
         public static string SqlPass { get; } = "sa";
@@ -68,12 +55,7 @@ namespace PDTPickingSystem.Helpers
         private static string BuildConnectionString(string server) =>
             $"Server={server};Database=dbPicking3;User Id={SqlUser};Password={SqlPass};Encrypt=False;TrustServerCertificate=True;Connect Timeout=5;";
 
-        // ------------------------------
-        // SQL CONNECTION
-        // ------------------------------
-        // ------------------------------
-        // SQL CONNECTION (VB.NET: _SQL_Connect)
-        // ------------------------------
+        // SQL Connection
         public static async Task<SqlConnection?> _SQL_Connect(string testServer = "", bool isShowError = true)
         {
             try
@@ -94,13 +76,11 @@ namespace PDTPickingSystem.Helpers
 
                 var con = new SqlConnection(BuildConnectionString(serverToUse));
 
-                // ✅ ADD: Log connection state before opening
                 Debug.WriteLine($"Connection state before open: {con.State}");
                 Debug.WriteLine($"Connection string: {con.ConnectionString}");
 
                 await con.OpenAsync();
 
-                // ✅ ADD: Verify it actually opened
                 Debug.WriteLine($"Connection state after open: {con.State}");
 
                 if (con.State != ConnectionState.Open)
@@ -112,7 +92,6 @@ namespace PDTPickingSystem.Helpers
             }
             catch (Exception ex)
             {
-                // ✅ ADD: More detailed error info
                 Debug.WriteLine($"Connection error: {ex.GetType().Name}: {ex.Message}");
                 Debug.WriteLine($"Stack trace: {ex.StackTrace}");
 
@@ -130,11 +109,10 @@ namespace PDTPickingSystem.Helpers
 
         public static async Task<bool> _SQL_Connect_Exec(string testServer = "", bool isShowError = true)
         {
-            var con = await _SQL_Connect(testServer, isShowError);  // Pass isShowError to avoid double alerts
+            var con = await _SQL_Connect(testServer, isShowError);
 
             if (con != null)
             {
-                // ✅ CRITICAL: Close and dispose the connection
                 await con.CloseAsync();
                 con.Dispose();
                 return true;
@@ -143,9 +121,7 @@ namespace PDTPickingSystem.Helpers
             return false;
         }
 
-        // ------------------------------
-        // USER LOGIN
-        // ------------------------------
+        // User Login
         public static async Task<bool> LoadUserInfoAsync(string userId)
         {
             using var con = await _SQL_Connect();
@@ -178,9 +154,7 @@ namespace PDTPickingSystem.Helpers
             }
         }
 
-        // ======================================================================
-        // STORAGE PATH
-        // ======================================================================
+        // Storage Path
         public static string GetExternalBackupFolder()
         {
 #if ANDROID
@@ -216,9 +190,7 @@ namespace PDTPickingSystem.Helpers
         private static string ConfigFile =>
             Path.Combine(GetExternalBackupFolder(), "wifi.txt");
 
-        // ======================================================================
-        // LOAD / SAVE SERVER CONFIG
-        // ======================================================================
+        // Load or Save Server Config
         public static async Task LoadServerConfigAsync()
         {
             try
@@ -260,9 +232,7 @@ namespace PDTPickingSystem.Helpers
             }
         }
 
-        // ======================================================================
-        // HELPER FUNCTIONS
-        // ======================================================================
+        // Helpers
         public static string _FixNull(object vField) =>
             vField == null || vField == DBNull.Value
                 ? ""
@@ -280,7 +250,6 @@ namespace PDTPickingSystem.Helpers
 
         public static char _isAllowedNum(char sChar, bool isDecimal = false)
         {
-            // Enter = '\r', Back = '\b', Escape = 27
             if (sChar == '\r' || sChar == '\b' || sChar == (char)27 || char.IsDigit(sChar) || (sChar == '.' && isDecimal))
                 return sChar;
 
@@ -308,18 +277,14 @@ namespace PDTPickingSystem.Helpers
             }
             catch
             {
-                // ignored, fallback to local time
             }
 
-            // fallback to local machine time
             return isDay
                 ? DateTime.Now.ToString("yyMMdd")
                 : DateTime.Now.ToString("HH:mm:ss");
         }
 
-        // ------------------------------
         // Get Dept Name
-        // ------------------------------
         public static async Task<string> _GetDeptName(int iDept)
         {
             using var con = await _SQL_Connect();
@@ -343,9 +308,7 @@ namespace PDTPickingSystem.Helpers
             return "";
         }
 
-        // ------------------------------
         // Get Store No
-        // ------------------------------
         public static async Task<string> _GetStoreNo()
         {
             using var con = await _SQL_Connect(isShowError: false);
@@ -353,7 +316,6 @@ namespace PDTPickingSystem.Helpers
             {
                 try
                 {
-                    // ✅ CORRECT: ToLoc (capital 'L') - matches database
                     string sql = $"SELECT DISTINCT ToLoc FROM tbl{pPickNo}PickDtl WHERE ID_SumHdr=@ID_SumHdr";
 
                     using var cmd = new SqlCommand(sql, con);
@@ -362,7 +324,7 @@ namespace PDTPickingSystem.Helpers
                     using var reader = await cmd.ExecuteReaderAsync();
 
                     if (await reader.ReadAsync())
-                        return reader["ToLoc"]?.ToString()?.Trim() ?? ""; // ✅ ToLoc
+                        return reader["ToLoc"]?.ToString()?.Trim() ?? "";
                 }
                 catch (Exception ex)
                 {
@@ -371,9 +333,7 @@ namespace PDTPickingSystem.Helpers
             }
             return "";
         }
-        // ------------------------------
         // Check Option Stocker
-        // ------------------------------
         public static async Task<bool> _CheckOption_StockerAsync()
         {
             using var con = await _SQL_Connect();
@@ -428,18 +388,14 @@ namespace PDTPickingSystem.Helpers
             {
                 using var con = await _SQL_Connect();
                 if (con == null)
-                    return false; // connection failed
+                    return false; // if connection failed
 
                 using var sqlAdp = new SqlDataAdapter(sQuery, con);
-
-                // Execute Fill asynchronously to avoid blocking UI
                 await Task.Run(() => sqlAdp.Fill(dsDatatoFill, tblName));
-
-                return true; // success
+                return true;
             }
             catch (Exception ex)
             {
-                // Log or handle the exception as needed
                 Debug.WriteLine($"_WorkQueryAsync error: {ex.Message}");
                 return false;
             }
@@ -604,10 +560,8 @@ namespace PDTPickingSystem.Helpers
 
             return false;
         }
-        /// <summary>
-        /// Get user's full name by ID
-        /// VB.NET Reference: modPubs._GetUserName() Line 309-320
-        /// </summary>
+
+        // Get user's full name by ID
         public static async Task<string> _GetUserName(string ee)
         {
             using var con = await _SQL_Connect();
@@ -616,15 +570,12 @@ namespace PDTPickingSystem.Helpers
 
             try
             {
-                // ✅ VB.NET Line 312: Parse string to int, handle invalid values
                 int userId = 0;
                 if (!int.TryParse(ee, out userId) || userId == 0)
                 {
                     Debug.WriteLine($"❌ Invalid user ID: {ee}");
                     return "";
                 }
-
-                // ✅ VB.NET Line 313: Get user's full name
                 string sql = "SELECT ID, (LName + ', ' + FName + ' ' + MI) as FullName " +
                              "FROM tblUsers WHERE isActive=1 AND id=@UserID";
 
@@ -654,9 +605,7 @@ namespace PDTPickingSystem.Helpers
             return "";
         }
 
-        // ------------------------------
         // WiFi Service
-        // ------------------------------
         private static IWifiService? _wifiService;
         public static IWifiService WifiService
         {

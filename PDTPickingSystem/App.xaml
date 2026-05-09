@@ -5,21 +5,21 @@
     <Application.Resources>
         <ResourceDictionary>
 
-            <!-- ───── Shell Styling ───── -->
+            <!-- Shell Styling -->
             <Style TargetType="Shell">
                 <Setter Property="BackgroundColor" Value="DarkBlue"/>
                 <Setter Property="TitleColor" Value="White"/>
                 <Setter Property="ForegroundColor" Value="White"/>
             </Style>
 
-            <!-- ───── Global Font Styling ───── -->
+            <!-- Global Font Styling -->
 
             <!-- Labels: Regular -->
             <Style TargetType="Label">
                 <Setter Property="FontFamily" Value="MontserratRegular"/>
             </Style>
 
-            <!-- Buttons: Semi-Bold (named style for reliability) -->
+            <!-- Buttons: Semi-Bold -->
             <Style x:Key="AppButton" TargetType="Button">
                 <Setter Property="FontFamily" Value="MontserratSemiBold"/>
             </Style>

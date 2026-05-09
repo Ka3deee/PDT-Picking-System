@@ -5,12 +5,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Shell.NavBarIsVisible="False">
 
-    <!-- ROOT LAYER -->
     <Grid>
-        <!-- LAYER 1: Main Content (Scrollable) -->
+        <!-- Layer 1: Main Content -->
             <VerticalStackLayout Padding="5" Spacing="5">
 
-                <!-- Store / Department - AT THE TOP -->
+                <!-- Store / Department -->
                 <Grid ColumnDefinitions="120,*"
                       Margin="10,0,5,10"
                       VerticalOptions="Center">
@@ -245,7 +244,7 @@
                               ColumnSpacing="10" 
                               Margin="0,-5,0,0">
 
-                            <!-- View Items Button with Loading Indicator -->
+                            <!-- View Items Button -->
                             <Grid Grid.Column="0">
                                 <Button x:Name="btnViewItems" 
                                         Text="View Items" 
@@ -277,7 +276,7 @@
 
                             </Grid>
 
-                            <Button x:Name="btnAccept" 
+                        <Button x:Name="btnAccept" 
                                     Grid.Column="1" 
                                     Text="Accept" 
                                     FontAttributes="Bold" 
@@ -287,9 +286,7 @@
                                     CornerRadius="10"
                                     Clicked="BtnAccept_Clicked"
                                     FontFamily="MontserratRegular"/>
-
-                            <!-- HIDDEN - Kept for future use, overlaps btnAccept -->
-                            <Button x:Name="btnConso" 
+                        <Button x:Name="btnConso" 
                                     Grid.Column="1" 
                                     Text="Conso" 
                                     FontAttributes="Bold" 
@@ -355,7 +352,7 @@
 
             </VerticalStackLayout>
 
-            <!-- LAYER 2: Items Panel OVERLAY (Full Screen with Horizontal & Vertical Scroll) -->
+            <!-- Layer 2: Items Panel - Overlay -->
         <Grid x:Name="pnlItems"
               IsVisible="False"
               BackgroundColor="White" 
@@ -363,7 +360,7 @@
               ZIndex="500"
               RowDefinitions="Auto,*,Auto,Auto">
 
-            <!-- COUNT LABEL at Top -->
+            <!-- Count Label -->
             <Label Grid.Row="0"
                    x:Name="lblCnt"
                    Text="Count: 0"
@@ -371,15 +368,13 @@
                    FontSize="16"
                    Margin="10,5,10,10"
                    HorizontalOptions="Start"/>
-
-            <!-- SCROLLABLE AREA (Both Horizontal and Vertical) -->
+            
             <ScrollView Grid.Row="1" 
                         Orientation="Both"
                         HorizontalScrollBarVisibility="Always"
                         VerticalScrollBarVisibility="Always">
                 <Grid RowDefinitions="Auto,*">
 
-                    <!-- COLUMN HEADERS (Fixed width for horizontal scroll) -->
                     <Grid Grid.Row="0"
                           ColumnDefinitions="80,200,80,80,150,80,80,80"
                           Padding="5"
@@ -444,7 +439,6 @@
                                VerticalTextAlignment="Center"/>
                     </Grid>
 
-                    <!-- COLLECTION VIEW (Fixed width to enable horizontal scroll) -->
                     <CollectionView Grid.Row="1"
                                     x:Name="lvSKU"
                                     SelectionMode="Single"
@@ -455,7 +449,6 @@
                                       Padding="5,15"
                                       BackgroundColor="White">
 
-                                    <!-- Separator line -->
                                     <BoxView Grid.ColumnSpan="8" 
                                              HeightRequest="1" 
                                              Color="LightGray" 
@@ -512,10 +505,9 @@
                 </Grid>
             </ScrollView>
 
-            <!-- Spacer -->
             <BoxView Grid.Row="2" HeightRequest="10" Color="Transparent"/>
 
-            <!-- Close Button at BOTTOM -->
+            <!-- Close Button -->
             <Button Grid.Row="3"
                     x:Name="btnCloseItems"
                     Text="✕ Close Items"
@@ -529,15 +521,14 @@
                     FontFamily="MontserratRegular"/>
         </Grid>
 
-        <!-- LAYER 3: Items Panel 2 OVERLAY (Full Screen with Horizontal & Vertical Scroll) -->
+        <!-- Layer 3: Items Panel 2 - Overlay -->
         <Grid x:Name="pnlItems2"
               IsVisible="False"
               BackgroundColor="White" 
               Padding="10"
               ZIndex="500"
               RowDefinitions="Auto,*,Auto,Auto">
-
-            <!-- COUNT LABEL at Top -->
+            
             <Label Grid.Row="0"
                    x:Name="lblCnt2"
                    Text="Count: 0"
@@ -546,14 +537,12 @@
                    Margin="10,5,10,10"
                    HorizontalOptions="Start"/>
 
-            <!-- SCROLLABLE AREA (Both Horizontal and Vertical) -->
             <ScrollView Grid.Row="1" 
                         Orientation="Both"
                         HorizontalScrollBarVisibility="Always"
                         VerticalScrollBarVisibility="Always">
                 <Grid RowDefinitions="Auto,*">
 
-                    <!-- COLUMN HEADERS (Fixed width for horizontal scroll) -->
                     <Grid Grid.Row="0"
                           ColumnDefinitions="80,200,80,80,150,80,80,80"
                           Padding="5"
@@ -618,7 +607,6 @@
                                VerticalTextAlignment="Center"/>
                     </Grid>
 
-                    <!-- COLLECTION VIEW (Fixed width to enable horizontal scroll) -->
                     <CollectionView Grid.Row="1"
                                     x:Name="lvSKU2"
                                     SelectionMode="Single"
@@ -629,7 +617,6 @@
                                       Padding="5,15"
                                       BackgroundColor="White">
 
-                                    <!-- Separator line -->
                                     <BoxView Grid.ColumnSpan="8" 
                                              HeightRequest="1" 
                                              Color="LightGray" 
@@ -686,10 +673,9 @@
                 </Grid>
             </ScrollView>
 
-            <!-- Spacer -->
             <BoxView Grid.Row="2" HeightRequest="10" Color="Transparent"/>
 
-            <!-- Close Button at BOTTOM -->
+            <!-- Close Button -->
             <Button Grid.Row="3"
                     x:Name="btnCloseItems2"
                     Text="✕ Close Items"
@@ -702,7 +688,7 @@
                     Clicked="BtnCloseItems2_Clicked"/>
         </Grid>
 
-        <!-- LAYER 4: Confirmation Panel OVERLAY -->
+        <!-- Layer 4: Confirmation Panel - Overlay -->
         <Frame x:Name="pnlConfirm" 
                IsVisible="False" 
                Padding="20" 
@@ -762,7 +748,7 @@
             </VerticalStackLayout>
         </Frame>
 
-        <!-- LAYER 5: Finished Button (Topmost) -->
+        <!-- Layer 5: Finished Button -->
         <Button x:Name="btnFinished"
                 Text="✓ Finish Checking?"
                 IsVisible="False"
@@ -781,7 +767,6 @@
                 ZIndex="1000"
                 Opacity="0.95"/>
 
-        <!-- ================= 🚫 CUSTOM MODAL DIALOG ================= -->
         <Frame x:Name="customModalOverlay"
                IsVisible="False"
                BackgroundColor="#CC000000"
@@ -794,7 +779,6 @@
                InputTransparent="False"
                ZIndex="10000">
 
-            <!-- Modal Dialog Card -->
             <Frame BackgroundColor="White"
                    CornerRadius="10"
                    HasShadow="True"
@@ -861,7 +845,6 @@
             </Frame>
         </Frame>
 
-        <!-- ================= 🚚 LOADING OVERLAY ================= -->
         <Frame x:Name="pbReq"
                IsVisible="False"
                BackgroundColor="#CC000000"
@@ -874,11 +857,8 @@
                InputTransparent="False"
                ZIndex="9999">
 
-            <!-- Loading Content -->
             <Grid VerticalOptions="Fill" 
                   HorizontalOptions="Fill">
-
-                <!-- White Card Background -->
                 <Frame BackgroundColor="White"
                        CornerRadius="10"
                        HasShadow="True"
@@ -887,25 +867,18 @@
                        HeightRequest="350"
                        VerticalOptions="Center"
                        HorizontalOptions="Center">
-
                     <VerticalStackLayout Spacing="30" 
                                          VerticalOptions="Center"
                                          HorizontalOptions="Center">
-
-                        <!-- Animated Truck Container -->
                         <Grid HeightRequest="110" 
                               WidthRequest="240"
                               HorizontalOptions="Center"
                               Margin="0,-20,0,0">
-
-                            <!-- Road Line -->
                             <BoxView BackgroundColor="LightGray"
                                      HeightRequest="5"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Fill"
                                      Margin="0,40,0,0"/>
-
-                            <!-- Dashed Road Lines -->
                             <BoxView x:Name="roadDash1"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
@@ -913,7 +886,6 @@
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="20,40,0,0"/>
-
                             <BoxView x:Name="roadDash2"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
@@ -921,7 +893,6 @@
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="70,40,0,0"/>
-
                             <BoxView x:Name="roadDash3"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
@@ -929,7 +900,6 @@
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="120,40,0,0"/>
-
                             <BoxView x:Name="roadDash4"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
@@ -937,7 +907,6 @@
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="170,40,0,0"/>
-
                             <BoxView x:Name="roadDash5"
                                      BackgroundColor="Gray"
                                      HeightRequest="5"
@@ -945,8 +914,6 @@
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"
                                      Margin="220,40,0,0"/>
-
-                            <!-- Animated Truck Image -->
                             <Image x:Name="truckIcon"
                                    Source="truck_loading.png"
                                    WidthRequest="120"
@@ -954,10 +921,7 @@
                                    VerticalOptions="Center"
                                    HorizontalOptions="Start"
                                    Aspect="AspectFit"/>
-
                         </Grid>
-
-                        <!-- Loading Text -->
                         <Label x:Name="loadingText"
                                Text="Requesting..."
                                FontFamily="MontserratSemibold"
@@ -967,8 +931,6 @@
                                HorizontalTextAlignment="Center"
                                VerticalOptions="Center"
                                Margin="0,-30,0,0"/>
-
-                        <!-- Loading Dots Animation -->
                         <HorizontalStackLayout HorizontalOptions="Center"
                                                Margin="0,0,0,0"
                                                Spacing="8">
@@ -985,11 +947,9 @@
                                      WidthRequest="10"
                                      HeightRequest="10"/>
                         </HorizontalStackLayout>
-
                     </VerticalStackLayout>
                 </Frame>
             </Grid>
         </Frame>
-
     </Grid>
 </ContentPage>

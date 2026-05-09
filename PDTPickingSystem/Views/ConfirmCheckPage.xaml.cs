@@ -14,8 +14,7 @@ using System.Runtime.CompilerServices;
 
 namespace PDTPickingSystem.Views
 {
-    // ================== DATA CLASSES ==================
-
+    // Data Classes
     public class SKUItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -24,7 +23,6 @@ namespace PDTPickingSystem.Views
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
         public string FromSlot { get; set; }
         public string ID { get; set; }
         public string TransferNo { get; set; }
@@ -50,7 +48,6 @@ namespace PDTPickingSystem.Views
                 }
             }
         }
-
         public string CSortQty { get; set; }
         public string IsSorted { get; set; }
         public string IsCsorted { get; set; }
@@ -58,19 +55,16 @@ namespace PDTPickingSystem.Views
         public string CheckBy { get; set; }
         public string IsConfirmed { get; set; }
     }
-
     public class TransferItem
     {
         public string ID { get; set; }
         public string TransferNo { get; set; }
     }
 
-    // ================== MAIN PAGE CLASS ==================
+    // Main Page Class
 
     public partial class ConfirmCheckPage : ContentPage
     {
-        // ================== PRIVATE FIELDS ==================
-
         // Focus tracking
         private Entry _focusedEntry;
 
@@ -97,8 +91,7 @@ namespace PDTPickingSystem.Views
 
         private bool _isBusy = false;
 
-        // ================== CONSTRUCTOR ==================
-
+        // Constructor
         public ConfirmCheckPage()
         {
             InitializeComponent();
@@ -107,18 +100,13 @@ namespace PDTPickingSystem.Views
             BindingContext = this;
 
             System.Diagnostics.Debug.WriteLine("🔷 ConfirmCheckPage Constructor");
-
-            // Entry Completed handlers
             txtBarcode.Completed += Entry_Completed;
             txtCase.Completed += Entry_Completed;
             txtEach.Completed += Entry_Completed;
-
-            // ✅ TextChanged - ONLY for space stripping and numeric validation
             txtBarcode.TextChanged += TxtBarcode_TextChanged;
             txtCase.TextChanged += Entry_TextChanged;
             txtEach.TextChanged += Entry_TextChanged;
 
-            // Focus events
             txtBarcode.Focused += TxtBarcode_GotFocus;
             txtCase.Focused += TxtBarcode_GotFocus;
             txtEach.Focused += TxtBarcode_GotFocus;
@@ -127,14 +115,13 @@ namespace PDTPickingSystem.Views
             txtCase.Unfocused += TxtCaseOrEach_Unfocused;
             txtEach.Unfocused += TxtCaseOrEach_Unfocused;
 
-            // Bind CollectionViews
             lvSKU.ItemsSource = lvSKUCollection;
             lvSKU2.ItemsSource = lvSKU2Collection;
 
             System.Diagnostics.Debug.WriteLine("✅ Event handlers attached");
         }
 
-        // ================== PAGE LIFECYCLE ==================
+        // Page Lifecycle
 
         protected override void OnAppearing()
         {
@@ -145,7 +132,6 @@ namespace PDTPickingSystem.Views
             System.Diagnostics.Debug.WriteLine($"   AppGlobal.ID_User: {AppGlobal.ID_User}");
             System.Diagnostics.Debug.WriteLine($"   AppGlobal.sUserName: '{AppGlobal.sUserName}'");
 
-            // ✅ Simple focus
             Task.Run(async () =>
             {
                 await Task.Delay(300);
@@ -158,19 +144,14 @@ namespace PDTPickingSystem.Views
             });
         }
 
-        // ================== ENTRY VALIDATION & COMPLETION ==================
-
-        /// <summary>
-        /// Entry Completed handler - handles BOTH scanner and manual input (triggered by Enter key)
-        /// </summary>
+        // Entry Validation and Completion
+        // Entry Completed handler - handles both scanner and manual input
         private async void Entry_Completed(object sender, EventArgs e)
         {
             if (sender is not Entry entry)
                 return;
 
             System.Diagnostics.Debug.WriteLine($"🔵 Entry_Completed: Text='{entry.Text}'");
-
-            // ✅ Prevent double execution
             if (_isScanning)
             {
                 System.Diagnostics.Debug.WriteLine("⚠️ Already processing, returning");
@@ -178,10 +159,8 @@ namespace PDTPickingSystem.Views
             }
 
             _isScanning = true;
-
             try
             {
-                // Validate numeric fields (for Case/Each only)
                 if (entry != txtBarcode && !string.IsNullOrWhiteSpace(entry.Text) &&
                     entry.Text.Any(c => AppGlobal._isAllowedNum(c) == '\0'))
                 {
@@ -189,7 +168,7 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                // ================= BARCODE =================
+                // Barcode
                 if (entry == txtBarcode)
                 {
                     string barcode = txtBarcode.Text?.Trim();
@@ -202,7 +181,6 @@ namespace PDTPickingSystem.Views
                         return;
                     }
 
-                    // ✅ Normalize barcode
                     barcode = double.TryParse(barcode, out double val)
                         ? val.ToString()
                         : barcode;
@@ -215,31 +193,22 @@ namespace PDTPickingSystem.Views
 
                     System.Diagnostics.Debug.WriteLine($"🔵 _isUPCFoundAsync returned: {result}");
 
-                    // ✅ Handle three states:
-                    // true = found and loaded successfully
-                    // false = barcode not found (wrong item)
-                    // null = found but already confirmed
-
                     if (result == false)
                     {
-                        // ✅ Only show "Mismatch" if barcode was NOT found
                         await DisplayAlert("Mismatch!", "Wrong scanned item!", "OK");
                         _ClearScan();
                     }
                     else if (result == null)
                     {
-                        // ✅ Already confirmed - alert already shown in _isUPCFoundAsync
-                        // Do nothing here, just clear the scan
                         _ClearScan();
                     }
-                    else // result == true
+                    else
                     {
-                        // ✅ Item loaded successfully
                         System.Diagnostics.Debug.WriteLine("✅ Barcode processed successfully");
                     }
                 }
 
-                // ================= CASE =================
+                // Case
                 else if (entry == txtCase)
                 {
                     txtCase.SelectionLength = 0;
@@ -248,7 +217,7 @@ namespace PDTPickingSystem.Views
                     txtEach.SelectionLength = txtEach.Text?.Length ?? 0;
                 }
 
-                // ================= EACH =================
+                // Each
                 else if (entry == txtEach)
                 {
                     await AcceptAsync();
@@ -289,14 +258,10 @@ namespace PDTPickingSystem.Views
             await _AcceptItemAsync();
         }
 
-        /// <summary>
-        /// TextChanged - ONLY strip spaces from barcode (for EAN-13 barcodes)
-        /// </summary>
+        // Only strip spaces from barcode (for EAN-13 barcodes)
         private void TxtBarcode_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender != txtBarcode) return;
-
-            // ✅ Strip spaces from barcode
             string newText = e.NewTextValue ?? "";
             if (newText.Contains(" "))
             {
@@ -309,9 +274,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// TextChanged validation for numeric fields (Case/Each)
-        /// </summary>
+        // TextChanged validation for numeric fields (Case/Each)
         private void Entry_TextChanged(object sender, TextChangedEventArgs e)
         {
             var entry = sender as Entry;
@@ -323,8 +286,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== FOCUS MANAGEMENT ==================
-
+        // Focus Handlers
         private void TxtBarcode_GotFocus(object sender, FocusEventArgs e)
         {
             _focusedEntry = (Entry)sender;
@@ -360,7 +322,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== BUTTON CLICK HANDLERS ==================
+        // Button Click Handlers
 
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
@@ -400,8 +362,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== COLLECTION VIEW SELECTION ==================
-
+        // Collection View Selection
         private void lvSKU_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var selected = e.CurrentSelection.FirstOrDefault() as SKUItem;
@@ -424,12 +385,10 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== CORE BUSINESS LOGIC ==================
+        // Business Logic
 
-        /// <summary>
-        /// Check if UPC is found and return the item data
-        /// Returns: true = found and loaded, false = not found, null = found but already confirmed
-        /// </summary>
+        // Check if UPC is found and return the item data
+        // Returns: true = found and loaded, false = not found, null = found but already confirmed
         private async Task<bool?> _isUPCFoundAsync(string upc)
         {
             System.Diagnostics.Debug.WriteLine($"🟢 ========== _isUPCFoundAsync START ==========");
@@ -476,10 +435,8 @@ namespace PDTPickingSystem.Views
 
                 using var reader = await cmd.ExecuteReaderAsync();
 
-                // Clear previous list
                 await MainThread.InvokeOnMainThreadAsync(() => lvSKUCollection.Clear());
 
-                // ✅ Update user label
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     lblUser.Text = string.IsNullOrEmpty(AppGlobal.sUserName)
@@ -490,7 +447,6 @@ namespace PDTPickingSystem.Views
                 bool hasRows = false;
                 int rowCount = 0;
 
-                // Read all rows from reader
                 while (await reader.ReadAsync())
                 {
                     hasRows = true;
@@ -504,7 +460,6 @@ namespace PDTPickingSystem.Views
 
                     System.Diagnostics.Debug.WriteLine($"   isConfirmed: {isConfirmedValue}");
 
-                    // ✅ Check if already confirmed - show alert and return null
                     if (isConfirmedValue == 1)
                     {
                         System.Diagnostics.Debug.WriteLine("⚠️ Item already confirmed!");
@@ -514,10 +469,9 @@ namespace PDTPickingSystem.Views
                             _ClearScan();
                             await DisplayAlert("System Says", "Item Already Confirmed!", "OK");
                         });
-                        return null; // ✅ Return null = found but already confirmed
+                        return null;
                     }
 
-                    // Extract data safely
                     string sku = reader["sku"]?.ToString() ?? "";
                     string descr = reader["descr"]?.ToString() ?? "";
                     int qty = reader["qty"] != DBNull.Value ? Convert.ToInt32(reader["qty"]) : 0;
@@ -557,7 +511,6 @@ namespace PDTPickingSystem.Views
 
                     await MainThread.InvokeOnMainThreadAsync(() => lvSKUCollection.Add(lvItem));
 
-                    // ✅ Populate UI fields from the first row only
                     if (rowCount == 1)
                     {
                         System.Diagnostics.Debug.WriteLine("🔵 Populating UI fields from first row...");
@@ -568,7 +521,6 @@ namespace PDTPickingSystem.Views
                             txtDesc.Text = descr;
                             txtBum.Text = bum.ToString("N2");
 
-                            // Calculate Case and Each
                             if (bum <= 0 || qty < bum)
                             {
                                 txtCase.Text = "0";
@@ -590,7 +542,6 @@ namespace PDTPickingSystem.Views
                             trfNo = transferNo;
                             pbScanned.IsVisible = true;
 
-                            // Focus appropriate field
                             if (Convert.ToInt32(txtCase.Text) == 0)
                             {
                                 txtEach.Focus();
@@ -610,11 +561,11 @@ namespace PDTPickingSystem.Views
                 if (!hasRows)
                 {
                     System.Diagnostics.Debug.WriteLine("❌ No data returned from spTransfer - barcode not found!");
-                    return false; // ✅ Return false = not found at all
+                    return false;
                 }
 
                 System.Diagnostics.Debug.WriteLine($"🟢 ========== _isUPCFoundAsync END - SUCCESS ({rowCount} rows) ==========");
-                return true; // ✅ Return true = found and loaded successfully
+                return true;
             }
             catch (Exception ex)
             {
@@ -635,9 +586,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Accept item with parameterized queries
-        /// </summary>
+        // Accept item
         private async Task _AcceptItemAsync()
         {
             using var conn = await AppGlobal._SQL_Connect();
@@ -651,14 +600,12 @@ namespace PDTPickingSystem.Views
                 using var sqlCmd = conn.CreateCommand();
                 sqlCmd.Transaction = txn;
 
-                // Parse quantities
                 double bum = double.TryParse(txtBum.Text, out double tmpBum) ? tmpBum : 0;
                 double caseQty = double.TryParse(txtCase.Text, out double tmpCase) ? tmpCase : 0;
                 double each = double.TryParse(txtEach.Text, out double tmpEach) ? tmpEach : 0;
                 double dQty = (bum * caseQty) + each;
                 double totQty = 0;
 
-                // ✅ Update PickHdr
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr " +
                                      "SET cnfrmDate=@cnfrmDate, isUpdate=1 WHERE ID=@ID_SumHdr";
                 sqlCmd.Parameters.Clear();
@@ -666,7 +613,6 @@ namespace PDTPickingSystem.Views
                 sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                 await sqlCmd.ExecuteNonQueryAsync();
 
-                // Get PickDtl data with parameterized query
                 var dsData = new DataSet();
                 using (var selectCmd = conn.CreateCommand())
                 {
@@ -686,7 +632,7 @@ namespace PDTPickingSystem.Views
                     var row = rows[i];
                     double dNeedQty = Convert.ToDouble(row["Qty"]);
 
-                    if (i == rows.Count - 1) // Last item
+                    if (i == rows.Count - 1)
                     {
                         if (string.IsNullOrEmpty(trfNo))
                         {
@@ -774,7 +720,6 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // Update PickQty
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty " +
                     "SET isConfirmed=1, cnfrmQty=@totQty " +
                     "WHERE ID_sumhdr=@SumHdr AND sku=@sku";
@@ -804,9 +749,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Clear scan fields
-        /// </summary>
+        // Clear scan fields
         private void _ClearScan(bool bWithBarcode = true)
         {
             if (bWithBarcode)
@@ -830,9 +773,6 @@ namespace PDTPickingSystem.Views
             });
         }
 
-        /// <summary>
-        /// Show/hide panels
-        /// </summary>
         private void _hideShow(int toShow)
         {
             pnlDetails.IsVisible = false;
@@ -847,9 +787,7 @@ namespace PDTPickingSystem.Views
                 pnlSelectTrf.IsVisible = true;
         }
 
-        /// <summary>
-        /// Check if transfer is in list
-        /// </summary>
+        // Check if transfer is in list
         private bool _isInList(int col, string strTrf)
         {
             foreach (var item in lvSKU2Collection)
@@ -867,9 +805,6 @@ namespace PDTPickingSystem.Views
             return false;
         }
 
-        /// <summary>
-        /// Vibrate device
-        /// </summary>
         private void _VibrateDevice(int durationMs)
         {
             try
@@ -883,8 +818,6 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== HARDWARE KEY HANDLERS ==================
-
         public void OnF1Pressed()
         {
             if (Navigation.NavigationStack.Count > 0)
@@ -892,7 +825,6 @@ namespace PDTPickingSystem.Views
                 MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
             }
         }
-
         public void OnEscapePressed()
         {
             if (Navigation.NavigationStack.Count > 0)
@@ -900,7 +832,6 @@ namespace PDTPickingSystem.Views
                 MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
             }
         }
-
         public void OnF2Pressed()
         {
             if (txtBarcode != null)
@@ -913,8 +844,6 @@ namespace PDTPickingSystem.Views
                 });
             }
         }
-
-        // ================== EMPTY EVENT HANDLERS ==================
 
         private void pnlMain_Focused(object sender, FocusEventArgs e) { }
         private void TxtDesc_Tapped(object sender, EventArgs e) { }

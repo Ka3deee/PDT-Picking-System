@@ -6,16 +6,13 @@
     Shell.NavBarIsVisible="False"
     Title="Confirm Check">
 
-    <!-- ✅ ROOT GRID with overlapping panels -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- ========================================
-             PANEL 1: MAIN INPUT (pnlMain)
-             ======================================== -->
+        <!-- Panel 1: Main Input -->
         <Frame Padding="10"
                Margin="10,10,10,10"
                HasShadow="True"
@@ -45,7 +42,7 @@
                            HorizontalTextAlignment="Center"/>
                 </Frame>
 
-                <!-- Description (Label, not Entry) -->
+                <!-- Description -->
                 <Frame Grid.Column="1"
                        Padding="0"
                        CornerRadius="5"
@@ -68,7 +65,7 @@
                 <Grid ColumnDefinitions="50,10,Auto,*"
                       Margin="0,0,0,10"
                       VerticalOptions="Center">
-                    <!-- ➤ Scan Image -->
+                    <!-- Scan Image -->
                     <Image x:Name="pbScanned"
                            Grid.Column="0"
                            Source="scanned_icon2.png"
@@ -76,14 +73,14 @@
                            WidthRequest="40"
                            HorizontalOptions="Start"
                            IsVisible="False"/>
-                    <!-- ➤ SKU Label -->
+                    <!-- SKU Label -->
                     <Label Grid.Column="2"
                            Text="SKU:"
                            VerticalOptions="Center"
                            FontAttributes="Bold"
                            FontSize="16"
                            Margin="0,0,10,0"/>
-                    <!-- ➤ SKU Entry with Frame -->
+                    <!-- SKU Entry with Frame -->
                     <Frame Grid.Column="3"
                            Padding="-5"
                            HeightRequest="40"
@@ -105,7 +102,7 @@
                 </Grid>
 
 
-                <!-- CASE / EACH -->
+                <!-- Case/Each -->
                 <Grid ColumnDefinitions="Auto,*,20,Auto,*" Margin="0,5">
                     <Label Text="Case:" 
                            Grid.Column="0" 
@@ -214,9 +211,7 @@
             </VerticalStackLayout>
         </Frame>
 
-        <!-- ========================================
-         PANEL 2: DETAILS VIEW (pnlDetails)
-         ======================================== -->
+        <!-- Panel 2: Details View -->
         <Frame x:Name="pnlDetails"
                Grid.Row="0"
                IsVisible="False"
@@ -235,12 +230,8 @@
                        HorizontalOptions="Center"
                        Margin="0,5,0,0"/>
 
-                <!-- Horizontal ScrollView wrapping both headers and CollectionView -->
                 <ScrollView Orientation="Horizontal">
-
                     <VerticalStackLayout Spacing="0">
-
-                        <!-- Column Headers -->
                         <Grid ColumnDefinitions="60,70,130,40,60,60,60,60,60,60,60,60"
                               RowDefinitions="Auto"
                               Margin="0,0,0,5"
@@ -312,22 +303,18 @@
         </Frame>
 
 
-        <!-- ========================================
-             PANEL 3: SELECT TRANSFER (pnlSelectTrf)
-             ======================================== -->
+        <!-- Panel 3: Select Transfer -->
         <VerticalStackLayout x:Name="pnlSelectTrf"
                              Grid.Row="0"
                              Padding="10"
                              Spacing="10"
                              BackgroundColor="White"
                              IsVisible="False">
-
             <Label Text="Select Transfer"
                    FontSize="25"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    Margin="0,10"/>
-
             <Label Text="Multiple transfers found. Please select one:"
                    FontSize="14"
                    TextColor="Gray"
@@ -371,9 +358,7 @@
 
         </VerticalStackLayout>
 
-        <!-- ========================================
-             USER LABEL (Bottom)
-             ======================================== -->
+        <!-- User Label -->
         <Grid Grid.Row="1"
               BackgroundColor="Blue"
               Padding="5"

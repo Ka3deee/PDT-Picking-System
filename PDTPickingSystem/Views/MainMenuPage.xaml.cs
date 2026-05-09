@@ -15,7 +15,7 @@ namespace PDTPickingSystem.Views
         private IDispatcherTimer _wifiSignalTimer;
         public string VersionText { get; set; }
 
-        // Loading state flags for each button
+        // Loading flags for each button
         private bool _isLoadingOpt1 = false;
         private bool _isLoadingOpt2 = false;
         private bool _isLoadingOpt3 = false;
@@ -37,9 +37,7 @@ namespace PDTPickingSystem.Views
             NavigationPage.SetHasNavigationBar(this, false);
         }
 
-        // ====================================================================
-        // PAGE APPEARING
-        // ====================================================================
+        // Page Appearing
         private async void MainMenuPage_Appearing(object sender, EventArgs e)
         {
             // Android storage runtime permission
@@ -65,18 +63,14 @@ namespace PDTPickingSystem.Views
             StartWifiSignalMonitoring();
         }
 
-        // ====================================================================
-        // PAGE DISAPPEARING
-        // ====================================================================
+        // Page Disappearing
         private void MainMenuPage_Disappearing(object sender, EventArgs e)
         {
             // Stop WiFi signal timer when leaving page
             StopWifiSignalMonitoring();
         }
 
-        // ====================================================================
-        // PERMISSIONS (Android)
-        // ====================================================================
+        // Android Permissions
         private async Task RequestStoragePermissionAsync()
         {
 #if ANDROID
@@ -96,9 +90,7 @@ namespace PDTPickingSystem.Views
 #endif
         }
 
-        // ====================================================================
-        // ENSURE BACKUP FOLDER EXISTS
-        // ====================================================================
+        // Ensure backup folder exists
         private void EnsureBackupFolderExists()
         {
             try
@@ -130,9 +122,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
-        // CHECK SQL CONNECTION
-        // ====================================================================
+        // Check SQL Connection
         private async Task CheckDatabaseConnectionAsync()
         {
             if (string.IsNullOrEmpty(AppGlobal.sServer) ||
@@ -160,9 +150,6 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
-        // AUTO-UPDATE CHECK (VB.NET: tmrCheckUpdate_Tick)
-        // ====================================================================
         private async Task CheckForUpdatesAsync()
         {
             if (AppGlobal.isLoaded)
@@ -195,9 +182,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // WIFI SIGNAL MONITORING
-        // ====================================================================
         private void StartWifiSignalMonitoring()
         {
             try
@@ -214,7 +199,6 @@ namespace PDTPickingSystem.Views
                 System.Diagnostics.Debug.WriteLine($"WiFi timer error: {ex.Message}");
             }
         }
-
         private void StopWifiSignalMonitoring()
         {
             try
@@ -230,7 +214,6 @@ namespace PDTPickingSystem.Views
                 System.Diagnostics.Debug.WriteLine($"Stop WiFi timer error: {ex.Message}");
             }
         }
-
         private void UpdateWifiSignal()
         {
             try
@@ -244,9 +227,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
-        // UPDATE UI LABELS
-        // ====================================================================
+        // Update UI Labels
         private void UpdateUserLabel()
         {
             lblUser.Text = string.IsNullOrEmpty(AppGlobal.sUserName)
@@ -262,18 +243,14 @@ namespace PDTPickingSystem.Views
                 : $"Server: {AppGlobal.sServer}";
         }
 
-        // ====================================================================
-        // HELPER: SET BUTTON LOADING STATE
-        // ====================================================================
+        // Button Loading State
         private void SetButtonLoading(Button button, View loadingView, bool isLoading)
         {
             button.IsEnabled = !isLoading;
             loadingView.IsVisible = isLoading;
         }
 
-        // ====================================================================
         // OPTION 1 – START PICKING
-        // ====================================================================
         private async void BtnOpt1_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt1) return;
@@ -293,8 +270,6 @@ namespace PDTPickingSystem.Views
                     await DisplayAlert("System Says", "You are a Checker, not a Picker!", "OK");
                     return;
                 }
-
-                // ✅ NEW: Check for picking reference BEFORE opening PickingPage
                 string pickSetup = await AppGlobal._GetPickNo();
                 if (string.IsNullOrEmpty(pickSetup))
                 {
@@ -302,13 +277,11 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                // ✅ Set isSummary if needed
                 if (pickSetup == "Per Transfer")
                 {
                     AppGlobal.isSummary = 2;
                 }
 
-                // ✅ All validations passed - open PickingPage
                 var pickingPage = new PickingPage();
                 var navPage = new NavigationPage(pickingPage);
                 await Navigation.PushModalAsync(navPage);
@@ -324,9 +297,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 2 – START CHECKING
-        // ====================================================================
         private async void BtnOpt2_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt2) return;
@@ -353,7 +324,6 @@ namespace PDTPickingSystem.Views
                     AppGlobal.isSummary = 2;
                 }
 
-                // ✅ NEW: Validate checker setup BEFORE opening CheckingPage
                 using var conn = await AppGlobal._SQL_Connect();
                 if (conn == null)
                 {
@@ -375,14 +345,12 @@ namespace PDTPickingSystem.Views
                     using var reader = await sqlCmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
-                        // ✅ Check if user has dept setup
                         if (reader["user_id"] == DBNull.Value)
                         {
                             await DisplayAlert("System Says", "No dept setup for checker!", "OK");
                             return;
                         }
 
-                        // ✅ Check if user is a checker
                         if (Convert.ToInt32(reader["isChecker"]) != 1)
                         {
                             await DisplayAlert("System Says", "Only Checker can access this option!", "OK");
@@ -396,7 +364,6 @@ namespace PDTPickingSystem.Views
                     return;
                 }
 
-                // ✅ All validations passed - open CheckingPage
                 var checkerPage = new CheckingPage(this);
                 var navChecker = new NavigationPage(checkerPage);
                 await Navigation.PushModalAsync(navChecker);
@@ -412,9 +379,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 3 – SET USER
-        // ====================================================================
         private async void BtnOpt3_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt3) return;
@@ -437,9 +402,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 4 – CONFIRM CHECK
-        // ====================================================================
         private async void BtnOpt4_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt4) return;
@@ -481,9 +444,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 5 – SERVER SETTINGS
-        // ====================================================================
         private async void BtnOpt5_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt5) return;
@@ -523,9 +484,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 6 – SET REFERENCE
-        // ====================================================================
         private async void BtnOpt6_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt6) return;
@@ -547,9 +506,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
         // OPTION 7 – EXIT APP
-        // ====================================================================
         private async void BtnOpt7_Clicked(object sender, EventArgs e)
         {
             if (_isLoadingOpt7) return;
@@ -567,17 +524,13 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
-        // VERSION INFO
-        // ====================================================================
+        // Version Info on Logo Tap
         private async void ImgLogo_Tapped(object sender, EventArgs e)
         {
             await DisplayAlert("LCC Picking System", $"Version {AppGlobal.sysVersion}\n\nPDT Picking Application\n\nDeveloper: Kirk Owen Jesalva", "OK");
         }
 
-        // ====================================================================
-        // EXIT CONFIRMATION
-        // ====================================================================
+        // Exit Confirmation
         private async Task ConfirmExitAsync()
         {
             bool exit = await DisplayAlert(
@@ -594,9 +547,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ====================================================================
-        // HANDLE HARDWARE BACK BUTTON
-        // ====================================================================
+        // Hardware Back Button Handling on Android
         protected override bool OnBackButtonPressed()
         {
             _ = ConfirmExitAsync();

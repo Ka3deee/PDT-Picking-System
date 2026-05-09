@@ -24,7 +24,6 @@ namespace PDTPickingSystem
                     fonts.AddFont("Montserrat-Semibold.ttf", "MontserratSemibold");
                 });
 
-            // Register WiFi Service
 #if ANDROID
             builder.Services.AddSingleton<IWifiService, WifiService_Android>();
 #else
@@ -34,7 +33,6 @@ namespace PDTPickingSystem
             // Register Audio Service for Idle Alarm
             builder.Services.AddSingleton(AudioManager.Current);
 
-            // REMOVE ENTRY UNDERLINE (Android)
             Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping(
                 "NoUnderline",
                 (handler, view) =>
@@ -53,7 +51,6 @@ namespace PDTPickingSystem
             var app = builder.Build();
 
 #if ANDROID
-            // Delete old root-level wifi.txt if it exists
             _ = DeleteOldRootWifiFileAsync();
 #endif
 
@@ -72,8 +69,6 @@ namespace PDTPickingSystem
                 string oldWifiFile = Path.Combine(dir.AbsolutePath, "wifi.txt");
                 if (File.Exists(oldWifiFile))
                     File.Delete(oldWifiFile);
-
-                // No need to create a new wifi.txt here; AppGlobal handles it in Backup/PDTPicking
             }
             catch (System.Exception ex)
             {

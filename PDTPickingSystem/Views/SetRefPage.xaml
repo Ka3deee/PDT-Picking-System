@@ -52,7 +52,7 @@
                    LineBreakMode="NoWrap"
                    Margin="0,0,0,0"/>
 
-        <!-- Input Reference Label for OnParentSet -->
+        <!-- Input Reference -->
         <Label x:Name="lblInputPickRef"
                    Text="Input Picking Reference #"
                    FontSize="14"

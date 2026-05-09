@@ -39,7 +39,6 @@ namespace PDTPickingSystem.Platforms.Android
                         return "Connected (SSID hidden)";
                     return "Not connected";
                 }
-
                 ssid = ssid.Replace("\"", "");
                 return ssid;
             }

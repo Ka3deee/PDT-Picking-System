@@ -8,7 +8,7 @@
     BackgroundColor="DarkBlue"
     Title="PDTPickingSystem">
 
-    <!-- 🔹 Custom Navbar -->
+    <!-- Custom Navbar -->
     <Shell.TitleView>
         <Grid ColumnDefinitions="Auto,10,*"
               Padding="10"
@@ -33,7 +33,7 @@
         </Grid>
     </Shell.TitleView>
 
-    <!-- 🔹 Main Page -->
+    <!-- Main Page -->
     <ShellContent
         Title=""
         ContentTemplate="{DataTemplate local:MainMenuPage}" />

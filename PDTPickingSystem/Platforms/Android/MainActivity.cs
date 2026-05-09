@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace PDTPickingSystem
 {
-    [Activity(Theme = "@style/Maui.SplashTheme",  // ✅ Already correct!
+    [Activity(Theme = "@style/Maui.SplashTheme",
               MainLauncher = true,
               LaunchMode = LaunchMode.SingleTop,
               ConfigurationChanges = ConfigChanges.ScreenSize |
@@ -20,23 +20,16 @@ namespace PDTPickingSystem
                                      ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity
     {
-        // ✅ ADD THIS METHOD - Switch from splash theme to main theme
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
-            // Switch to main app theme after splash screen
             SetTheme(Resource.Style.MainTheme);
-
             WindowCompat.SetDecorFitsSystemWindows(Window, false);
         }
-
-        // ✅ Keep existing DispatchKeyEvent method
         public override bool DispatchKeyEvent(KeyEvent e)
         {
-            if (e.Action == KeyEventActions.Up) // Key released
+            if (e.Action == KeyEventActions.Up)
             {
-                // Fully qualify MAUI Application
                 var currentPage = Microsoft.Maui.Controls.Application.Current
                                     .MainPage
                                     .Navigation
@@ -45,7 +38,6 @@ namespace PDTPickingSystem
 
                 if (currentPage != null)
                 {
-                    // --- Handles PickingPage keys ---
                     if (currentPage is PDTPickingSystem.Views.PickingPage pickingPage)
                     {
                         switch (e.KeyCode)
@@ -58,40 +50,35 @@ namespace PDTPickingSystem
                                 return true;
                         }
                     }
-
-                    // --- Handles SetRefPage keys ---
                     if (currentPage is PDTPickingSystem.Views.SetRefPage setRefPage)
                     {
                         switch (e.KeyCode)
                         {
-                            case Keycode.F1: // as Escape
+                            case Keycode.F1:
                                 MainThread.BeginInvokeOnMainThread(() => setRefPage.btnBack_Clicked(null, null));
                                 return true;
                         }
                     }
-
-                    // --- Handles CheckingPage keys ---
                     if (currentPage is PDTPickingSystem.Views.CheckingPage checkingPage)
                     {
                         switch (e.KeyCode)
                         {
-                            case Keycode.Escape: // Escape key closes page
+                            case Keycode.Escape:
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnEscapePressed());
                                 return true;
-                            case Keycode.Tab: // Tab key focuses barcode
+                            case Keycode.Tab:
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
-                            case Keycode.F1: // F1 key
+                            case Keycode.F1:
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF1Pressed());
                                 return true;
-                            case Keycode.F2: // F2 key
+                            case Keycode.F2:
                                 MainThread.BeginInvokeOnMainThread(() => checkingPage.OnF2Pressed());
                                 return true;
                         }
                     }
                 }
             }
-
             return base.DispatchKeyEvent(e);
         }
     }

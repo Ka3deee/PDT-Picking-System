@@ -9,7 +9,6 @@ namespace PDTPickingSystem.Views
 {
     public partial class SetRefPage : ContentPage
     {
-        // --- Store equivalents of VB Tag properties ---
         private string _currentRefNumber;
         private string _lblNameTag;
 
@@ -21,14 +20,10 @@ namespace PDTPickingSystem.Views
             lblRefDisplay.Text = string.IsNullOrEmpty(AppGlobal.pPickNo)
                 ? "(Reference #)"
                 : $"Reference #: {AppGlobal.pPickNo}";
-
-            // Optional: Attach TextChanged for numeric-only validation
             txtRefNo.TextChanged += TxtRefNo_TextChanged;
         }
 
-        // ------------------------------------
-        // btnApply_Click_1
-        // ------------------------------------
+        // Apply Button
         private async void btnApply_Clicked(object sender, EventArgs e)
         {
             string refNumber = txtRefNo.Text?.Trim();
@@ -60,7 +55,6 @@ namespace PDTPickingSystem.Views
             System.Diagnostics.Debug.WriteLine($"📊 _currentRefNumber: '{_currentRefNumber}'");
             System.Diagnostics.Debug.WriteLine($"📊 _lblNameTag: '{_lblNameTag}'");
 
-            // Match VB logic: check if _currentRefNumber is not empty
             if (success && !string.IsNullOrEmpty(_currentRefNumber))
             {
                 System.Diagnostics.Debug.WriteLine("✅ SUCCESS PATH");
@@ -80,9 +74,7 @@ namespace PDTPickingSystem.Views
             System.Diagnostics.Debug.WriteLine($"========================================");
         }
 
-        // ------------------------------------
-        // MAIN PROCESS (Equivalent to VB GetRefNumber)
-        // ------------------------------------
+        // Get Reference Number
         private async Task<bool> GetRefNumberAsync(string refNumber, long refLong)
         {
             System.Diagnostics.Debug.WriteLine($"🔍 GetRefNumberAsync START - refNumber: '{refNumber}', refLong: {refLong}");
@@ -103,7 +95,6 @@ namespace PDTPickingSystem.Views
             {
                 bool updateUser = false;
 
-                // Check if reference exists in tblOptions
                 const string checkQuery = "SELECT * FROM tblOptions WHERE SetRef = @Ref";
 
                 using (var cmd = new SqlCommand(checkQuery, conn))
@@ -153,10 +144,6 @@ namespace PDTPickingSystem.Views
                     await conn.CloseAsync();
             }
         }
-
-        // ------------------------------------
-        // FOCUS ENTRY AGAIN AFTER ERROR
-        // ------------------------------------
         private void MoveCursorToEntry()
         {
             MainThread.BeginInvokeOnMainThread(() =>
@@ -167,43 +154,29 @@ namespace PDTPickingSystem.Views
             });
         }
 
-        // ------------------------------------
-        // CANCEL BUTTON CLICK (Back)
-        // ------------------------------------
+        // Cancel Button
         public async void btnBack_Clicked(object sender, EventArgs e)
         {
             await Shell.Current.GoToAsync("..");
         }
 
-        // ------------------------------------
-        // ENTER KEY PRESSED ON ENTRY
-        // ------------------------------------
         private void TxtRefNo_Completed(object sender, EventArgs e)
         {
             btnApply_Clicked(btnApply, e);
         }
 
-        // ------------------------------------
-        // PARENT CHANGED LOGIC (from VB Label2_ParentChanged)
-        // ------------------------------------
         protected override void OnParentSet()
         {
             base.OnParentSet();
             if (lblInputPickRef != null)
             {
-                // Add logic when lblInputPickRef is added to a parent
             }
         }
-
-        // ------------------------------------
-        // TEXTCHANGED HANDLER (optional numeric validation)
-        // ------------------------------------
         private void TxtRefNo_TextChanged(object sender, TextChangedEventArgs e)
         {
             var entry = sender as Entry;
             if (entry == null) return;
 
-            // Allow only numeric input
             if (!string.IsNullOrEmpty(e.NewTextValue))
             {
                 string numeric = "";

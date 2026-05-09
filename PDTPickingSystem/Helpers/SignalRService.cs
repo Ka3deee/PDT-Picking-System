@@ -10,10 +10,9 @@ namespace PDTPickingSystem.Helpers
         private static string HubUrl =>
             $"http://{AppGlobal.sServer}:5000/notificationHub";
 
-        // Normalize key — both PDT and desktop must use same format
+        // Both PDT and Desktop should use the same format or else this won't work.
         private static string UserKey =>
             AppGlobal.sUserName.Trim().ToUpper();
-
         public static async Task ConnectAsync(string eeNumber)
         {
             try
@@ -35,13 +34,8 @@ namespace PDTPickingSystem.Helpers
                 });
 
                 await _connection.StartAsync();
-
-                // Register using normalized full name (LNAME, FNAME MI)
                 await _connection.InvokeAsync("RegisterUser", UserKey);
-
                 Debug.WriteLine($"[SignalR] Connected and registered as: '{UserKey}'");
-
-                // Confirm registration key on device
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     await Shell.Current.DisplayAlert(
@@ -62,7 +56,6 @@ namespace PDTPickingSystem.Helpers
                 });
             }
         }
-
         public static async Task DisconnectAsync()
         {
             if (_connection != null)

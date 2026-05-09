@@ -18,9 +18,6 @@ namespace PDTPickingSystem.Views
 {
     public partial class CheckingPage : ContentPage
     {
-        // ================== PRIVATE FIELDS ==================
-
-        // Focus tracking
         private Entry _focusedEntry;
 
         // SKU and stocker tracking
@@ -70,51 +67,49 @@ namespace PDTPickingSystem.Views
         private bool _isShowingAlert  = false;
         private bool _isViewingItems  = false;
 
-        // ── Auto-assignment: true after the checker confirms the very first request.
-        //    All subsequent Transfer/SKU requests are issued silently (no modal).
+        // Auto-assignment: after the checker confirms the very first request
         private bool _hasEverRequested = false;
 
-        // ================== IDLE MONITORING FIELDS ==================
-
-        /// <summary>Timer that checks for idle state every second</summary>
+        // Idle Monitoring fields
+        // Timer that checks for idle state every second
         private IDispatcherTimer _idleCheckTimer;
 
-        /// <summary>Last time user interacted with the app</summary>
+        // Last time user interacted with the app
         private DateTime _lastActivityTime;
 
-        /// <summary>Idle timeout duration (1 minute)</summary>
+        // Idle timeout duration (1 minute)
         private readonly TimeSpan _idleTimeout = TimeSpan.FromMinutes(1);
 
-        /// <summary>Warning timeout (50 seconds – 10 seconds before alarm)</summary>
+        // Warning timeout (50 seconds – 10 seconds before alarm)
         private readonly TimeSpan _warningTimeout = TimeSpan.FromSeconds(50);
 
-        /// <summary>Flag to prevent multiple alert popups</summary>
+        // Flag to prevent multiple alert popups
         private bool _idleAlertShown = false;
 
-        /// <summary>Flag to prevent multiple warning popups</summary>
+        // Flag to prevent multiple warning popups
         private bool _warningAlertShown = false;
 
-        /// <summary>Audio player for alarm sound</summary>
+        // Audio player for alarm sound
         private IAudioPlayer _alarmPlayer;
 
-        /// <summary>Flag to track if checking is currently active</summary>
+        // Flag to track if checking is currently active
         private bool _isCheckingActive = false;
 
-        // ================== 🚚 LOADING ANIMATION FIELDS ==================
+        // Loading Animation
 
-        /// <summary>Timer for truck animation</summary>
+        // Timer for truck animation
         private IDispatcherTimer _truckAnimationTimer;
 
-        /// <summary>Current truck position (0 to 240)</summary>
+        // Current truck position
         private double _truckPosition = 0;
 
-        /// <summary>Timer for loading dots animation</summary>
+        // Timer for loading dots animation
         private IDispatcherTimer _dotsAnimationTimer;
 
-        /// <summary>Current dot animation step (0-3)</summary>
+        // Current dot animation step
         private int _dotAnimationStep = 0;
 
-        // ================== CONSTRUCTOR ==================
+        // Constructor
 
         public CheckingPage(MainMenuPage mainMenu)
         {
@@ -142,17 +137,14 @@ namespace PDTPickingSystem.Views
             txtEachVal    = string.Empty;
             scanCount     = 0;
 
-            // Bind CollectionViews
             lvSKU.ItemsSource  = SKUList;
             lvSKU2.ItemsSource = SKUList2;
 
-            // ===== Entry Completed events =====
             txtBarcode.Completed += Entry_Completed;
             txtCase.Completed    += Entry_Completed;
             txtEach.Completed    += Entry_Completed;
             txtStocker.Completed += TxtStocker_Completed;
 
-            // ===== TextChanged events =====
             txtBarcode.TextChanged   += Entry_TextChanged;
             txtCase.TextChanged      += Entry_TextChanged;
             txtEach.TextChanged      += Entry_TextChanged;
@@ -163,7 +155,6 @@ namespace PDTPickingSystem.Views
             txtBum.TextChanged       += TxtBum_TextChanged;
             txtDone.TextChanged      += TxtDone_TextChanged;
 
-            // ===== Focus events =====
             txtBarcode.Unfocused += TxtEntry_Unfocused;
             txtStocker.Unfocused += TxtEntry_Unfocused;
             txtCase.Unfocused    += TxtCaseEach_Unfocused;
@@ -174,7 +165,6 @@ namespace PDTPickingSystem.Views
             txtEach.Focused     += TxtBarcodeQtyFocus_Focused;
             txtCase.Focused     += TxtBarcodeQtyFocus_Focused;
 
-            // ===== Other entry focus (force back to barcode) =====
             txtpSKU.Focused    += TxtOther_Focused;
             txtpDescr.Focused  += TxtOther_Focused;
             txtpSlot.Focused   += TxtOther_Focused;
@@ -184,7 +174,6 @@ namespace PDTPickingSystem.Views
             txtDone.Focused    += TxtOther_Focused;
             txtDeptStore.Focused += TxtOther_Focused;
 
-            // ===== Button events =====
             btnAccept.Clicked      += BtnAccept_Clicked;
             btnFinished.Clicked    += BtnFinished_Clicked;
             btnViewItems.Clicked   += BtnViewItems_Clicked;
@@ -194,7 +183,6 @@ namespace PDTPickingSystem.Views
             btnConfirm.Clicked     += BtnConfirm_Clicked;
             btnCancel.Clicked      += BtnCancel_Clicked;
 
-            // ===== Loaded events =====
             lblBarcode.Loaded      += LblBarcode_Loaded;
             lblSKU.Loaded          += LblSKU_Loaded;
             lblCase.Loaded         += LblCase_Loaded;
@@ -209,24 +197,17 @@ namespace PDTPickingSystem.Views
             lblConfirmTitle.Loaded += LblConfirmTitle_Loaded;
             lblInput.Loaded        += LblInput_Loaded;
 
-            // ===== CollectionView selection =====
             lvSKU.SelectionChanged += LvSKU_SelectionChanged;
 
-            // Page events
             Appearing    += CheckingPage_Appearing;
             Disappearing += CheckingPage_Disappearing;
 
-            // Initialize idle monitoring
             _InitializeIdleMonitoring();
-
-            // Initialize loading animations
             _InitializeLoadingAnimations();
-
-            // Attach activity tracking to all interactive controls
             _AttachActivityTracking();
         }
 
-        // ================== IDLE MONITORING INITIALIZATION ==================
+        // Idle Monitoring Initialization
 
         private void _InitializeIdleMonitoring()
         {
@@ -235,12 +216,11 @@ namespace PDTPickingSystem.Views
             _idleCheckTimer          = Dispatcher.CreateTimer();
             _idleCheckTimer.Interval = TimeSpan.FromSeconds(1);
             _idleCheckTimer.Tick    += IdleCheckTimer_Tick;
-            // Don't start timer yet – starts when checking begins
+            // Timer starts when checking begins
         }
 
         private void _AttachActivityTracking()
         {
-            // Entries
             txtBarcode.TextChanged += OnUserActivity;
             txtBarcode.Focused     += OnUserActivity;
             txtCase.TextChanged    += OnUserActivity;
@@ -250,7 +230,6 @@ namespace PDTPickingSystem.Views
             txtStocker.TextChanged += OnUserActivity;
             txtStocker.Focused     += OnUserActivity;
 
-            // Buttons
             btnAccept.Clicked      += OnUserActivity;
             btnFinished.Clicked    += OnUserActivity;
             btnViewItems.Clicked   += OnUserActivity;
@@ -260,12 +239,10 @@ namespace PDTPickingSystem.Views
             btnConfirm.Clicked     += OnUserActivity;
             btnCancel.Clicked      += OnUserActivity;
 
-            // CollectionView
             lvSKU.SelectionChanged += OnUserActivity;
         }
 
-        // ================== ACTIVITY TRACKING ==================
-
+        // Activity Tracking
         private void OnUserActivity(object sender, EventArgs e) => _ResetIdleTimer();
 
         private void _ResetIdleTimer()
@@ -294,7 +271,7 @@ namespace PDTPickingSystem.Views
             _StopAlarm();
         }
 
-        // ================== IDLE CHECK TIMER ==================
+        // Idle Check Timer
 
         private async void IdleCheckTimer_Tick(object sender, EventArgs e)
         {
@@ -316,8 +293,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== ALERT & ALARM FUNCTIONS ==================
-
+        // Alert and Alarm
         private async Task _ShowWarningAlert()
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
@@ -391,7 +367,6 @@ namespace PDTPickingSystem.Views
                 System.Diagnostics.Debug.WriteLine($"Stop alarm failed: {ex.Message}");
             }
         }
-
         private async void _PlaySystemBeep()
         {
             for (int i = 0; i < 5; i++)
@@ -413,14 +388,12 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== 🚚 LOADING ANIMATION METHODS ==================
-
+        // Loading Animations
         private void _InitializeLoadingAnimations()
         {
             _truckAnimationTimer          = Dispatcher.CreateTimer();
             _truckAnimationTimer.Interval = TimeSpan.FromMilliseconds(30);
             _truckAnimationTimer.Tick    += TruckAnimationTimer_Tick;
-
             _dotsAnimationTimer          = Dispatcher.CreateTimer();
             _dotsAnimationTimer.Interval = TimeSpan.FromMilliseconds(400);
             _dotsAnimationTimer.Tick    += DotsAnimationTimer_Tick;
@@ -468,23 +441,18 @@ namespace PDTPickingSystem.Views
             });
         }
 
-        // ================== PAGE LIFECYCLE ==================
+        // Page Lifecycle
 
         private async void CheckingPage_Appearing(object sender, EventArgs e)
         {
             txtBarcode.Text = string.Empty;
             txtEachVal      = string.Empty;
-
             pnlItems.IsVisible  = false;
             pnlItems2.IsVisible = false;
-
             isBarcode             = true;
             btnFinished.IsVisible = false;
-
             await _GetSetPickNoAsync();
-
             scanCount = 0;
-
             await Task.Delay(300);
             MainThread.BeginInvokeOnMainThread(() => txtBarcode.Focus());
         }
@@ -494,13 +462,10 @@ namespace PDTPickingSystem.Views
             tmrRequest?.Stop();
             _StopIdleMonitoring();
             _HideLoading();
-
-            // Reset the first-request flag so a fresh page visit starts clean
             _hasEverRequested = false;
         }
 
-        // ================== FOCUS MANAGEMENT ==================
-
+        // Focus Handlers
         private void TxtEntry_Unfocused(object sender, FocusEventArgs e)
         {
             if (sender is Entry entry)
@@ -536,11 +501,9 @@ namespace PDTPickingSystem.Views
                 }
             }
         }
-
         private void TxtOther_Focused(object sender, FocusEventArgs e) => _focusedEntry?.Focus();
 
-        // ================== ENTRY VALIDATION & COMPLETION ==================
-
+        // Entry Handlers
         private async void Entry_Completed(object sender, EventArgs e)
         {
             if (_isShowingAlert) return;
@@ -627,16 +590,14 @@ namespace PDTPickingSystem.Views
                 _ = ConfirmStockerAsync();
         }
 
-        // ================== TEXT CHANGED HANDLERS ==================
-
+        // Text Change Handlers
         private void TxtDeptStore_TextChanged(object sender, TextChangedEventArgs e) { }
         private void TxtDesc_TextChanged(object sender, TextChangedEventArgs e) { }
         private void TxtSKU_TextChanged(object sender, TextChangedEventArgs e) { }
         private void TxtBum_TextChanged(object sender, TextChangedEventArgs e) { }
         private void TxtDone_TextChanged(object sender, TextChangedEventArgs e) { }
 
-        // ================== BUTTON CLICK HANDLERS ==================
-
+        // Button Click Handlers
         private async void BtnAccept_Clicked(object sender, EventArgs e)
         {
             if (_isAccepting) return;
@@ -663,10 +624,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Finishes the current Transfer/SKU, commits to DB, then automatically
-        /// requests the next one without prompting the checker again.
-        /// </summary>
+        // Finishes the current Transfer/SKU, commits to DB, then automatically requests again
         private async void BtnFinished_Clicked(object sender, EventArgs e)
         {
             if (_isFinishing) return;
@@ -674,7 +632,6 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                // Pause idle monitoring during the finish flow
                 _StopIdleMonitoring();
 
                 bool answer = await DisplayAlert("Done Checking?", "Done Checking? Please Verify.", "Yes", "No");
@@ -694,8 +651,6 @@ namespace PDTPickingSystem.Views
                 try
                 {
                     using var sqlCmd = conn.CreateCommand();
-
-                    // Mark items with zero checked quantity
                     foreach (var skuItem in SKUList)
                     {
                         if (string.IsNullOrEmpty(skuItem.ChkQty) ||
@@ -710,8 +665,6 @@ namespace PDTPickingSystem.Views
                             sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                             await sqlCmd.ExecuteNonQueryAsync();
                         }
-
-                        // Update items with multiple slots
                         if (!string.IsNullOrEmpty(skuItem.Slot) && skuItem.Slot.Split(',').Length > 1)
                         {
                             sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickDtl SET " +
@@ -724,14 +677,11 @@ namespace PDTPickingSystem.Views
                             await sqlCmd.ExecuteNonQueryAsync();
                         }
                     }
-
-                    // Update PickQty table
                     sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty SET isChecked=1 WHERE id_sumhdr=@ID_SumHdr";
                     sqlCmd.Parameters.Clear();
                     sqlCmd.Parameters.AddWithValue("@ID_SumHdr", AppGlobal.ID_SumHdr);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // Update PickHdr table
                     string updateChkStart = scanCount < 1 ? "chkStart=@chkStart," : "";
                     sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickHdr SET " +
                                          $"{updateChkStart}isUpdate=1, chkEnd=@chkEnd, chkDateDone=@chkDateDone " +
@@ -744,16 +694,13 @@ namespace PDTPickingSystem.Views
                     sqlCmd.Parameters.AddWithValue("@ID_SumHdr",   AppGlobal.ID_SumHdr);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // Clear the user's active session on the server
                     sqlCmd.CommandText = "UPDATE tblUsers SET ID_SumHdr=0 WHERE ID=@UserID";
                     sqlCmd.Parameters.Clear();
                     sqlCmd.Parameters.AddWithValue("@UserID", AppGlobal.ID_User);
                     await sqlCmd.ExecuteNonQueryAsync();
 
-                    // ── Reset all local session state ready for the next Transfer/SKU ──
                     _ResetSessionState();
 
-                    // ── Auto-request the next Transfer/SKU (no modal shown) ──
                     await _GetSetPickNoAsync(autoRequest: true);
                 }
                 catch (SqlException ex)
@@ -767,7 +714,6 @@ namespace PDTPickingSystem.Views
                 _isFinishing = false;
             }
         }
-
         private async void BtnViewItems_Clicked(object sender, EventArgs e)
         {
             if (_isViewingItems) return;
@@ -814,7 +760,6 @@ namespace PDTPickingSystem.Views
                 _isViewingItems                   = false;
             }
         }
-
         private void BtnConso_Clicked(object sender, EventArgs e)
         {
             pnlItems2.IsVisible = true;
@@ -826,7 +771,6 @@ namespace PDTPickingSystem.Views
             pnlItems.IsVisible = false;
             txtBarcode.Focus();
         }
-
         private void BtnCloseItems2_Clicked(object sender, EventArgs e)
         {
             pnlItems2.IsVisible = false;
@@ -843,7 +787,6 @@ namespace PDTPickingSystem.Views
                 await _AcceptItemAsync();
             }
         }
-
         private void BtnCancel_Clicked(object sender, EventArgs e)
         {
             pnlNavigate.IsVisible = true;
@@ -852,8 +795,7 @@ namespace PDTPickingSystem.Views
             txtBarcode.Focus();
         }
 
-        // ================== COLLECTION VIEW SELECTION ==================
-
+        // Collection View Handlers
         private async void LvSKU_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (lvSKU.SelectedItem is SKUItem selectedItem)
@@ -871,8 +813,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        // ================== LOADED EVENT HANDLERS ==================
-
+        // Loaded Event Handlers
         private void LblBarcode_Loaded(object sender, EventArgs e) { }
         private void LblSKU_Loaded(object sender, EventArgs e) { }
         private void LblCase_Loaded(object sender, EventArgs e) { }
@@ -887,8 +828,7 @@ namespace PDTPickingSystem.Views
         private void LblConfirmTitle_Loaded(object sender, EventArgs e) { }
         private void LblInput_Loaded(object sender, EventArgs e) { }
 
-        // ================== MODAL DIALOG ==================
-
+        //Modal Dialog
         private TaskCompletionSource<bool> _modalDialogResult;
 
         private void ModalYesButton_Clicked(object sender, EventArgs e)
@@ -903,10 +843,6 @@ namespace PDTPickingSystem.Views
             customModalOverlay.IsVisible = false;
         }
 
-        /// <summary>
-        /// Show custom modal dialog (truly modal – blocks all interaction).
-        /// Only used for the very first server request.
-        /// </summary>
         private async Task<bool> ShowCustomModalDialog(
             string title, string message,
             string yesText = "Yes", string noText = "No")
@@ -925,15 +861,10 @@ namespace PDTPickingSystem.Views
             return await _modalDialogResult.Task;
         }
 
-        // ================== CORE BUSINESS LOGIC ==================
-
-        /// <summary>
-        /// Resets all in-memory session state so the page is ready to receive a
-        /// brand-new Transfer/SKU assignment without navigating away.
-        /// </summary>
+        // Business Logic Methods
+        // Resets all in-memory session so the page is ready to receive brand-new Transfer/SKU
         private void _ResetSessionState()
         {
-            // In-memory data
             AppGlobal.ID_SumHdr = 0;
             sSKU      = -1;
             isStarted = false;
@@ -941,19 +872,15 @@ namespace PDTPickingSystem.Views
             ID_Stocker = 0;
             iRetry     = 0;
 
-            // Request-guard flags
             _requestAlreadyShown = false;
             _requestFailedShown  = false;
 
-            // Idle-monitor flags (monitoring itself was stopped by _StopIdleMonitoring)
             _idleAlertShown    = false;
             _warningAlertShown = false;
 
-            // Clear lists
             SKUList.Clear();
             SKUList2.Clear();
 
-            // Clear UI on the main thread
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 txtDone.Text      = "";
@@ -968,25 +895,11 @@ namespace PDTPickingSystem.Views
                 lblTrf.Text       = "";
                 lblPicker.Text    = "";
                 btnFinished.IsVisible = false;
-
-                // Re-hide all overlay panels
                 pnlItems.IsVisible   = false;
                 pnlItems2.IsVisible  = false;
                 pnlConfirm.IsVisible = false;
             });
         }
-
-        /// <summary>
-        /// Entry point for loading / requesting a checking session.
-        /// <para>
-        /// <paramref name="autoRequest"/> = <c>false</c> (default) →
-        ///   first-time path: shows "Request from server?" modal.<br/>
-        /// <paramref name="autoRequest"/> = <c>true</c> →
-        ///   continuation path: silently issues the next request with no modal,
-        ///   provided the checker has already confirmed at least once
-        ///   (<see cref="_hasEverRequested"/> is <c>true</c>).
-        /// </para>
-        /// </summary>
         private async Task _GetSetPickNoAsync(bool autoRequest = false)
         {
             btnFinished.IsVisible = false;
@@ -1002,7 +915,6 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                // ── Read the user's current session from the DB ──
                 using (var sqlCmd = new SqlCommand(
                     "SELECT a.ID_SumHdr, a.PickRef FROM tblUsers a WHERE a.ID=@UserID", conn))
                 {
@@ -1018,8 +930,6 @@ namespace PDTPickingSystem.Views
                             sUserPNo = reader["PickRef"].ToString().Trim();
                     }
                 }
-
-                // ── If the server already assigned a session, load it directly ──
                 if (AppGlobal.ID_SumHdr != 0 && sUserPNo == AppGlobal.pPickNo)
                 {
                     System.Diagnostics.Debug.WriteLine("✅ Found existing checking session – loading data...");
@@ -1039,11 +949,6 @@ namespace PDTPickingSystem.Views
 
                 try
                 {
-                    // ════════════════════════════════════════════════════════
-                    // AUTO-REQUEST PATH
-                    // Silently issue the next request – no modal, no prompt.
-                    // Used after BtnFinished completes a Transfer/SKU.
-                    // ════════════════════════════════════════════════════════
                     if (autoRequest && _hasEverRequested)
                     {
                         System.Diagnostics.Debug.WriteLine("🔄 Auto-requesting next Transfer/SKU (Checking)...");
@@ -1060,13 +965,8 @@ namespace PDTPickingSystem.Views
                         await autoCmd.ExecuteNonQueryAsync();
 
                         tmrRequest.Start();
-                        return; // timer will call _AddSKUtoListAsync when assigned
+                        return;
                     }
-
-                    // ════════════════════════════════════════════════════════
-                    // FIRST-TIME REQUEST PATH
-                    // Show the "Request from server?" modal once.
-                    // ════════════════════════════════════════════════════════
                     bool answer = await ShowCustomModalDialog(
                         "Requesting...",
                         "Request from server?",
@@ -1074,8 +974,6 @@ namespace PDTPickingSystem.Views
 
                     if (answer)
                     {
-                        // Mark that the checker has now given at least one explicit confirmation.
-                        // All future requests in this page session will be automatic.
                         _hasEverRequested = true;
 
                         _ShowLoading("Requesting...");
@@ -1093,7 +991,6 @@ namespace PDTPickingSystem.Views
                     }
                     else
                     {
-                        // User explicitly declined – return to Main Menu
                         await Navigation.PopModalAsync();
                     }
                 }
@@ -1108,9 +1005,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Load SKU list from database
-        /// </summary>
+        // Load SKU list from database
         private async Task _AddSKUtoListAsync()
         {
             MainThread.BeginInvokeOnMainThread(() => loadingText.Text = "Loading checking data...");
@@ -1125,7 +1020,6 @@ namespace PDTPickingSystem.Views
 
             try
             {
-                // Load PickHdr
                 using (var sqlCmd = new SqlCommand(
                     $"SELECT * FROM tbl{AppGlobal.pPickNo}PickHdr WHERE ID=@SumHdr", conn))
                 {
@@ -1141,7 +1035,6 @@ namespace PDTPickingSystem.Views
 
                         lblPicker.Text = " Picker : " + await AppGlobal._GetUserName(reader["User_ID"].ToString());
 
-                        // Do not allow not-yet-picked transfers
                         if (reader["TimeEnd"].ToString().Trim() == "0" ||
                             reader["DateDone"].ToString().Trim() == "")
                         {
@@ -1155,7 +1048,6 @@ namespace PDTPickingSystem.Views
                     }
                 }
 
-                // Load PickQty data
                 var dsData  = new DataSet();
                 string cmdData = $@"
                     SELECT a.*, b.ToLoc, b.TranNo
@@ -1215,8 +1107,6 @@ namespace PDTPickingSystem.Views
                 dsData.Tables.Clear();
                 sSKU = -1;
                 _CountPicked();
-
-                // Start idle monitoring – checking has begun
                 _StartIdleMonitoring();
             }
             catch (Exception ex)
@@ -1257,7 +1147,6 @@ namespace PDTPickingSystem.Views
 
             lvCnt++;
         }
-
         private void _CountPicked()
         {
             int iPicked = SKUList.Count(item => !string.IsNullOrWhiteSpace(item.ChkQty));
@@ -1387,7 +1276,6 @@ namespace PDTPickingSystem.Views
                 if (sSKU < 0 || sSKU >= SKUList.Count) return;
                 var lvI = SKUList[sSKU];
 
-                // Update PickHdr
                 if (!isStarted)
                 {
                     isStarted = true;
@@ -1501,7 +1389,6 @@ namespace PDTPickingSystem.Views
                     dsData.Tables.Clear();
                 }
 
-                // Update PickQty
                 sqlCmd.CommandText = $"UPDATE tbl{AppGlobal.pPickNo}PickQty SET " +
                     "isChecked=1, chkQty=@chkQty WHERE ID=@ID";
                 sqlCmd.Parameters.Clear();
@@ -1570,10 +1457,7 @@ namespace PDTPickingSystem.Views
             }
         }
 
-        /// <summary>
-        /// Check if UPC is found in SKU list.
-        /// Returns: true = found and loaded, false = not found, null = already checked.
-        /// </summary>
+        // Check if UPC is found in the SKU list
         private async Task<bool?> _isUPCFound(string upc)
         {
             foreach (var item in SKUList)
@@ -1648,7 +1532,6 @@ namespace PDTPickingSystem.Views
                 eachValue = qty % cse;
             }
 
-            // Temporarily unhook TextChanged events to avoid validation interference
             txtCase.TextChanged -= Entry_TextChanged;
             txtEach.TextChanged -= Entry_TextChanged;
 
@@ -1699,8 +1582,6 @@ namespace PDTPickingSystem.Views
         private double ParseEntry(Entry entry)
             => double.TryParse(entry.Text, out double val) ? val : 0;
 
-        // ================== HARDWARE KEY HANDLERS ==================
-
         public void OnF1Pressed()
         {
             _ResetIdleTimer();
@@ -1729,7 +1610,6 @@ namespace PDTPickingSystem.Views
                 });
             }
         }
-
         public void OnEscapePressed()
         {
             _StopIdleMonitoring();
@@ -1740,7 +1620,7 @@ namespace PDTPickingSystem.Views
                 MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
         }
 
-        // ================== DATA CLASS ==================
+        // Data Class for SKU Items
 
         public class SKUItem : INotifyPropertyChanged
         {
